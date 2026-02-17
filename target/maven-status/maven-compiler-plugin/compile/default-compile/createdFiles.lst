@@ -1,1 +1,10 @@
-co\unicauca\medical\appointment\scheduling\main\Main.class
+co\unicauca\piedrazul\domain\acces\IUserRepository.class
+co\unicauca\piedrazul\presentation\view\RegisterFrame.class
+co\unicauca\piedrazul\presentation\controllers\UserController.class
+co\unicauca\piedrazul\domain\entities\User.class
+co\unicauca\piedrazul\infrastructure\persistence\SqliteConnection.class
+co\unicauca\piedrazul\main\Main.class
+co\unicauca\piedrazul\domain\acces\Test1.class
+co\unicauca\piedrazul\presentation\view\LoginFrame.class
+com\piedrazul\domain\services\UserService.class
+co\unicauca\piedrazul\domain\entities\Role.class
