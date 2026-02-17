@@ -1,4 +1,4 @@
-package co.unicauca.medical.appointment.scheduling.main;
+package co.unicauca.piedrazul.presentation;
 
 /**
  * @author Valentina Añasco 
