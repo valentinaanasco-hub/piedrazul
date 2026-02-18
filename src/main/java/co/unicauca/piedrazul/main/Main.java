@@ -1,5 +1,4 @@
 package co.unicauca.piedrazul.main;
-
 /**
  * @author Valentina Añasco 
  * @author Camila Dorado
@@ -7,9 +6,18 @@ package co.unicauca.piedrazul.main;
  * @author Ginner Ortega
  * @author Santiago Solarte 
  */
-public class Main {
+import co.unicauca.piedrazul.infrastructure.persistence.SqliteConnection;
+import java.sql.Connection;
+import co.unicauca.piedrazul.presentation.view.LoginFrame;
+        import co.unicauca.piedrazul.presentation.view.RegisterFrame;
 
+public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+
+      SqliteConnection.initializeDatabase();
+
+    java.awt.EventQueue.invokeLater(() -> new LoginFrame().setVisible(true));
+
+ 
     }
 }
