@@ -521,9 +521,6 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel36">
       <Properties>
-        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="2" name="C:\Users\compu\OneDrive\Im&#xe1;genes\Capturas de pantalla\Captura de pantalla 2026-02-17 220511.png"/>
-        </Property>
         <Property name="name" type="java.lang.String" value="lblLogoRegCita" noResource="true"/>
       </Properties>
     </Component>

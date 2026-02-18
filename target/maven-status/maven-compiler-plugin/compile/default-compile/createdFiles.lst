@@ -1,4 +1,5 @@
 co\unicauca\piedrazul\infrastructure\persistence\SqliteUserRepository.class
+co\unicauca\piedrazul\presentation\view\MenuFrame.class
 co\unicauca\piedrazul\domain\access\IUserRepository.class
 co\unicauca\piedrazul\presentation\view\RegisterFrame.class
 co\unicauca\piedrazul\presentation\controllers\UserController.class
