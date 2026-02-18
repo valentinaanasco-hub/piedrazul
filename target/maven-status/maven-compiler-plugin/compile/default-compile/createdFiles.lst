@@ -1,11 +1,13 @@
 co\unicauca\piedrazul\infrastructure\persistence\SqliteUserRepository.class
-co\unicauca\piedrazul\presentation\view\MenuFrame.class
 co\unicauca\piedrazul\domain\access\IUserRepository.class
-co\unicauca\piedrazul\presentation\view\RegisterFrame.class
 co\unicauca\piedrazul\presentation\controllers\UserController.class
+co\unicauca\piedrazul\presentation\view\LoginFrame.class
+co\unicauca\piedrazul\domain\entities\Role.class
+co\unicauca\piedrazul\presentation\view\RegisterFrame$1.class
+co\unicauca\piedrazul\presentation\view\MenuFrame.class
+co\unicauca\piedrazul\presentation\view\RegisterFrame.class
 co\unicauca\piedrazul\domain\entities\User.class
 co\unicauca\piedrazul\infrastructure\persistence\SqliteConnection.class
 co\unicauca\piedrazul\main\Main.class
 co\unicauca\piedrazul\domain\services\UserService.class
-co\unicauca\piedrazul\presentation\view\LoginFrame.class
-co\unicauca\piedrazul\domain\entities\Role.class
+co\unicauca\piedrazul\presentation\view\LoginFrame$1.class

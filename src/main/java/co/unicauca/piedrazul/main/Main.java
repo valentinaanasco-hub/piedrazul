@@ -5,6 +5,7 @@ import co.unicauca.piedrazul.infrastructure.persistence.SqliteUserRepository;
 import co.unicauca.piedrazul.domain.access.IUserRepository;
 import co.unicauca.piedrazul.domain.services.UserService;
 import co.unicauca.piedrazul.presentation.view.LoginFrame;
+import co.unicauca.piedrazul.presentation.view.RegisterFrame;
 
 /**
  * @author Valentina Añasco 
@@ -26,8 +27,9 @@ public class Main {
         // 3. Lanzar la interfaz gráfica (Login)
         java.awt.EventQueue.invokeLater(() -> {
             // Pasamos el servicio al frame para que el botón de inicio funcione
-            LoginFrame loginForm = new LoginFrame(userService);
-            loginForm.setVisible(true);
+            RegisterFrame registerForm = new RegisterFrame(userService);
+            registerForm.setLocationRelativeTo(null);
+            registerForm.setVisible(true);
         });
     }
 }

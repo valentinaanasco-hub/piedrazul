@@ -1,10 +1,9 @@
 package co.unicauca.piedrazul.domain.entities;
 
 /**
- * Entidad del dominio User
- * No depende de infraestructura.
- * Representa el concepto de Usuario dentro del sistema.
- * 
+ * Entidad del dominio User No depende de infraestructura. Representa el
+ * concepto de Usuario dentro del sistema.
+ *
  * @author Santiago Solarte
  */
 public class User {
@@ -19,6 +18,8 @@ public class User {
     private String password;
     private String state;           // ACTIVE, INACTIVE
     private int roleId;
+    private String email;
+    private String birthDate;
 
     // Constructor vacío (necesario para mapeo desde repositorio)
     public User() {
@@ -26,9 +27,9 @@ public class User {
 
     // Constructor completo (útil para creación desde Service)
     public User(int id, String userTypeId, String firstName, String middleName,
-                String firstSurname, String lastName,
-                String username, String password,
-                String state, int roleId) {
+            String firstSurname, String lastName,
+            String username, String password,
+            String state, int roleId, String email, String birthDate) {
 
         this.id = id;
         this.userTypeId = userTypeId;
@@ -40,10 +41,11 @@ public class User {
         this.password = password;
         this.state = state;
         this.roleId = roleId;
+        this.email = email;
+        this.birthDate = birthDate;
     }
 
     // ===== Getters y Setters =====
-
     public int getId() {
         return id;
     }
@@ -123,6 +125,22 @@ public class User {
 
     public void setRoleId(int roleId) {
         this.roleId = roleId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(String birthDate) {
+        this.birthDate = birthDate;
     }
 
     // Método útil en dominio

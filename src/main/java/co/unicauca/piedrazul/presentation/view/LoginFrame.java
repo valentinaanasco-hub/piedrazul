@@ -7,12 +7,14 @@ import co.unicauca.piedrazul.domain.services.UserService;
  * @author Camila Dorado
  */
 public class LoginFrame extends javax.swing.JFrame {
+
     private final UserService userService;
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(LoginFrame.class.getName());
 
     /**
      * Creates new form LoginFrame
+     *
      * @param userService
      */
     public LoginFrame(UserService userService) {
@@ -40,7 +42,7 @@ public class LoginFrame extends javax.swing.JFrame {
         txtNombreUsu = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
         btnIniciarSesion = new javax.swing.JButton();
-        jLabel10 = new javax.swing.JLabel();
+        lblRegistrateLogin = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
         txtContrasena = new javax.swing.JPasswordField();
         jLabel12 = new javax.swing.JLabel();
@@ -97,10 +99,15 @@ public class LoginFrame extends javax.swing.JFrame {
         btnIniciarSesion.setName("btnIniciarSesion"); // NOI18N
         btnIniciarSesion.addActionListener(this::btnIniciarSesionActionPerformed);
 
-        jLabel10.setForeground(new java.awt.Color(51, 51, 255));
-        jLabel10.setText("Regístrate");
-        jLabel10.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        jLabel10.setName("lblRegistrateLogin"); // NOI18N
+        lblRegistrateLogin.setForeground(new java.awt.Color(51, 51, 255));
+        lblRegistrateLogin.setText("Regístrate");
+        lblRegistrateLogin.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        lblRegistrateLogin.setName("lblRegistrateLogin"); // NOI18N
+        lblRegistrateLogin.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                lblRegistrateLoginMouseClicked(evt);
+            }
+        });
 
         jLabel11.setForeground(new java.awt.Color(102, 102, 102));
         jLabel11.setText("¿No tienes cuenta?");
@@ -149,7 +156,7 @@ public class LoginFrame extends javax.swing.JFrame {
                         .addGap(90, 90, 90)
                         .addComponent(jLabel11)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel10)))
+                        .addComponent(lblRegistrateLogin)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addGap(0, 0, Short.MAX_VALUE)
@@ -188,7 +195,7 @@ public class LoginFrame extends javax.swing.JFrame {
                 .addComponent(btnIniciarSesion, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel10)
+                    .addComponent(lblRegistrateLogin)
                     .addComponent(jLabel11))
                 .addContainerGap(25, Short.MAX_VALUE))
         );
@@ -251,10 +258,10 @@ public class LoginFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnIniciarSesionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciarSesionActionPerformed
-       String username = txtNombreUsu.getText().trim();
-       String password = new String(txtContrasena.getPassword());
-       
-       // Validaciones básicas de UI
+        String username = txtNombreUsu.getText().trim();
+        String password = new String(txtContrasena.getPassword());
+
+        // Validaciones básicas de UI
         if (username.isEmpty() || password.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this, "Por favor llene todos los campos.");
             return;
@@ -269,16 +276,22 @@ public class LoginFrame extends javax.swing.JFrame {
             // Aquí abrirías el siguiente Frame, por ejemplo:
             MenuFrame main = new MenuFrame(user);
             main.setVisible(true);
-            this.dispose(); 
+            this.dispose();
         } else {
             javax.swing.JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnIniciarSesionActionPerformed
 
+    private void lblRegistrateLoginMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblRegistrateLoginMouseClicked
+        RegisterFrame reg = new RegisterFrame(this.userService);
+        reg.setLocationRelativeTo(null);
+        reg.setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_lblRegistrateLoginMouseClicked
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnIniciarSesion;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel14;
@@ -292,6 +305,7 @@ public class LoginFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JLabel lblRegistrateLogin;
     private javax.swing.JPasswordField txtContrasena;
     private javax.swing.JTextField txtNombreUsu;
     // End of variables declaration//GEN-END:variables

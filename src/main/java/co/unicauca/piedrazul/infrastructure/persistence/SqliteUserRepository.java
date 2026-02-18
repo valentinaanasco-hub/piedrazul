@@ -28,8 +28,10 @@ public class SqliteUserRepository implements IUserRepository {
                 "USER_NAME",
                 "USER_PASSWORD",
                 "USER_STATE",
-                "ROLE_ID"
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                "ROLE_ID",
+                "EMAIL",
+                "BIRTH_DATE"
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
         try (Connection conn = SqliteConnection.getConnection();
@@ -45,6 +47,9 @@ public class SqliteUserRepository implements IUserRepository {
             pstmt.setString(8, user.getPassword());
             pstmt.setString(9, user.getState());
             pstmt.setInt(10, user.getRoleId());
+            pstmt.setString(11, user.getEmail());
+            pstmt.setString(12, user.getBirthDate());
+
 
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
@@ -83,6 +88,8 @@ public class SqliteUserRepository implements IUserRepository {
                 user.setPassword(rs.getString("USER_PASSWORD"));
                 user.setState(rs.getString("USER_STATE"));
                 user.setRoleId(rs.getInt("ROLE_ID"));
+                user.setEmail(rs.getString("EMAIL"));
+                user.setBirthDate(rs.getString("BIRTH_DATE"));  
 
                 return user;
             }
