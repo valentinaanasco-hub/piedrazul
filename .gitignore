@@ -1,43 +1,61 @@
-# --- Directorios de Compilación y Artefactos ---
-/target/
-/medical-appointment-scheduling/target/
-bin/
+# ===============================
+# Compilación / Build
+# ===============================
+target/
 build/
 out/
+bin/
+
 *.class
 *.jar
 *.war
 *.ear
 
-# --- Base de Datos SQLite (Muy importante) ---
-# Ignoramos el archivo de base de datos para evitar conflictos y subir datos locales
+# ===============================
+# Maven
+# ===============================
+.mvn/
+dependency-reduced-pom.xml
+
+# ===============================
+# Base de datos SQLite
+# ===============================
 *.db
 *.sqlite
 *.db-journal
 
-# --- NetBeans ---
+# ===============================
+# NetBeans
+# ===============================
 nbproject/private/
 nbbuild/
 nbdist/
 nbactions.xml
 .nb-gradle/
 
-# --- IntelliJ IDEA ---
+# ===============================
+# IntelliJ
+# ===============================
 .idea/
 *.iml
 *.iws
 *.ipr
 
-# --- VS Code ---
+# ===============================
+# VS Code
+# ===============================
 .vscode/
 
-# --- Archivos de registro y temporales ---
+# ===============================
+# Logs y temporales
+# ===============================
 *.log
 tmp/
 temp/
 
-# --- Sistema Operativo ---
+# ===============================
+# Sistema operativo
+# ===============================
 .DS_Store
 Thumbs.db
 desktop.ini
-/nbproject/
