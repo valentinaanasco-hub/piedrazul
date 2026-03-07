@@ -1,11 +1,10 @@
 
 package co.unicauca.piedrazul.main;
 
-import co.unicauca.piedrazul.infrastructure.persistence.SqliteUserRepository;
+import co.unicauca.piedrazul.infrastructure.SqliteUserRepository;
 import co.unicauca.piedrazul.domain.access.IUserRepository;
 import co.unicauca.piedrazul.domain.services.UserService;
-import co.unicauca.piedrazul.presentation.view.LoginFrame;
-import co.unicauca.piedrazul.presentation.view.RegisterFrame;
+import co.unicauca.piedrazul.presentation.RegisterFrame;
 
 /**
  * @author Valentina Añasco 

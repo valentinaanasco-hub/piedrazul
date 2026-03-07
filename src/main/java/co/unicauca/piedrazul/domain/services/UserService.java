@@ -1,7 +1,7 @@
 package co.unicauca.piedrazul.domain.services;
 
 import co.unicauca.piedrazul.domain.access.IUserRepository;
-import co.unicauca.piedrazul.domain.entities.User;
+import co.unicauca.piedrazul.domain.model.User;
 import org.mindrot.jbcrypt.BCrypt;
 import java.util.regex.Pattern;
 

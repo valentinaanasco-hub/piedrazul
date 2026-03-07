@@ -1,6 +1,6 @@
 package co.unicauca.piedrazul.domain.access;
 
-import co.unicauca.piedrazul.domain.entities.User;
+import co.unicauca.piedrazul.domain.model.User;
 import java.util.List;
 
 /**

@@ -1,7 +1,7 @@
-package co.unicauca.piedrazul.presentation.view;
+package co.unicauca.piedrazul.presentation;
 
 import co.unicauca.piedrazul.domain.services.UserService;
-import co.unicauca.piedrazul.domain.entities.User;
+import co.unicauca.piedrazul.domain.model.User;
 import javax.swing.JOptionPane;
 
 /**
@@ -273,7 +273,7 @@ public class RegisterFrame extends javax.swing.JFrame {
         jLabel21.setName("lblYaTienesCuenta"); // NOI18N
 
         lblIniciarSesion.setText("Inicia sesión");
-        lblIniciarSesion.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        lblIniciarSesion.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         lblIniciarSesion.setName("lblIniciarSesion"); // NOI18N
         lblIniciarSesion.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {

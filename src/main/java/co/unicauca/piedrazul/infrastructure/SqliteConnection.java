@@ -1,4 +1,4 @@
-package co.unicauca.piedrazul.infrastructure.persistence;
+package co.unicauca.piedrazul.infrastructure;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

@@ -1,4 +1,4 @@
-package co.unicauca.piedrazul.presentation.view;
+package co.unicauca.piedrazul.presentation;
 
 import co.unicauca.piedrazul.domain.services.UserService;
 
@@ -81,7 +81,6 @@ public class LoginFrame extends javax.swing.JFrame {
         jLabel7.setName("lblObligatorio2Login"); // NOI18N
 
         txtNombreUsu.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        txtNombreUsu.setForeground(new java.awt.Color(204, 204, 204));
         txtNombreUsu.setText(" ej: juanperez31");
         txtNombreUsu.setName("txtNombreUsu"); // NOI18N
 
@@ -114,7 +113,6 @@ public class LoginFrame extends javax.swing.JFrame {
         jLabel11.setName("lblNotienescuenta"); // NOI18N
 
         txtContrasena.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        txtContrasena.setForeground(new java.awt.Color(204, 204, 204));
         txtContrasena.setText("jPasswordField1");
         txtContrasena.setName("txtContrasena"); // NOI18N
 
@@ -268,7 +266,7 @@ public class LoginFrame extends javax.swing.JFrame {
         }
 
         // Llamamos al servicio (Capa de Negocio)
-        co.unicauca.piedrazul.domain.entities.User user = userService.login(username, password);
+        co.unicauca.piedrazul.domain.model.User user = userService.login(username, password);
 
         if (user != null) {
             javax.swing.JOptionPane.showMessageDialog(this, "¡Bienvenido " + user.getFirstName() + "!");

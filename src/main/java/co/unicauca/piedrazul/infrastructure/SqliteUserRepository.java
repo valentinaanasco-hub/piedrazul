@@ -1,7 +1,7 @@
-package co.unicauca.piedrazul.infrastructure.persistence;
+package co.unicauca.piedrazul.infrastructure;
 
 import co.unicauca.piedrazul.domain.access.IUserRepository;
-import co.unicauca.piedrazul.domain.entities.User;
+import co.unicauca.piedrazul.domain.model.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

@@ -1,6 +1,6 @@
-package co.unicauca.piedrazul.presentation.view;
+package co.unicauca.piedrazul.presentation;
 
-import co.unicauca.piedrazul.domain.entities.User;
+import co.unicauca.piedrazul.domain.model.User;
 
 /**
  *
@@ -85,7 +85,6 @@ public class MenuFrame extends javax.swing.JFrame {
         jLabel35.setName("lblObligatorio1RegCita"); // NOI18N
 
         jTextField4.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jTextField4.setForeground(new java.awt.Color(204, 204, 204));
         jTextField4.setText("Buscar paciente...");
         jTextField4.setName("txtBuscarPacienteRegCita"); // NOI18N
 
@@ -122,7 +121,6 @@ public class MenuFrame extends javax.swing.JFrame {
         jLabel47.setText("*");
         jLabel47.setName("lblObligatorio2RegCita"); // NOI18N
 
-        jComboBox1.setForeground(new java.awt.Color(204, 204, 204));
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccionar profesional...", "Dr. Juan Pérez", "Dra. Ana López", "Dr. Carlos Ruiz", " " }));
         jComboBox1.setName("cbxBuscarProfesionalRegCita"); // NOI18N
 
@@ -135,11 +133,9 @@ public class MenuFrame extends javax.swing.JFrame {
         jLabel49.setName("lblObligatorio3RegCita"); // NOI18N
 
         jTextField6.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jTextField6.setForeground(new java.awt.Color(204, 204, 204));
         jTextField6.setText("Ingrese fecha de nacimiento");
         jTextField6.setName("txtFechaRegCita"); // NOI18N
 
-        jComboBox2.setForeground(new java.awt.Color(204, 204, 204));
         jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Seleccionar hora...", "8:00 am", "8:30 am", "9:00 am" }));
         jComboBox2.setName("cbxHoraRegCita"); // NOI18N
 
@@ -152,7 +148,6 @@ public class MenuFrame extends javax.swing.JFrame {
         jLabel51.setName("lblHoraRegCita"); // NOI18N
 
         jTextArea1.setColumns(20);
-        jTextArea1.setForeground(new java.awt.Color(204, 204, 204));
         jTextArea1.setRows(5);
         jTextArea1.setText("Describa el motivo de la consulta...");
         jTextArea1.setName("txtMotivoRegCita"); // NOI18N
@@ -175,7 +170,6 @@ public class MenuFrame extends javax.swing.JFrame {
         jLabel55.setName("lblObligatorio6RegCita"); // NOI18N
 
         jTextArea2.setColumns(20);
-        jTextArea2.setForeground(new java.awt.Color(204, 204, 204));
         jTextArea2.setRows(5);
         jTextArea2.setText("Información adicional (opcional)");
         jTextArea2.setName("txtNotasRegCita"); // NOI18N
@@ -312,7 +306,6 @@ public class MenuFrame extends javax.swing.JFrame {
         jLabel2.setText("Citas Médicas");
         jLabel2.setName("lblCitaMedicaRegCita"); // NOI18N
 
-        jLabel36.setIcon(new javax.swing.ImageIcon("C:\\Users\\compu\\OneDrive\\Imágenes\\Capturas de pantalla\\Captura de pantalla 2026-02-17 220511.png")); // NOI18N
         jLabel36.setName("lblLogoRegCita"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -352,44 +345,16 @@ public class MenuFrame extends javax.swing.JFrame {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
-    private javax.swing.JLabel jLabel17;
-    private javax.swing.JLabel jLabel18;
-    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel20;
-    private javax.swing.JLabel jLabel21;
-    private javax.swing.JLabel jLabel22;
-    private javax.swing.JLabel jLabel23;
-    private javax.swing.JLabel jLabel24;
-    private javax.swing.JLabel jLabel25;
-    private javax.swing.JLabel jLabel26;
-    private javax.swing.JLabel jLabel27;
-    private javax.swing.JLabel jLabel28;
-    private javax.swing.JLabel jLabel29;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel30;
-    private javax.swing.JLabel jLabel31;
-    private javax.swing.JLabel jLabel32;
     private javax.swing.JLabel jLabel33;
     private javax.swing.JLabel jLabel34;
     private javax.swing.JLabel jLabel35;
     private javax.swing.JLabel jLabel36;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel41;
     private javax.swing.JLabel jLabel44;
     private javax.swing.JLabel jLabel45;
@@ -397,31 +362,17 @@ public class MenuFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel47;
     private javax.swing.JLabel jLabel48;
     private javax.swing.JLabel jLabel49;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel50;
     private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel52;
     private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel54;
     private javax.swing.JLabel jLabel55;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
-    private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
-    private javax.swing.JPasswordField jPasswordField1;
-    private javax.swing.JPasswordField jPasswordField2;
-    private javax.swing.JPasswordField jPasswordField3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextArea jTextArea2;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField4;
     private javax.swing.JTextField jTextField6;
     // End of variables declaration//GEN-END:variables

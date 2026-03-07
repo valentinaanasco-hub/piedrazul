@@ -1,4 +1,4 @@
-package co.unicauca.piedrazul.domain.entities;
+package co.unicauca.piedrazul.domain.model;
 
 /**
  * Entidad del dominio User No depende de infraestructura. Representa el

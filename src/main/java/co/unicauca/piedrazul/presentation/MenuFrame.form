@@ -254,9 +254,6 @@
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Segoe UI" size="14" style="0"/>
             </Property>
-            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="cc" green="cc" red="cc" type="rgb"/>
-            </Property>
             <Property name="text" type="java.lang.String" value="Buscar paciente..."/>
             <Property name="name" type="java.lang.String" value="txtBuscarPacienteRegCita" noResource="true"/>
           </Properties>
@@ -335,9 +332,6 @@
         </Component>
         <Component class="javax.swing.JComboBox" name="jComboBox1">
           <Properties>
-            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="cc" green="cc" red="cc" type="rgb"/>
-            </Property>
             <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
               <StringArray count="5">
                 <StringItem index="0" value="Seleccionar profesional..."/>
@@ -376,18 +370,12 @@
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Segoe UI" size="14" style="0"/>
             </Property>
-            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="cc" green="cc" red="cc" type="rgb"/>
-            </Property>
             <Property name="text" type="java.lang.String" value="Ingrese fecha de nacimiento"/>
             <Property name="name" type="java.lang.String" value="txtFechaRegCita" noResource="true"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JComboBox" name="jComboBox2">
           <Properties>
-            <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="cc" green="cc" red="cc" type="rgb"/>
-            </Property>
             <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
               <StringArray count="4">
                 <StringItem index="0" value="Seleccionar hora..."/>
@@ -430,9 +418,6 @@
             <Component class="javax.swing.JTextArea" name="jTextArea1">
               <Properties>
                 <Property name="columns" type="int" value="20"/>
-                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="cc" green="cc" red="cc" type="rgb"/>
-                </Property>
                 <Property name="rows" type="int" value="5"/>
                 <Property name="text" type="java.lang.String" value="Describa el motivo de la consulta..."/>
                 <Property name="name" type="java.lang.String" value="txtMotivoRegCita" noResource="true"/>
@@ -486,9 +471,6 @@
             <Component class="javax.swing.JTextArea" name="jTextArea2">
               <Properties>
                 <Property name="columns" type="int" value="20"/>
-                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="cc" green="cc" red="cc" type="rgb"/>
-                </Property>
                 <Property name="rows" type="int" value="5"/>
                 <Property name="text" type="java.lang.String" value="Informaci&#xf3;n adicional (opcional)"/>
                 <Property name="name" type="java.lang.String" value="txtNotasRegCita" noResource="true"/>
