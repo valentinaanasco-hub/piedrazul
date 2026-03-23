@@ -23,7 +23,8 @@ public interface IAppointmentRepository {
     List<Appointment> findAll();
 
     // Para listar citas de un médico en una fecha específica (evitar duplicados)
-    Appointment findByDoctorAndDate(int doctorId, String date, String startTime, String endTime);
+    List<Appointment> findByDoctorAndDate(int doctorId, String date);
+    Appointment findByDoctorAndDateAndHour(int doctorId, String date, String startTime, String endTime);
 
     // Para reagendar o cambiar estado de una cita
     boolean update(Appointment appointment);

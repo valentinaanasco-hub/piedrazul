@@ -42,7 +42,7 @@ public class AppointmentService {
             throw new IllegalArgumentException("El médico no está activo");
 
         // Verifica que el horario exacto esté disponible
-        Appointment existing = appointmentRepository.findByDoctorAndDate(
+        Appointment existing = appointmentRepository.findByDoctorAndDateAndHour(
             appointment.getDoctor().getId(),
             appointment.getDate().toString(),
             appointment.getStartTime().toString(),
@@ -78,7 +78,7 @@ public class AppointmentService {
             throw new IllegalArgumentException("La nueva fecha no puede ser en el pasado");
 
         // Verifica que el nuevo horario exacto esté disponible
-        Appointment conflict = appointmentRepository.findByDoctorAndDate(
+        Appointment conflict = appointmentRepository.findByDoctorAndDateAndHour(
             appointment.getDoctor().getId(),
             appointment.getDate().toString(),
             appointment.getStartTime().toString(),
