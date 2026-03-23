@@ -5,9 +5,13 @@
 package co.unicauca.piedrazul.domain.entities;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public class Specialty {
     private int specialtyId;
     private String specialtyName;

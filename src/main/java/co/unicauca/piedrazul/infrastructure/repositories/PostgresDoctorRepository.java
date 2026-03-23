@@ -8,6 +8,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
+ */
+
 public class PostgresDoctorRepository implements IDoctorRepository {
     
     // Reutiliza UserRepository para no repetir lógica de users

@@ -3,6 +3,14 @@ package co.unicauca.piedrazul.domain.acces;
 import co.unicauca.piedrazul.domain.entities.User;
 import java.util.List;
 
+/**
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
+ */
+
 public interface IUserRepository {
     // Para el registro de nuevos usuarios
     boolean save(User user);

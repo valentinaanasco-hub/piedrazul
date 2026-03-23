@@ -12,9 +12,13 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public class AppointmentService {
     private final IAppointmentRepository appointmentRepository;
     private final IDoctorRepository doctorRepository;

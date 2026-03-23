@@ -19,8 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
 public class PostgresAppointmentRepository implements IAppointmentRepository {
     @Override

@@ -9,9 +9,13 @@ import co.unicauca.piedrazul.domain.entities.Role;
 import java.util.List;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public class RoleService {
     private final IRoleRepository roleRepository;
 

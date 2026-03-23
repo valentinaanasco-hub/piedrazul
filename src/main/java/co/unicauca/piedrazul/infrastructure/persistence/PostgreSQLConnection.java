@@ -10,9 +10,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public class PostgreSQLConnection {
         //Patron singleton
     private static Connection instance;
@@ -23,11 +27,12 @@ public class PostgreSQLConnection {
             String port = "5432";
             String db = "piedrazul_db";
             String user = "postgres";
-            String pass = "1234";
+            String pass = "postgres";
             
             String url = "jdbc:postgresql://" + host + ":" + port + "/" + db;
             try{
                 instance = DriverManager.getConnection(url, user, pass);
+                initDatabase(instance);
             }catch(SQLException e){
                 System.err.println("Error: Asegurese que Postgress esté encendido");
                 throw e;

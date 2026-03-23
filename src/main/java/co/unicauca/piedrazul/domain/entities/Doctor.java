@@ -8,9 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public class Doctor extends User {
     private String professionalId;
     private List<DoctorSchedule> schedules = new ArrayList<>();

@@ -8,9 +8,13 @@ import co.unicauca.piedrazul.domain.entities.Specialty;
 import java.util.List;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public interface ISpecialtyRepository {
     // Para registrar una nueva especialidad
     boolean save(Specialty specialty);

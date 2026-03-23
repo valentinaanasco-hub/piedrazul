@@ -4,6 +4,14 @@ import co.unicauca.piedrazul.domain.acces.IUserRepository;
 import co.unicauca.piedrazul.domain.entities.User;
 import java.util.List;
 
+/**
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
+ */
+
 public class UserService {
     private final IUserRepository userRepository;
 

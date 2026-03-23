@@ -17,7 +17,26 @@ import javafx.stage.Stage;
  * @author Santiago Solarte 
  */
 public class App extends Application {
+    
+    @Override
+    public void init(){
+                System.out.println(" Iniciando Piedrazul...");
 
+        try {
+            // Obtiene la conexión e inicializa las tablas automáticamente
+            Connection conn = PostgreSQLConnection.getConnection();
+
+            if (conn != null && !conn.isClosed()) {
+                System.out.println(" Conexión exitosa a PostgreSQL");
+                
+                System.out.println(" Tablas creadas correctamente");
+                System.out.println(" Sistema listo");
+            }
+
+        } catch (SQLException e) {
+            System.err.println(" Error: " + e.getMessage());
+        }
+    }
     @Override
     public void start(Stage stage) {
         var label = new Label("Hello Santiago, JavaFX.");
@@ -28,22 +47,6 @@ public class App extends Application {
 
     public static void main(String[] args) {
         launch();
-        
-        System.out.println(" Iniciando Piedrazul...");
-
-        try {
-            // Obtiene la conexión e inicializa las tablas automáticamente
-            Connection conn = PostgreSQLConnection.getConnection();
-
-            if (conn != null && !conn.isClosed()) {
-                System.out.println(" Conexión exitosa a PostgreSQL");
-                System.out.println(" Tablas creadas correctamente");
-                System.out.println(" Sistema listo");
-            }
-
-        } catch (SQLException e) {
-            System.err.println(" Error: " + e.getMessage());
-        }
     }
 
 }

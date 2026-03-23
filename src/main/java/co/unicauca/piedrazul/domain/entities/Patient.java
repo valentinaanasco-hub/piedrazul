@@ -5,9 +5,13 @@
 package co.unicauca.piedrazul.domain.entities;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public class Patient extends User {
     private String phone;
     private String gender;

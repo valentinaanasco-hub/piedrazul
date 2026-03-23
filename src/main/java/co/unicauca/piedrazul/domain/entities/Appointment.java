@@ -8,9 +8,13 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public class Appointment {
     private int appointmentId;
     private LocalDate date;

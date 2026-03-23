@@ -8,9 +8,13 @@ import co.unicauca.piedrazul.domain.entities.Appointment;
 import java.util.List;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public interface IAppointmentRepository {
     
     // Para agendar una nueva cita

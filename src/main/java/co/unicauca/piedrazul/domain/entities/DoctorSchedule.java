@@ -7,9 +7,13 @@ package co.unicauca.piedrazul.domain.entities;
 import java.time.LocalTime;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public class DoctorSchedule {
     private int scheduleId;
     private int dayOfWeek;

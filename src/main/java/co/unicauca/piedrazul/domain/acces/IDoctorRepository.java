@@ -9,9 +9,13 @@ import co.unicauca.piedrazul.domain.entities.Patient;
 import java.util.List;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco 
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte 
  */
+
 public interface IDoctorRepository {
 // Para registrar un nuevo médico en el sistema
     boolean save(Doctor doctor);
