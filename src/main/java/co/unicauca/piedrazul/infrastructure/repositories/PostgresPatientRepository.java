@@ -4,8 +4,6 @@
  */
 package co.unicauca.piedrazul.infrastructure.repositories;
 
-import co.unicauca.piedrazul.domain.acces.IPatientRepository;
-import co.unicauca.piedrazul.domain.acces.IUserRepository;
 import co.unicauca.piedrazul.domain.entities.Patient;
 import co.unicauca.piedrazul.infrastructure.persistence.PostgreSQLConnection;
 import java.sql.Connection;
@@ -14,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import co.unicauca.piedrazul.domain.acces.IPatientRepository;
 
 /**
  * @author Valentina Añasco 
@@ -22,42 +21,60 @@ import java.util.List;
  * @author Ginner Ortega
  * @author Santiago Solarte 
  */
-
 public class PostgresPatientRepository implements IPatientRepository{
    
-      // Reutiliza UserRepository para no repetir lógica de users
-    private final IUserRepository userRepository;
-
-    // Inyección por constructor
-    public PostgresPatientRepository(IUserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
     @Override
     public boolean save(Patient patient) {
-        // Primero delega la inserción en users al UserRepository
-        boolean userSaved = userRepository.save(patient);
-        if (!userSaved) {
-            System.err.println("Error al guardar el usuario base del paciente");
-            return false;
-        }
-
-        // Luego inserta solo los datos exclusivos del paciente
-        String sql = "INSERT INTO patients (pat_user_id, pat_phone, pat_gender, " +
-                     "pat_birth_day, pat_birth_month, pat_birth_year, pat_email) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, patient.getId());
-            pstmt.setString(2, patient.getPhone());
-            pstmt.setString(3, patient.getGender());
-            pstmt.setString(4, patient.getBirthDay());
-            pstmt.setString(5, patient.getBirthMonth());
-            pstmt.setString(6, patient.getBirthYear());
-            pstmt.setString(7, patient.getEmail());
-            return pstmt.executeUpdate() > 0;
+        String sqlUser = """
+            INSERT INTO users (user_id, user_username, user_password,
+                user_first_name, user_middle_name, user_first_surname,
+                user_last_name, user_state)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+        String sqlPatient = """
+            INSERT INTO patients (pat_user_id, pat_phone, pat_gender,
+                pat_birth_day, pat_birth_month, pat_birth_year, pat_email)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """;
+ 
+        try (Connection conn = PostgreSQLConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                // 1. Fila base en users
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlUser)) {
+                    pstmt.setInt(1, patient.getId());
+                    pstmt.setString(2, patient.getUsername());
+                    pstmt.setString(3, patient.getPassword());
+                    pstmt.setString(4, patient.getFirstName());
+                    pstmt.setString(5, patient.getMiddleName());
+                    pstmt.setString(6, patient.getFirstSurname());
+                    pstmt.setString(7, patient.getLastName());
+                    pstmt.setString(8, "ACTIVO");
+                    pstmt.executeUpdate();
+                }
+ 
+                // 2. Datos exclusivos del paciente
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlPatient)) {
+                    pstmt.setInt(1, patient.getId());
+                    pstmt.setString(2, patient.getPhone());
+                    pstmt.setString(3, patient.getGender());
+                    pstmt.setString(4, patient.getBirthDay());
+                    pstmt.setString(5, patient.getBirthMonth());
+                    pstmt.setString(6, patient.getBirthYear());
+                    pstmt.setString(7, patient.getEmail());
+                    pstmt.executeUpdate();
+                }
+ 
+                conn.commit();
+                return true;
+ 
+            } catch (SQLException e) {
+                conn.rollback();
+                System.err.println("Error al guardar paciente (rollback): " + e.getMessage());
+                return false;
+            }
         } catch (SQLException e) {
-            System.err.println("Error al guardar paciente: " + e.getMessage());
+            System.err.println("Error de conexión: " + e.getMessage());
             return false;
         }
     }
@@ -100,14 +117,8 @@ public class PostgresPatientRepository implements IPatientRepository{
 
     @Override
     public boolean update(Patient patient) {
-        // Primero delega la actualización de datos de usuario
-        boolean userUpdated = userRepository.update(patient);
-        if (!userUpdated) {
-            System.err.println("Error al actualizar el usuario base del paciente");
-            return false;
-        }
 
-        // Luego actualiza solo los datos exclusivos del paciente
+        // Actualiza solo los datos exclusivos del paciente
         String sql = "UPDATE patients SET pat_phone = ?, pat_gender = ?, " +
                      "pat_birth_day = ?, pat_birth_month = ?, pat_birth_year = ?, " +
                      "pat_email = ? WHERE pat_user_id = ?";
@@ -129,8 +140,15 @@ public class PostgresPatientRepository implements IPatientRepository{
 
     @Override
     public boolean desactivate(int id) {
-         // Delega al UserRepository ya que el estado vive en users
-        return userRepository.desactivate(id);
+        String sql = "UPDATE users SET user_state = 'INACTIVO' WHERE user_id = ?";
+        try (Connection conn = PostgreSQLConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error al desactivar paciente: " + e.getMessage());
+            return false;
+        }
     }
 
     // Convierte una fila del ResultSet en un objeto Patient

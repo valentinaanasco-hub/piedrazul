@@ -5,34 +5,30 @@
 package co.unicauca.piedrazul.domain.acces;
 
 import co.unicauca.piedrazul.domain.entities.Doctor;
-import co.unicauca.piedrazul.domain.entities.Patient;
 import java.util.List;
 
 /**
- * @author Valentina Añasco 
- * @author Camila Dorado
- * @author Felipe Gutierrez
- * @author Ginner Ortega
- * @author Santiago Solarte 
+ *
+ * @author santi
  */
-
 public interface IDoctorRepository {
     
-    // Para registrar un nuevo médico en el sistema
+    // Inserta en users y doctors dentro de una sola transacción
     boolean save(Doctor doctor);
-
-    // Para buscar un médico por su id de usuario
+ 
+    // Busca por id, trae también roles y especialidades
     Doctor findById(int id);
-
-    // Para listar todos los médicos activos e inactivos
+ 
+    // Lista todos (activos e inactivos)
     List<Doctor> findAll();
-    
-    // Para listar todos los medico activos
+ 
+    // Lista solo los activos (para el agendamiento)
     List<Doctor> findAllActive();
-
-    // Para actualizar datos o estado del médico
+ 
+    // Actualiza datos del médico
     boolean update(Doctor doctor);
-   
-    // Para desactivar un paciente sin eliminar su historial
+ 
+    // Cambia el estado a INACTIVO en la tabla users
     boolean desactivate(int id);
+    
 }

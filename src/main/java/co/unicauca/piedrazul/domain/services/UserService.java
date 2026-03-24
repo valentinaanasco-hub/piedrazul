@@ -1,8 +1,9 @@
 package co.unicauca.piedrazul.domain.services;
 
-import co.unicauca.piedrazul.domain.acces.IUserRepository;
+import co.unicauca.piedrazul.domain.acces.IRoleRepository;
 import co.unicauca.piedrazul.domain.entities.User;
 import java.util.List;
+import co.unicauca.piedrazul.domain.acces.IUserRepository;
 
 /**
  * @author Valentina Añasco 

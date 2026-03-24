@@ -4,9 +4,9 @@
  */
 package co.unicauca.piedrazul.domain.services;
 
-import co.unicauca.piedrazul.domain.acces.IPatientRepository;
 import co.unicauca.piedrazul.domain.entities.Patient;
 import java.util.List;
+import co.unicauca.piedrazul.domain.acces.IPatientRepository;
 
 /**
  * @author Valentina Añasco 

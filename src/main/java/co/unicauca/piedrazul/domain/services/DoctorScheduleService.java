@@ -6,6 +6,7 @@ package co.unicauca.piedrazul.domain.services;
 
 import co.unicauca.piedrazul.domain.acces.IDoctorScheduleRepository;
 import co.unicauca.piedrazul.domain.entities.DoctorSchedule;
+
 import java.util.List;
 
 /**
@@ -54,5 +55,6 @@ public class DoctorScheduleService {
     public boolean removeSchedule(int scheduleId) {
         return scheduleRepository.delete(scheduleId);
     }
+   
     
 }
