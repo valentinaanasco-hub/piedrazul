@@ -4,7 +4,6 @@
  */
 package co.unicauca.piedrazul.infrastructure.repositories;
 
-import co.unicauca.piedrazul.domain.acces.IUserRepository;
 import co.unicauca.piedrazul.domain.entities.User;
 import co.unicauca.piedrazul.infrastructure.persistence.PostgreSQLConnection;
 import java.sql.Connection;
@@ -13,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import co.unicauca.piedrazul.domain.acces.IUserRepository;
 
 /**
  * @author Valentina Añasco 
@@ -23,8 +23,8 @@ import java.util.List;
  */
 
 public class PostgresUserRepository implements IUserRepository {
-    
-@Override
+  
+    @Override
     public boolean save(User user) {
         String sql = "INSERT INTO users (user_id, user_username, user_password, user_first_name, " +
                      "user_middle_name, user_first_surname, user_last_name, user_state) " +

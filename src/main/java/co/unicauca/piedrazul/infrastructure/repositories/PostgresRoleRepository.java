@@ -4,7 +4,6 @@
  */
 package co.unicauca.piedrazul.infrastructure.repositories;
 
-import co.unicauca.piedrazul.domain.acces.IRoleRepository;
 import co.unicauca.piedrazul.domain.entities.Role;
 import co.unicauca.piedrazul.infrastructure.persistence.PostgreSQLConnection;
 import java.sql.Connection;
@@ -13,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import co.unicauca.piedrazul.domain.acces.IRoleRepository;
 
 /**
  * @author Valentina Añasco 
@@ -23,34 +23,7 @@ import java.util.List;
  */
 
 public class PostgresRoleRepository implements IRoleRepository {
-    
-    @Override
-    public boolean save(Role role) {
-        String sql = "INSERT INTO roles (role_name) VALUES (?)";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, role.getRoleName());
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.err.println("Error al guardar rol: " + e.getMessage());
-            return false;
-        }
-    }
 
-    @Override
-    public Role findById(int id) {
-        String sql = "SELECT * FROM roles WHERE role_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) return mapResultSetToRole(rs);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error al buscar rol por id: " + e.getMessage());
-        }
-        return null;
-    }
 
     @Override
     public Role findByName(String name) {
@@ -68,19 +41,6 @@ public class PostgresRoleRepository implements IRoleRepository {
         return null;
     }
 
-    @Override
-    public List<Role> findAll() {
-        List<Role> roles = new ArrayList<>();
-        String sql = "SELECT * FROM roles";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            while (rs.next()) roles.add(mapResultSetToRole(rs));
-        } catch (SQLException e) {
-            System.err.println("Error al listar roles: " + e.getMessage());
-        }
-        return roles;
-    }
 
     @Override
     public boolean assignRoleToUser(int userId, int roleId) {

@@ -23,27 +23,13 @@ public class RoleService {
         this.roleRepository = roleRepository;
     }
 
-    public boolean registerRole(Role role) {
-        // Valida que el nombre del rol no esté vacío
-        if (role.getRoleName() == null || role.getRoleName().trim().isEmpty())
-            throw new IllegalArgumentException("El nombre del rol es obligatorio");
 
-        // Verifica que el rol no exista ya
-        if (roleRepository.findByName(role.getRoleName()) != null)
-            throw new IllegalArgumentException("El rol ya existe");
-
-        return roleRepository.save(role);
-    }
-
-    public List<Role> listRoles() {
-        return roleRepository.findAll();
-    }
-
-    public boolean assignRole(int userId, int roleId) {
+    public boolean assignRole(int userId, String roleName) {
         // Verifica que el rol exista antes de asignarlo
-        if (roleRepository.findById(roleId) == null)
+        Role role = roleRepository.findByName(roleName);
+        if (role == null)
             throw new IllegalArgumentException("Rol no encontrado");
-        return roleRepository.assignRoleToUser(userId, roleId);
+        return roleRepository.assignRoleToUser(userId,role.getRoleId());
     }
 
     public List<Role> listRolesByUser(int userId) {

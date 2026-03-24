@@ -1,52 +1,52 @@
 package co.unicauca.piedrazul.main;
 
+import co.unicauca.piedrazul.domain.entities.User;
 import co.unicauca.piedrazul.infrastructure.persistence.PostgreSQLConnection;
+import co.unicauca.piedrazul.presentation.views.MainView;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-/**
- * @author Valentina Añasco 
- * @author Camila Dorado
- * @author Felipe Gutierrez
- * @author Ginner Ortega
- * @author Santiago Solarte 
- */
 public class App extends Application {
-    
+
     @Override
-    public void init(){
-                System.out.println(" Iniciando Piedrazul...");
-
+    public void init() {
+        System.out.println("Iniciando Piedrazul...");
         try {
-            // Obtiene la conexión e inicializa las tablas automáticamente
+            // Obtiene la conexión — PostgreSQLConnection crea las tablas
+            // automáticamente en initDatabase() si no existen (Singleton)
             Connection conn = PostgreSQLConnection.getConnection();
-
             if (conn != null && !conn.isClosed()) {
-                System.out.println(" Conexión exitosa a PostgreSQL");
-                
-                System.out.println(" Tablas creadas correctamente");
-                System.out.println(" Sistema listo");
+                System.out.println("Conexión exitosa a PostgreSQL");
             }
-
         } catch (SQLException e) {
-            System.err.println(" Error: " + e.getMessage());
+            System.err.println("Error de conexión: " + e.getMessage());
+            // La app puede seguir sin BD (mostrará errores al intentar cargar datos)
         }
     }
+
     @Override
     public void start(Stage stage) {
-        var label = new Label("Hello Santiago, JavaFX.");
-        var scene = new Scene(new StackPane(label), 640, 480);
-        stage.setScene(scene);
-        stage.show();
+        // ── Usuario de sesión simulado ────────────────────────────────────────
+        // Representa el usuario que inició sesión
+        User loggedUser = new User();
+        loggedUser.setId(1);
+        loggedUser.setFirstName("Admin");
+        loggedUser.setFirstSurname("Sistema");
+        loggedUser.setUsername("admin");
+
+        // Rol del usuario: controla qué vistas puede ver
+        // Cambiar aquí para probar diferentes roles
+        String loggedUserRole = "AGENDADOR";
+
+        // ── Lanza la ventana principal ────────────────────────────────────────
+        // MainView ensambla todos los repositorios, servicios y controladores
+        MainView mainView = new MainView(stage, loggedUser, loggedUserRole);
+        mainView.show();
     }
 
     public static void main(String[] args) {
         launch();
     }
-
 }

@@ -22,7 +22,7 @@ public class Patient extends User {
 
     // Constructor vacío (necesario para mapeo desde repositorio)
     public Patient() {}
-
+ 
     public String getPhone() { 
         return phone; 
     }
@@ -52,5 +52,12 @@ public class Patient extends User {
     }
     public void setBirthYear(String birthYear) { 
         this.birthYear = birthYear; 
+    }
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

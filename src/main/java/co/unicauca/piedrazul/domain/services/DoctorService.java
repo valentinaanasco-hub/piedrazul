@@ -43,10 +43,6 @@ public class DoctorService {
         return doctor;
     }
 
-    public List<Doctor> listDoctors() {
-        return doctorRepository.findAll();
-    }
-
     public List<Doctor> listActiveDoctors() {
         // Solo retorna médicos activos para el agendamiento
         return doctorRepository.findAllActive();

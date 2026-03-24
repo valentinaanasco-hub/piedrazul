@@ -23,21 +23,4 @@ public class SpecialtyService {
         this.specialtyRepository = specialtyRepository;
     }
 
-    public boolean registerSpecialty(Specialty specialty) {
-        // Valida que el nombre no esté vacío
-        if (specialty.getSpecialtyName() == null || specialty.getSpecialtyName().trim().isEmpty())
-            throw new IllegalArgumentException("El nombre de la especialidad es obligatorio");
-        return specialtyRepository.save(specialty);
-    }
-
-    public Specialty findSpecialty(int id) {
-        Specialty specialty = specialtyRepository.findById(id);
-        if (specialty == null)
-            throw new IllegalArgumentException("Especialidad no encontrada");
-        return specialty;
-    }
-
-    public List<Specialty> listSpecialties() {
-        return specialtyRepository.findAll();
-    }
 }

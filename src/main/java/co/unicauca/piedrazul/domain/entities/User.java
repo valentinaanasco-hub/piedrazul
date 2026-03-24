@@ -1,5 +1,7 @@
 package co.unicauca.piedrazul.domain.entities;
 
+import java.util.List;
+
 public class User {
     private int id;
     private String userTypeId;      // CC, TI, CE, PA
@@ -10,10 +12,15 @@ public class User {
     private String username;
     private String password;
     private String state;           // ACTIVE, INACTIVE
-    private int roleId;
-    private String email;
-    private String birthDate;
+    private List<Role> roles;
 
+    public List<Role> getRole() {
+        return this.roles;
+    }
+
+    public void setRole(List<Role> roles) {
+        this.roles = roles;
+    }
     // Constructor vacío (necesario para mapeo desde repositorio)
     public User() {
     }
@@ -22,7 +29,7 @@ public class User {
     public User(int id, String userTypeId, String firstName, String middleName,
             String firstSurname, String lastName,
             String username, String password,
-            String state, int roleId, String email, String birthDate) {
+            String state, List<Role> roles, String email, String birthDate) {
 
         this.id = id;
         this.userTypeId = userTypeId;
@@ -33,9 +40,7 @@ public class User {
         this.username = username;
         this.password = password;
         this.state = state;
-        this.roleId = roleId;
-        this.email = email;
-        this.birthDate = birthDate;
+        this.roles = roles;
     }
 
     // ===== Getters y Setters =====
@@ -112,29 +117,6 @@ public class User {
         this.state = state;
     }
 
-    public int getRoleId() {
-        return roleId;
-    }
-
-    public void setRoleId(int roleId) {
-        this.roleId = roleId;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(String birthDate) {
-        this.birthDate = birthDate;
-    }
 
     // Método útil en dominio
     public String getFullName() {

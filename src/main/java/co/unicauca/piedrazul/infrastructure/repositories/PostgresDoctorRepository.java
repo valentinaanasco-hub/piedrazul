@@ -1,12 +1,12 @@
 package co.unicauca.piedrazul.infrastructure.repositories;
 
-import co.unicauca.piedrazul.domain.acces.IDoctorRepository;
-import co.unicauca.piedrazul.domain.acces.IUserRepository;
 import co.unicauca.piedrazul.domain.entities.Doctor;
 import co.unicauca.piedrazul.infrastructure.persistence.PostgreSQLConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import co.unicauca.piedrazul.domain.acces.IDoctorRepository;
+import co.unicauca.piedrazul.domain.acces.IUserRepository;
 
 /**
  * @author Valentina Añasco 
@@ -18,49 +18,49 @@ import java.util.List;
 
 public class PostgresDoctorRepository implements IDoctorRepository {
     
-    // Reutiliza UserRepository para no repetir lógica de users
-    private final IUserRepository userRepository;
-
-    // Inyección por constructor
-    public PostgresDoctorRepository(IUserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-    
-    @Override
+     @Override
     public boolean save(Doctor doctor) {
-        
-        // Transacción: inserta primero en users y luego en doctors
-        String sqlUser = "INSERT INTO users (user_id, user_username, user_password, " +
-                         "user_first_name, user_middle_name, user_first_surname, " +
-                         "user_last_name, user_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        String sqlDoctor = "INSERT INTO doctors (doct_user_id, doct_professional_id) " +
-                           "VALUES (?, ?)";
+        // Todas las inserciones ocurren dentro de una sola transacción
+        String sqlUser = """
+            INSERT INTO users (user_id, user_username, user_password,
+                user_first_name, user_middle_name, user_first_surname,
+                user_last_name, user_state)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """;
+        String sqlDoctor = """
+            INSERT INTO doctors (doct_user_id, doct_professional_id)
+            VALUES (?, ?)
+            """;
+ 
         try (Connection conn = PostgreSQLConnection.getConnection()) {
-            // Si falla cualquiera de las dos inserciones, se revierte todo
             conn.setAutoCommit(false);
             try {
-                PreparedStatement stmtUser = conn.prepareStatement(sqlUser);
-                stmtUser.setInt(1, doctor.getId());
-                stmtUser.setString(2, doctor.getUsername());
-                stmtUser.setString(3, doctor.getPassword());
-                stmtUser.setString(4, doctor.getFirstName());
-                stmtUser.setString(5, doctor.getMiddleName());
-                stmtUser.setString(6, doctor.getFirstSurname());
-                stmtUser.setString(7, doctor.getLastName());
-                stmtUser.setString(8, "ACTIVO");
-                stmtUser.executeUpdate();
-
-                PreparedStatement stmtDoctor = conn.prepareStatement(sqlDoctor);
-                stmtDoctor.setInt(1, doctor.getId());
-                stmtDoctor.setString(2, doctor.getProfessionalId());
-                stmtDoctor.executeUpdate();
-
+                // 1. Inserta la fila base en users
+                try (PreparedStatement stmtU = conn.prepareStatement(sqlUser)) {
+                    stmtU.setInt(1, doctor.getId());
+                    stmtU.setString(2, doctor.getUsername());
+                    stmtU.setString(3, doctor.getPassword());
+                    stmtU.setString(4, doctor.getFirstName());
+                    stmtU.setString(5, doctor.getMiddleName());
+                    stmtU.setString(6, doctor.getFirstSurname());
+                    stmtU.setString(7, doctor.getLastName());
+                    stmtU.setString(8, "ACTIVO");
+                    stmtU.executeUpdate();
+                }
+ 
+                // 2. Inserta la fila específica de doctors
+                try (PreparedStatement stmtD = conn.prepareStatement(sqlDoctor)) {
+                    stmtD.setInt(1, doctor.getId());
+                    stmtD.setString(2, doctor.getProfessionalId());
+                    stmtD.executeUpdate();
+                }
+ 
                 conn.commit();
                 return true;
+ 
             } catch (SQLException e) {
-                // Revierte ambas inserciones si algo falla
                 conn.rollback();
-                System.err.println("Error al guardar doctor: " + e.getMessage());
+                System.err.println("Error al guardar médico (rollback): " + e.getMessage());
                 return false;
             }
         } catch (SQLException e) {
@@ -87,21 +87,6 @@ public class PostgresDoctorRepository implements IDoctorRepository {
         return null;
     }
 
-    @Override
-    public List<Doctor> findAll() {
-        List<Doctor> doctors = new ArrayList<>();
-        // JOIN para obtener todos los médicos con sus datos de usuario
-        String sql = "SELECT u.*, d.doct_professional_id FROM users u " +
-                     "JOIN doctors d ON u.user_id = d.doct_user_id";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            while (rs.next()) doctors.add(mapResultSetToDoctor(rs));
-        } catch (SQLException e) {
-            System.err.println("Error al listar doctores: " + e.getMessage());
-        }
-        return doctors;
-    }
 
     @Override
     public List<Doctor> findAllActive() {
@@ -141,9 +126,17 @@ public class PostgresDoctorRepository implements IDoctorRepository {
         }
     }
     
+    @Override
     public boolean desactivate(int id) {
-        // Delega al UserRepository ya que el estado vive en users
-        return userRepository.desactivate(id);
+        String sql = "UPDATE users SET user_state = 'INACTIVO' WHERE user_id = ?";
+        try (Connection conn = PostgreSQLConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, id);
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error al desactivar doctor: " + e.getMessage());
+            return false;
+        }
     }
     // Convierte una fila del ResultSet en un objeto Doctor
     private Doctor mapResultSetToDoctor(ResultSet rs) throws SQLException {
@@ -157,5 +150,10 @@ public class PostgresDoctorRepository implements IDoctorRepository {
         doctor.setState(rs.getString("user_state"));
         doctor.setProfessionalId(rs.getString("doct_professional_id"));
         return doctor;
+    }
+
+    @Override
+    public List<Doctor> findAll() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

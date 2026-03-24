@@ -16,15 +16,15 @@ import java.util.List;
  */
 
 public interface IPatientRepository {
-    
-    // Para registrar un nuevo paciente
-    boolean save(Patient patient);
-
     // Para buscar un paciente por su id
     Patient findById(int id);
 
     // Para listar todos los pacientes
     List<Patient> findAll();
+    
+    // Para registrar un nuevo paciente
+    boolean save(Patient patient);
+
 
     // Para actualizar datos del paciente
     boolean update(Patient patient);
