@@ -5,7 +5,7 @@ import co.unicauca.piedrazul.infrastructure.persistence.PostgreSQLConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import co.unicauca.piedrazul.domain.acces.IDoctorRepository;
+import co.unicauca.piedrazul.domain.access.IDoctorRepository;
 
 /**
  * @author Valentina Añasco

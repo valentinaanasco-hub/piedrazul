@@ -1,6 +1,6 @@
 package co.unicauca.piedrazul.domain.services;
 
-import co.unicauca.piedrazul.domain.acces.IDoctorScheduleRepository;
+import co.unicauca.piedrazul.domain.access.IDoctorScheduleRepository;
 import co.unicauca.piedrazul.domain.entities.Appointment;
 import co.unicauca.piedrazul.domain.entities.DoctorSchedule;
 import java.time.LocalDate;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import co.unicauca.piedrazul.domain.acces.IAppointmentRepository;
+import co.unicauca.piedrazul.domain.access.IAppointmentRepository;
 
 /**
  *

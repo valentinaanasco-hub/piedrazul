@@ -3,6 +3,7 @@ package co.unicauca.piedrazul.domain.entities;
 import java.util.List;
 
 public class User {
+
     private int id;
     private String userTypeId;      // CC, TI, CE, PA
     private String firstName;
@@ -11,7 +12,7 @@ public class User {
     private String lastName;
     private String username;
     private String password;
-    private String state;           // ACTIVE, INACTIVE
+    private String state;           // ACTIVO, INACTIVO
     private List<Role> roles;
 
     public List<Role> getRole() {
@@ -21,6 +22,7 @@ public class User {
     public void setRole(List<Role> roles) {
         this.roles = roles;
     }
+
     // Constructor vacío (necesario para mapeo desde repositorio)
     public User() {
     }
@@ -29,7 +31,7 @@ public class User {
     public User(int id, String userTypeId, String firstName, String middleName,
             String firstSurname, String lastName,
             String username, String password,
-            String state, List<Role> roles, String email, String birthDate) {
+            String state, List<Role> roles) {
 
         this.id = id;
         this.userTypeId = userTypeId;
@@ -104,6 +106,14 @@ public class User {
         return password;
     }
 
+    public List<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Role> roles) {
+        this.roles = roles;
+    }
+
     // El password ya debe venir cifrado desde el Service
     public void setPassword(String password) {
         this.password = password;
@@ -117,18 +127,24 @@ public class User {
         this.state = state;
     }
 
-
-    // Método útil en dominio
     public String getFullName() {
-    // Usamos un StringBuilder para construir el nombre dinámicamente
-    StringBuilder sb = new StringBuilder();
-    
-    if (firstName != null && !firstName.trim().isEmpty()) sb.append(firstName.trim()).append(" ");
-    if (middleName != null && !middleName.trim().isEmpty()) sb.append(middleName.trim()).append(" ");
-    if (firstSurname != null && !firstSurname.trim().isEmpty()) sb.append(firstSurname.trim()).append(" ");
-    if (lastName != null && !lastName.trim().isEmpty()) sb.append(lastName.trim()).append(" ");
-    
-    // .trim() al final elimina el último espacio sobrante
-    return sb.toString().trim();
+        // Se usa un StringBuilder para construir el nombre dinámicamente
+        StringBuilder sb = new StringBuilder();
+
+        if (firstName != null && !firstName.trim().isEmpty()) {
+            sb.append(firstName.trim()).append(" ");
+        }
+        if (middleName != null && !middleName.trim().isEmpty()) {
+            sb.append(middleName.trim()).append(" ");
+        }
+        if (firstSurname != null && !firstSurname.trim().isEmpty()) {
+            sb.append(firstSurname.trim()).append(" ");
+        }
+        if (lastName != null && !lastName.trim().isEmpty()) {
+            sb.append(lastName.trim()).append(" ");
+        }
+
+        // .trim() al final elimina el último espacio sobrante
+        return sb.toString().trim();
     }
 }

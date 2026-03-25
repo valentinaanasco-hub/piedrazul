@@ -1,6 +1,6 @@
 package co.unicauca.piedrazul.domain.services;
 
-import co.unicauca.piedrazul.domain.acces.IRoleRepository;
+import co.unicauca.piedrazul.domain.access.IRoleRepository;
 import co.unicauca.piedrazul.domain.entities.Role;
 import java.util.List;
 

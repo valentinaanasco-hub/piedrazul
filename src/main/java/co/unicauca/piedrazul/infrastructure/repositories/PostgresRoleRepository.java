@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import co.unicauca.piedrazul.domain.acces.IRoleRepository;
+import co.unicauca.piedrazul.domain.access.IRoleRepository;
 
 /**
  * @author Valentina Añasco

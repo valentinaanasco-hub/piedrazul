@@ -1,6 +1,6 @@
 package co.unicauca.piedrazul.infrastructure.repositories;
 
-import co.unicauca.piedrazul.domain.acces.ISystemParameterRepository;
+import co.unicauca.piedrazul.domain.access.ISystemParameterRepository;
 import co.unicauca.piedrazul.domain.entities.SystemParameter;
 import co.unicauca.piedrazul.infrastructure.persistence.PostgreSQLConnection;
 import java.sql.Connection;

@@ -2,7 +2,7 @@ package co.unicauca.piedrazul.domain.services;
 
 import co.unicauca.piedrazul.domain.entities.Patient;
 import java.util.List;
-import co.unicauca.piedrazul.domain.acces.IPatientRepository;
+import co.unicauca.piedrazul.domain.access.IPatientRepository;
 
 /**
  * @author Valentina Añasco 
@@ -50,9 +50,9 @@ public class PatientService {
         return patientRepository.update(patient);
     }
 
-    public boolean desactivatePatient(int id) {
+    public boolean deactivatePatient(int id) {
         if (patientRepository.findById(id) == null)
             throw new IllegalArgumentException("Paciente no encontrado");
-        return patientRepository.desactivate(id);
+        return patientRepository.deactivate(id);
     }
 }

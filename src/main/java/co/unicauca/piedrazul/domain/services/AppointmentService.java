@@ -4,9 +4,9 @@ import co.unicauca.piedrazul.domain.entities.Appointment;
 import co.unicauca.piedrazul.domain.entities.Doctor;
 import co.unicauca.piedrazul.domain.entities.Patient;
 import java.util.List;
-import co.unicauca.piedrazul.domain.acces.IAppointmentRepository;
-import co.unicauca.piedrazul.domain.acces.IDoctorRepository;
-import co.unicauca.piedrazul.domain.acces.IPatientRepository;
+import co.unicauca.piedrazul.domain.access.IAppointmentRepository;
+import co.unicauca.piedrazul.domain.access.IDoctorRepository;
+import co.unicauca.piedrazul.domain.access.IPatientRepository;
 
 /**
  * @author Valentina Añasco 

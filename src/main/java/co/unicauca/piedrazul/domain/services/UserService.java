@@ -2,7 +2,7 @@ package co.unicauca.piedrazul.domain.services;
 
 import co.unicauca.piedrazul.domain.entities.User;
 import java.util.List;
-import co.unicauca.piedrazul.domain.acces.IUserRepository;
+import co.unicauca.piedrazul.domain.access.IUserRepository;
 
 /**
  * @author Valentina Añasco 
@@ -74,6 +74,6 @@ public class UserService {
     }
 
     public boolean deactivateUser(int id) {
-        return userRepository.desactivate(id);
+        return userRepository.deactivate(id);
     }
 }

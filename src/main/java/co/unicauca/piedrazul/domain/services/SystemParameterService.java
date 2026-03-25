@@ -1,6 +1,6 @@
 package co.unicauca.piedrazul.domain.services;
 
-import co.unicauca.piedrazul.domain.acces.ISystemParameterRepository;
+import co.unicauca.piedrazul.domain.access.ISystemParameterRepository;
 import co.unicauca.piedrazul.domain.entities.SystemParameter;
 
 /**

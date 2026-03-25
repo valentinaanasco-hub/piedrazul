@@ -1,8 +1,8 @@
 package co.unicauca.piedrazul.domain.services;
 
-import co.unicauca.piedrazul.domain.acces.IDoctorRepository;
-import co.unicauca.piedrazul.domain.acces.IDoctorScheduleRepository;
-import co.unicauca.piedrazul.domain.acces.ISpecialtyRepository;
+import co.unicauca.piedrazul.domain.access.IDoctorRepository;
+import co.unicauca.piedrazul.domain.access.IDoctorScheduleRepository;
+import co.unicauca.piedrazul.domain.access.ISpecialtyRepository;
 import co.unicauca.piedrazul.domain.entities.Doctor;
 import java.util.List;
 

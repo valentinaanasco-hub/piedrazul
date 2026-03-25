@@ -1,6 +1,6 @@
 package co.unicauca.piedrazul.infrastructure.repositories;
 
-import co.unicauca.piedrazul.domain.acces.IDoctorScheduleRepository;
+import co.unicauca.piedrazul.domain.access.IDoctorScheduleRepository;
 import co.unicauca.piedrazul.domain.entities.DoctorSchedule;
 import co.unicauca.piedrazul.infrastructure.persistence.PostgreSQLConnection;
 import java.sql.Connection;

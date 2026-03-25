@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import co.unicauca.piedrazul.domain.acces.IPatientRepository;
+import co.unicauca.piedrazul.domain.access.IPatientRepository;
 
 /**
  * @author Valentina Añasco
@@ -24,8 +24,8 @@ public class PostgresPatientRepository implements IPatientRepository {
         String sqlUser = """
             INSERT INTO users (user_id, user_username, user_password,
                 user_first_name, user_middle_name, user_first_surname,
-                user_last_name, user_state)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                user_last_name, user_state, user_type_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
         String sqlPatient = """
             INSERT INTO patients (pat_user_id, pat_phone, pat_gender,
@@ -46,6 +46,7 @@ public class PostgresPatientRepository implements IPatientRepository {
                     pstmt.setString(6, patient.getFirstSurname());
                     pstmt.setString(7, patient.getLastName());
                     pstmt.setString(8, "ACTIVO");
+                    pstmt.setString(9, patient.getUserTypeId());
                     pstmt.executeUpdate();
                 }
 
@@ -135,7 +136,7 @@ public class PostgresPatientRepository implements IPatientRepository {
     }
 
     @Override
-    public boolean desactivate(int id) {
+    public boolean deactivate(int id) {
         String sql = "UPDATE users SET user_state = 'INACTIVO' WHERE user_id = ?";
         try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
@@ -156,6 +157,7 @@ public class PostgresPatientRepository implements IPatientRepository {
         patient.setFirstSurname(rs.getString("user_first_surname"));
         patient.setLastName(rs.getString("user_last_name"));
         patient.setState(rs.getString("user_state"));
+        patient.setUserTypeId(rs.getString("user_type_id"));
         patient.setPhone(rs.getString("pat_phone"));
         patient.setGender(rs.getString("pat_gender"));
         patient.setBirthDay(rs.getString("pat_birth_day"));

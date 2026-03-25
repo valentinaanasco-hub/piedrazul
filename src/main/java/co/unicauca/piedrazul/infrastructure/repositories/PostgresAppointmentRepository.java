@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import co.unicauca.piedrazul.domain.acces.IAppointmentRepository;
+import co.unicauca.piedrazul.domain.access.IAppointmentRepository;
 
 /**
  * @author Valentina Añasco

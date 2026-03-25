@@ -1,6 +1,6 @@
 package co.unicauca.piedrazul.domain.services;
 
-import co.unicauca.piedrazul.domain.acces.ISpecialtyRepository;
+import co.unicauca.piedrazul.domain.access.ISpecialtyRepository;
 
 /**
  * @author Valentina Añasco 
