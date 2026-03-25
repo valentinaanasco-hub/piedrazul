@@ -21,6 +21,7 @@ import java.util.List;
 public class DoctorService {
     
     private final IDoctorRepository doctorRepository;
+
     private final IDoctorScheduleRepository doctorSheduleRepository;
     private final ISpecialtyRepository specialtyRepository;
 
@@ -29,6 +30,7 @@ public class DoctorService {
         this.doctorRepository = doctorRepository;
         this.doctorSheduleRepository = doctorSheduleRepository;
         this.specialtyRepository = specialtyRepository;
+
     }
 
     public boolean registerDoctor(Doctor doctor) {
@@ -50,11 +52,12 @@ public class DoctorService {
         }
         doctor.setSchedules(doctorSheduleRepository.findByDoctorId(doctor.getId()));
         doctor.setSpecialties(specialtyRepository.findByDoctorId(doctor.getId()));
+
         return doctor;
     }
 
     public List<Doctor> listActiveDoctors() {
-        // Solo retorna médicos activos para el agendamiento
+        
         List<Doctor> doctors = doctorRepository.findAllActive();
         if(doctors.isEmpty()){
             throw new IllegalArgumentException("No hay registros de medicos");

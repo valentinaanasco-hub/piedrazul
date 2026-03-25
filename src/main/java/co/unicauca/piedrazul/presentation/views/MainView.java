@@ -63,6 +63,7 @@ public class MainView {
         PostgresDoctorScheduleRepository scheduleRepo    = new PostgresDoctorScheduleRepository();
         PostgresSystemParameterRepository paramRepo      = new PostgresSystemParameterRepository();
         PostgresSpecialtyRepository specialtyRepo        = new PostgresSpecialtyRepository();
+
         // ── Servicios de dominio ──────────────────────────────────────────────
         // Cada servicio recibe solo las dependencias que necesita
         this.scheduleService    = new DoctorScheduleService(scheduleRepo);
