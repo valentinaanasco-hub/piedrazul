@@ -5,6 +5,8 @@
 package co.unicauca.piedrazul.domain.services;
 
 import co.unicauca.piedrazul.domain.acces.IDoctorRepository;
+import co.unicauca.piedrazul.domain.acces.IDoctorScheduleRepository;
+import co.unicauca.piedrazul.domain.acces.ISpecialtyRepository;
 import co.unicauca.piedrazul.domain.entities.Doctor;
 import java.util.List;
 
@@ -20,8 +22,15 @@ public class DoctorService {
     
     private final IDoctorRepository doctorRepository;
 
-    public DoctorService(IDoctorRepository doctorRepository) {
+    private final IDoctorScheduleRepository doctorSheduleRepository;
+    private final ISpecialtyRepository specialtyRepository;
+
+    public DoctorService(IDoctorRepository doctorRepository,  IDoctorScheduleRepository doctorSheduleRepository
+                        , ISpecialtyRepository specialtyRepository) {
         this.doctorRepository = doctorRepository;
+        this.doctorSheduleRepository = doctorSheduleRepository;
+        this.specialtyRepository = specialtyRepository;
+
     }
 
     public boolean registerDoctor(Doctor doctor) {
@@ -38,14 +47,27 @@ public class DoctorService {
 
     public Doctor findDoctor(int id) {
         Doctor doctor = doctorRepository.findById(id);
-        if (doctor == null)
+        if (doctor == null){
             throw new IllegalArgumentException("Médico no encontrado");
+        }
+        doctor.setSchedules(doctorSheduleRepository.findByDoctorId(doctor.getId()));
+        doctor.setSpecialties(specialtyRepository.findByDoctorId(doctor.getId()));
+
         return doctor;
     }
 
     public List<Doctor> listActiveDoctors() {
-        // Solo retorna médicos activos para el agendamiento
-        return doctorRepository.findAllActive();
+        
+        List<Doctor> doctors = doctorRepository.findAllActive();
+        if(doctors.isEmpty()){
+            throw new IllegalArgumentException("No hay registros de medicos");
+        }
+        for (Doctor doctor : doctors){
+            doctor.setSchedules(doctorSheduleRepository.findByDoctorId(doctor.getId()));
+            doctor.setSpecialties(specialtyRepository.findByDoctorId(doctor.getId()));
+            
+        }
+        return doctors;
     }
 
     public boolean modifyDoctor(Doctor doctor) {

@@ -62,13 +62,14 @@ public class MainView {
         PostgresAppointmentRepository    appointmentRepo = new PostgresAppointmentRepository();
         PostgresDoctorScheduleRepository scheduleRepo    = new PostgresDoctorScheduleRepository();
         PostgresSystemParameterRepository paramRepo      = new PostgresSystemParameterRepository();
+        PostgresSpecialtyRepository specialtyRepo        = new PostgresSpecialtyRepository();
 
         // ── Servicios de dominio ──────────────────────────────────────────────
         // Cada servicio recibe solo las dependencias que necesita
         this.scheduleService    = new DoctorScheduleService(scheduleRepo);
         this.availabilityService = new AvailabilityService(scheduleRepo, appointmentRepo);
         this.appointmentService = new AppointmentService(appointmentRepo, doctorRepo, patientRepo);
-        this.doctorService      = new DoctorService(doctorRepo);
+        this.doctorService      = new DoctorService(doctorRepo, scheduleRepo, specialtyRepo);
         this.patientService     = new PatientService(patientRepo);
         this.parameterService   = new SystemParameterService(paramRepo);
     }

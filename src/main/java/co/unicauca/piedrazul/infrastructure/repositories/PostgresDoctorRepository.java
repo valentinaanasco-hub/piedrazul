@@ -76,7 +76,7 @@ public class PostgresDoctorRepository implements IDoctorRepository {
                      "JOIN doctors d ON u.user_id = d.doct_user_id " +
                      "WHERE u.user_id = ?";
         try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) return mapResultSetToDoctor(rs);
@@ -143,6 +143,7 @@ public class PostgresDoctorRepository implements IDoctorRepository {
         Doctor doctor = new Doctor();
         doctor.setId(rs.getInt("user_id"));
         doctor.setUsername(rs.getString("user_username"));
+        doctor.setUserTypeId(rs.getString("user_password"));
         doctor.setFirstName(rs.getString("user_first_name"));
         doctor.setMiddleName(rs.getString("user_middle_name"));
         doctor.setFirstSurname(rs.getString("user_first_surname"));
