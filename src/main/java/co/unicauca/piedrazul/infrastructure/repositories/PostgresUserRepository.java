@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.unicauca.piedrazul.infrastructure.repositories;
 
 import co.unicauca.piedrazul.domain.entities.User;
@@ -15,23 +11,21 @@ import java.util.List;
 import co.unicauca.piedrazul.domain.acces.IUserRepository;
 
 /**
- * @author Valentina Añasco 
+ * @author Valentina Añasco
  * @author Camila Dorado
  * @author Felipe Gutierrez
  * @author Ginner Ortega
- * @author Santiago Solarte 
+ * @author Santiago Solarte
  */
-
 public class PostgresUserRepository implements IUserRepository {
-  
+
     @Override
     public boolean save(User user) {
-        String sql = "INSERT INTO users (user_id, user_username, user_password, user_first_name, " +
-                     "user_middle_name, user_first_surname, user_last_name, user_state) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (user_id, user_username, user_password, user_first_name, "
+                + "user_middle_name, user_first_surname, user_last_name, user_state) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, user.getId());
             pstmt.setString(2, user.getUsername());
@@ -52,12 +46,11 @@ public class PostgresUserRepository implements IUserRepository {
     @Override
     public User findByUsername(String username) {
         String sql = "SELECT * FROM users WHERE user_username = ?";
-        
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, username);
-            
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     User user = new User();
@@ -77,15 +70,13 @@ public class PostgresUserRepository implements IUserRepository {
         }
         return null;
     }
-    
+
     @Override
     public List<User> findAll() {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users";
 
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) { // Todo en el try con ;
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) { // Todo en el try con ;
 
             while (rs.next()) {
                 User user = new User();
@@ -104,16 +95,15 @@ public class PostgresUserRepository implements IUserRepository {
         }
         return users;
     }
-    
+
     @Override
     public boolean update(User user) {
-        
-        String sql = "UPDATE users SET user_password = ?, user_first_name = ?, " +
-                     "user_middle_name = ?, user_first_surname = ?, user_last_name = ?, user_state = ? " +
-                     "WHERE user_id = ?";
 
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "UPDATE users SET user_password = ?, user_first_name = ?, "
+                + "user_middle_name = ?, user_first_surname = ?, user_last_name = ?, user_state = ? "
+                + "WHERE user_id = ?";
+
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, user.getPassword());
             pstmt.setString(2, user.getFirstName());
@@ -121,7 +111,7 @@ public class PostgresUserRepository implements IUserRepository {
             pstmt.setString(4, user.getFirstSurname());
             pstmt.setString(5, user.getLastName());
             pstmt.setString(6, user.getState());
-            pstmt.setInt(7, user.getId()); 
+            pstmt.setInt(7, user.getId());
 
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -129,14 +119,12 @@ public class PostgresUserRepository implements IUserRepository {
             return false;
         }
     }
-    
-    
+
     @Override
     public boolean desactivate(int id) {
         // Cambia el estado a INACTIVO en lugar de eliminar, conservando el historial
         String sql = "UPDATE users SET user_state = 'INACTIVO' WHERE user_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             // executeUpdate retorna el número de filas afectadas
             return pstmt.executeUpdate() > 0;

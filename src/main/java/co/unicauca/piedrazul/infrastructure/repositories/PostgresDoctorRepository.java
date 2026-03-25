@@ -6,19 +6,17 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import co.unicauca.piedrazul.domain.acces.IDoctorRepository;
-import co.unicauca.piedrazul.domain.acces.IUserRepository;
 
 /**
- * @author Valentina Añasco 
+ * @author Valentina Añasco
  * @author Camila Dorado
  * @author Felipe Gutierrez
  * @author Ginner Ortega
- * @author Santiago Solarte 
+ * @author Santiago Solarte
  */
-
 public class PostgresDoctorRepository implements IDoctorRepository {
-    
-     @Override
+
+    @Override
     public boolean save(Doctor doctor) {
         // Todas las inserciones ocurren dentro de una sola transacción
         String sqlUser = """
@@ -31,7 +29,7 @@ public class PostgresDoctorRepository implements IDoctorRepository {
             INSERT INTO doctors (doct_user_id, doct_professional_id)
             VALUES (?, ?)
             """;
- 
+
         try (Connection conn = PostgreSQLConnection.getConnection()) {
             conn.setAutoCommit(false);
             try {
@@ -47,17 +45,17 @@ public class PostgresDoctorRepository implements IDoctorRepository {
                     stmtU.setString(8, "ACTIVO");
                     stmtU.executeUpdate();
                 }
- 
+
                 // 2. Inserta la fila específica de doctors
                 try (PreparedStatement stmtD = conn.prepareStatement(sqlDoctor)) {
                     stmtD.setInt(1, doctor.getId());
                     stmtD.setString(2, doctor.getProfessionalId());
                     stmtD.executeUpdate();
                 }
- 
+
                 conn.commit();
                 return true;
- 
+
             } catch (SQLException e) {
                 conn.rollback();
                 System.err.println("Error al guardar médico (rollback): " + e.getMessage());
@@ -72,14 +70,15 @@ public class PostgresDoctorRepository implements IDoctorRepository {
     @Override
     public Doctor findById(int id) {
         // JOIN para traer datos de users y doctors en una sola consulta
-        String sql = "SELECT u.*, d.doct_professional_id FROM users u " +
-                     "JOIN doctors d ON u.user_id = d.doct_user_id " +
-                     "WHERE u.user_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "SELECT u.*, d.doct_professional_id FROM users u "
+                + "JOIN doctors d ON u.user_id = d.doct_user_id "
+                + "WHERE u.user_id = ?";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) return mapResultSetToDoctor(rs);
+                if (rs.next()) {
+                    return mapResultSetToDoctor(rs);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error al buscar doctor: " + e.getMessage());
@@ -87,18 +86,17 @@ public class PostgresDoctorRepository implements IDoctorRepository {
         return null;
     }
 
-
     @Override
     public List<Doctor> findAllActive() {
         List<Doctor> doctors = new ArrayList<>();
         // Solo médicos activos para el agendamiento de citas
-        String sql = "SELECT u.*, d.doct_professional_id FROM users u " +
-                     "JOIN doctors d ON u.user_id = d.doct_user_id " +
-                     "WHERE u.user_state = 'ACTIVO'";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            while (rs.next()) doctors.add(mapResultSetToDoctor(rs));
+        String sql = "SELECT u.*, d.doct_professional_id FROM users u "
+                + "JOIN doctors d ON u.user_id = d.doct_user_id "
+                + "WHERE u.user_state = 'ACTIVO'";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                doctors.add(mapResultSetToDoctor(rs));
+            }
         } catch (SQLException e) {
             System.err.println("Error al listar doctores activos: " + e.getMessage());
         }
@@ -108,11 +106,10 @@ public class PostgresDoctorRepository implements IDoctorRepository {
     @Override
     public boolean update(Doctor doctor) {
         // Actualiza datos básicos del médico en la tabla users
-        String sql = "UPDATE users SET user_first_name = ?, user_middle_name = ?, " +
-                     "user_first_surname = ?, user_last_name = ?, user_state = ? " +
-                     "WHERE user_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "UPDATE users SET user_first_name = ?, user_middle_name = ?, "
+                + "user_first_surname = ?, user_last_name = ?, user_state = ? "
+                + "WHERE user_id = ?";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, doctor.getFirstName());
             pstmt.setString(2, doctor.getMiddleName());
             pstmt.setString(3, doctor.getFirstSurname());
@@ -125,12 +122,11 @@ public class PostgresDoctorRepository implements IDoctorRepository {
             return false;
         }
     }
-    
+
     @Override
     public boolean desactivate(int id) {
         String sql = "UPDATE users SET user_state = 'INACTIVO' WHERE user_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -138,6 +134,7 @@ public class PostgresDoctorRepository implements IDoctorRepository {
             return false;
         }
     }
+
     // Convierte una fila del ResultSet en un objeto Doctor
     private Doctor mapResultSetToDoctor(ResultSet rs) throws SQLException {
         Doctor doctor = new Doctor();

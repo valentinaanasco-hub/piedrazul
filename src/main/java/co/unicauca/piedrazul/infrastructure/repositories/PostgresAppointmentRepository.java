@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.unicauca.piedrazul.infrastructure.repositories;
 
 import co.unicauca.piedrazul.domain.entities.Appointment;
@@ -19,20 +15,20 @@ import java.util.List;
 import co.unicauca.piedrazul.domain.acces.IAppointmentRepository;
 
 /**
- * @author Valentina Añasco 
+ * @author Valentina Añasco
  * @author Camila Dorado
  * @author Felipe Gutierrez
  * @author Ginner Ortega
- * @author Santiago Solarte 
+ * @author Santiago Solarte
  */
 public class PostgresAppointmentRepository implements IAppointmentRepository {
+
     @Override
     public boolean save(Appointment appointment) {
-        String sql = "INSERT INTO appointments (appt_doct_id, appt_pat_id, appt_date, " +
-                     "appt_start_time, appt_end_time, appt_status) " +
-                     "VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "INSERT INTO appointments (appt_doct_id, appt_pat_id, appt_date, "
+                + "appt_start_time, appt_end_time, appt_status) "
+                + "VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, appointment.getDoctor().getId());
             pstmt.setInt(2, appointment.getPatient().getId());
             // LocalDate y LocalTime se guardan como texto en la BD
@@ -50,11 +46,12 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
     @Override
     public Appointment findById(int id) {
         String sql = "SELECT * FROM appointments WHERE appt_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) return mapResultSetToAppointment(rs);
+                if (rs.next()) {
+                    return mapResultSetToAppointment(rs);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error al buscar cita: " + e.getMessage());
@@ -66,10 +63,10 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
     public List<Appointment> findAll() {
         List<Appointment> appointments = new ArrayList<>();
         String sql = "SELECT * FROM appointments";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            while (rs.next()) appointments.add(mapResultSetToAppointment(rs));
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                appointments.add(mapResultSetToAppointment(rs));
+            }
         } catch (SQLException e) {
             System.err.println("Error al listar citas: " + e.getMessage());
         }
@@ -79,45 +76,44 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
     @Override
     public Appointment findByDoctorAndDateAndHour(int doctorId, String date, String startTime, String endTime) {
         // Busca si ya existe una cita con exactamente ese médico, fecha y horario
-        String sql = "SELECT * FROM appointments " +
-                     "WHERE appt_doct_id = ? " +
-                     "AND appt_date = ? " +
-                     "AND appt_start_time = ? " +
-                     "AND appt_end_time = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "SELECT * FROM appointments "
+                + "WHERE appt_doct_id = ? "
+                + "AND appt_date = ? "
+                + "AND appt_start_time = ? "
+                + "AND appt_end_time = ?";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, doctorId);
             pstmt.setString(2, date);
             pstmt.setString(3, startTime);
             pstmt.setString(4, endTime);
             try (ResultSet rs = pstmt.executeQuery()) {
                 // Retorna la cita si existe, null si el horario está libre
-                if (rs.next()) return mapResultSetToAppointment(rs);
+                if (rs.next()) {
+                    return mapResultSetToAppointment(rs);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error al buscar cita por médico y fecha: " + e.getMessage());
         }
         return null;
     }
-    
-     
-        @Override
+
+    @Override
     public List<Appointment> findByDoctorAndDate(int doctorId, String date) {
         // Busca si ya existe una cita con exactamente ese médico, fecha y horario
-        String sql = "SELECT * FROM appointments " +
-                     "WHERE appt_doct_id = ? " +
-                     "AND appt_date = ? ";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "SELECT * FROM appointments "
+                + "WHERE appt_doct_id = ? "
+                + "AND appt_date = ? ";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, doctorId);
             pstmt.setString(2, date);
             List<Appointment> appointments = new ArrayList<>();
             try (ResultSet rs = pstmt.executeQuery()) {
                 // Retorna la cita si existe, null si el horario está libre
-                while(rs.next()){
+                while (rs.next()) {
                     appointments.add(mapResultSetToAppointment(rs));
                 }
-            return appointments;
+                return appointments;
             }
         } catch (SQLException e) {
             System.err.println("Error al buscar cita por médico y fecha: " + e.getMessage());
@@ -128,10 +124,9 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
     @Override
     public boolean update(Appointment appointment) {
         // Usado para reagendar o cambiar el estado de una cita
-        String sql = "UPDATE appointments SET appt_date = ?, appt_start_time = ?, " +
-                     "appt_end_time = ?, appt_status = ? WHERE appt_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "UPDATE appointments SET appt_date = ?, appt_start_time = ?, "
+                + "appt_end_time = ?, appt_status = ? WHERE appt_id = ?";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, appointment.getDate().toString());
             pstmt.setString(2, appointment.getStartTime().toString());
             pstmt.setString(3, appointment.getEndTime().toString());
@@ -147,8 +142,7 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
     @Override
     public boolean delete(int id) {
         String sql = "DELETE FROM appointments WHERE appt_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {

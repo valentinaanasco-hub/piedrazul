@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.unicauca.piedrazul.infrastructure.repositories;
 
 import co.unicauca.piedrazul.domain.entities.Patient;
@@ -15,14 +11,14 @@ import java.util.List;
 import co.unicauca.piedrazul.domain.acces.IPatientRepository;
 
 /**
- * @author Valentina Añasco 
+ * @author Valentina Añasco
  * @author Camila Dorado
  * @author Felipe Gutierrez
  * @author Ginner Ortega
- * @author Santiago Solarte 
+ * @author Santiago Solarte
  */
-public class PostgresPatientRepository implements IPatientRepository{
-   
+public class PostgresPatientRepository implements IPatientRepository {
+
     @Override
     public boolean save(Patient patient) {
         String sqlUser = """
@@ -36,7 +32,7 @@ public class PostgresPatientRepository implements IPatientRepository{
                 pat_birth_day, pat_birth_month, pat_birth_year, pat_email)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """;
- 
+
         try (Connection conn = PostgreSQLConnection.getConnection()) {
             conn.setAutoCommit(false);
             try {
@@ -52,7 +48,7 @@ public class PostgresPatientRepository implements IPatientRepository{
                     pstmt.setString(8, "ACTIVO");
                     pstmt.executeUpdate();
                 }
- 
+
                 // 2. Datos exclusivos del paciente
                 try (PreparedStatement pstmt = conn.prepareStatement(sqlPatient)) {
                     pstmt.setInt(1, patient.getId());
@@ -64,10 +60,10 @@ public class PostgresPatientRepository implements IPatientRepository{
                     pstmt.setString(7, patient.getEmail());
                     pstmt.executeUpdate();
                 }
- 
+
                 conn.commit();
                 return true;
- 
+
             } catch (SQLException e) {
                 conn.rollback();
                 System.err.println("Error al guardar paciente (rollback): " + e.getMessage());
@@ -82,15 +78,16 @@ public class PostgresPatientRepository implements IPatientRepository{
     @Override
     public Patient findById(int id) {
         // JOIN para traer datos de users y patients en una sola consulta
-        String sql = "SELECT u.*, p.pat_phone, p.pat_gender, p.pat_birth_day, " +
-                     "p.pat_birth_month, p.pat_birth_year, p.pat_email " +
-                     "FROM users u JOIN patients p ON u.user_id = p.pat_user_id " +
-                     "WHERE u.user_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "SELECT u.*, p.pat_phone, p.pat_gender, p.pat_birth_day, "
+                + "p.pat_birth_month, p.pat_birth_year, p.pat_email "
+                + "FROM users u JOIN patients p ON u.user_id = p.pat_user_id "
+                + "WHERE u.user_id = ?";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) return mapResultSetToPatient(rs);
+                if (rs.next()) {
+                    return mapResultSetToPatient(rs);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error al buscar paciente: " + e.getMessage());
@@ -102,13 +99,13 @@ public class PostgresPatientRepository implements IPatientRepository{
     public List<Patient> findAll() {
         List<Patient> patients = new ArrayList<>();
         // JOIN para obtener todos los pacientes con sus datos de usuario
-        String sql = "SELECT u.*, p.pat_phone, p.pat_gender, p.pat_birth_day, " +
-                     "p.pat_birth_month, p.pat_birth_year, p.pat_email " +
-                     "FROM users u JOIN patients p ON u.user_id = p.pat_user_id";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            while (rs.next()) patients.add(mapResultSetToPatient(rs));
+        String sql = "SELECT u.*, p.pat_phone, p.pat_gender, p.pat_birth_day, "
+                + "p.pat_birth_month, p.pat_birth_year, p.pat_email "
+                + "FROM users u JOIN patients p ON u.user_id = p.pat_user_id";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                patients.add(mapResultSetToPatient(rs));
+            }
         } catch (SQLException e) {
             System.err.println("Error al listar pacientes: " + e.getMessage());
         }
@@ -119,11 +116,10 @@ public class PostgresPatientRepository implements IPatientRepository{
     public boolean update(Patient patient) {
 
         // Actualiza solo los datos exclusivos del paciente
-        String sql = "UPDATE patients SET pat_phone = ?, pat_gender = ?, " +
-                     "pat_birth_day = ?, pat_birth_month = ?, pat_birth_year = ?, " +
-                     "pat_email = ? WHERE pat_user_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "UPDATE patients SET pat_phone = ?, pat_gender = ?, "
+                + "pat_birth_day = ?, pat_birth_month = ?, pat_birth_year = ?, "
+                + "pat_email = ? WHERE pat_user_id = ?";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, patient.getPhone());
             pstmt.setString(2, patient.getGender());
             pstmt.setString(3, patient.getBirthDay());
@@ -141,8 +137,7 @@ public class PostgresPatientRepository implements IPatientRepository{
     @Override
     public boolean desactivate(int id) {
         String sql = "UPDATE users SET user_state = 'INACTIVO' WHERE user_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {

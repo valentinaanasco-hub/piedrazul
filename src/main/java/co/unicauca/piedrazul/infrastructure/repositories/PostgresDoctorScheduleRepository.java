@@ -1,6 +1,5 @@
 package co.unicauca.piedrazul.infrastructure.repositories;
 
-
 import co.unicauca.piedrazul.domain.acces.IDoctorScheduleRepository;
 import co.unicauca.piedrazul.domain.entities.DoctorSchedule;
 import co.unicauca.piedrazul.infrastructure.persistence.PostgreSQLConnection;
@@ -12,24 +11,18 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
 /**
  *
  * @author santi
  */
 public class PostgresDoctorScheduleRepository implements IDoctorScheduleRepository {
-    
+
     @Override
     public boolean save(DoctorSchedule schedule, int doctorId) {
-        String sql = "INSERT INTO doctor_schedules (sched_doctor_id, sched_day_of_week, " +
-                     "sched_start_time, sched_end_time, sched_interval_minutes) " +
-                     "VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "INSERT INTO doctor_schedules (sched_doctor_id, sched_day_of_week, "
+                + "sched_start_time, sched_end_time, sched_interval_minutes) "
+                + "VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, doctorId);
             pstmt.setInt(2, schedule.getDayOfWeek());
             // LocalTime se guarda como texto en BD (formato HH:mm)
@@ -47,11 +40,12 @@ public class PostgresDoctorScheduleRepository implements IDoctorScheduleReposito
     public List<DoctorSchedule> findByDoctorId(int doctorId) {
         List<DoctorSchedule> schedules = new ArrayList<>();
         String sql = "SELECT * FROM doctor_schedules WHERE sched_doctor_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, doctorId);
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) schedules.add(mapResultSetToSchedule(rs));
+                while (rs.next()) {
+                    schedules.add(mapResultSetToSchedule(rs));
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error al buscar horarios: " + e.getMessage());
@@ -61,11 +55,10 @@ public class PostgresDoctorScheduleRepository implements IDoctorScheduleReposito
 
     @Override
     public boolean update(DoctorSchedule schedule) {
-        String sql = "UPDATE doctor_schedules SET sched_day_of_week = ?, " +
-                     "sched_start_time = ?, sched_end_time = ?, " +
-                     "sched_interval_minutes = ? WHERE sched_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "UPDATE doctor_schedules SET sched_day_of_week = ?, "
+                + "sched_start_time = ?, sched_end_time = ?, "
+                + "sched_interval_minutes = ? WHERE sched_id = ?";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, schedule.getDayOfWeek());
             pstmt.setString(2, schedule.getStartTime().toString());
             pstmt.setString(3, schedule.getEndTime().toString());
@@ -81,8 +74,7 @@ public class PostgresDoctorScheduleRepository implements IDoctorScheduleReposito
     @Override
     public boolean delete(int scheduleId) {
         String sql = "DELETE FROM doctor_schedules WHERE sched_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, scheduleId);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {

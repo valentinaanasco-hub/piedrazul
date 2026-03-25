@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.unicauca.piedrazul.infrastructure.repositories;
 
 import co.unicauca.piedrazul.domain.entities.Role;
@@ -15,25 +11,24 @@ import java.util.List;
 import co.unicauca.piedrazul.domain.acces.IRoleRepository;
 
 /**
- * @author Valentina Añasco 
+ * @author Valentina Añasco
  * @author Camila Dorado
  * @author Felipe Gutierrez
  * @author Ginner Ortega
- * @author Santiago Solarte 
+ * @author Santiago Solarte
  */
-
 public class PostgresRoleRepository implements IRoleRepository {
-
 
     @Override
     public Role findByName(String name) {
         // Útil para validar si un rol existe antes de asignarlo
         String sql = "SELECT * FROM roles WHERE role_name = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, name);
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) return mapResultSetToRole(rs);
+                if (rs.next()) {
+                    return mapResultSetToRole(rs);
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error al buscar rol por nombre: " + e.getMessage());
@@ -41,13 +36,11 @@ public class PostgresRoleRepository implements IRoleRepository {
         return null;
     }
 
-
     @Override
     public boolean assignRoleToUser(int userId, int roleId) {
         // Inserta en la tabla intermedia users_roles
         String sql = "INSERT INTO users_roles (ur_user_id, ur_role_id) VALUES (?, ?)";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             pstmt.setInt(2, roleId);
             return pstmt.executeUpdate() > 0;
@@ -61,14 +54,15 @@ public class PostgresRoleRepository implements IRoleRepository {
     public List<Role> findRolesByUserId(int userId) {
         List<Role> roles = new ArrayList<>();
         // JOIN con la tabla intermedia para obtener los roles del usuario
-        String sql = "SELECT r.* FROM roles r " +
-                     "JOIN users_roles ur ON r.role_id = ur.ur_role_id " +
-                     "WHERE ur.ur_user_id = ?";
-        try (Connection conn = PostgreSQLConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        String sql = "SELECT r.* FROM roles r "
+                + "JOIN users_roles ur ON r.role_id = ur.ur_role_id "
+                + "WHERE ur.ur_user_id = ?";
+        try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) roles.add(mapResultSetToRole(rs));
+                while (rs.next()) {
+                    roles.add(mapResultSetToRole(rs));
+                }
             }
         } catch (SQLException e) {
             System.err.println("Error al buscar roles del usuario: " + e.getMessage());

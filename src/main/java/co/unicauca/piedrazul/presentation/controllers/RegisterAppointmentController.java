@@ -1,9 +1,5 @@
 package co.unicauca.piedrazul.presentation.controllers;
 
-
-
-import co.unicauca.piedrazul.domain.acces.IDoctorScheduleRepository;
-import co.unicauca.piedrazul.domain.acces.ISystemParameterRepository;
 import co.unicauca.piedrazul.domain.entities.Appointment;
 import co.unicauca.piedrazul.domain.entities.Doctor;
 import co.unicauca.piedrazul.domain.entities.Patient;
@@ -17,9 +13,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import co.unicauca.piedrazul.domain.acces.IAppointmentRepository;
-import co.unicauca.piedrazul.domain.acces.IDoctorRepository;
-import co.unicauca.piedrazul.domain.acces.IPatientRepository;
 
 public class RegisterAppointmentController {
 
@@ -45,15 +38,14 @@ public class RegisterAppointmentController {
             PatientService patientService,
             SystemParameterService parameterService) {
 
-        this.appointmentService  = appointmentService;
-        this.doctorService       = doctorService;
+        this.appointmentService = appointmentService;
+        this.doctorService = doctorService;
         this.availabilityService = availabilityService;
-        this.patientService      = patientService;
-        this.parameterService    = parameterService;
+        this.patientService = patientService;
+        this.parameterService = parameterService;
     }
 
     // ───────────── DATOS INICIALES ─────────────
-
     public List<Doctor> loadActiveDoctors() {
         return doctorService.listActiveDoctors();
     }
@@ -85,7 +77,6 @@ public class RegisterAppointmentController {
     }
 
     // ───────────── EVENTOS UI ─────────────
-
     public void onDoctorSelected(Doctor doctor) {
         this.selectedDoctor = doctor;
         this.selectedSlot = null;
@@ -99,7 +90,9 @@ public class RegisterAppointmentController {
     }
 
     private void refreshAvailableSlots() {
-        if (selectedDoctor == null || selectedDate == null) return;
+        if (selectedDoctor == null || selectedDate == null) {
+            return;
+        }
 
         availableSlots = availabilityService.getAvailableSlots(
                 selectedDoctor.getId(),
@@ -112,7 +105,6 @@ public class RegisterAppointmentController {
     }
 
     // ───────────── PACIENTE ─────────────
-
     public Patient findPatientById(int id) {
         try {
             return patientService.findPatient(id);
@@ -126,7 +118,6 @@ public class RegisterAppointmentController {
     }
 
     // ───────────── REGISTRAR CITA ─────────────
-
     public boolean registerAppointment(String loggedUserRole) {
 
         /*
@@ -136,9 +127,9 @@ public class RegisterAppointmentController {
         }
         /*
         
-        */
-        if (selectedDoctor == null || selectedPatient == null ||
-            selectedDate == null || selectedSlot == null) {
+         */
+        if (selectedDoctor == null || selectedPatient == null
+                || selectedDate == null || selectedSlot == null) {
             throw new IllegalArgumentException("Faltan datos");
         }
 
@@ -163,7 +154,6 @@ public class RegisterAppointmentController {
     }
 
     // ───────────── RESET ─────────────
-
     public void reset() {
         selectedDoctor = null;
         selectedPatient = null;
@@ -173,7 +163,6 @@ public class RegisterAppointmentController {
     }
 
     // ───────────── GETTERS ─────────────
-
     public List<LocalTime> getAvailableSlots() {
         return availableSlots;
     }
