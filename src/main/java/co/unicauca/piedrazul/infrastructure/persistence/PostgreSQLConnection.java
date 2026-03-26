@@ -31,15 +31,12 @@ public class PostgreSQLConnection {
             try {
                 Class.forName("org.postgresql.Driver");
                 instance = DriverManager.getConnection(url, user, pass);
-
-                initDatabase(instance);
-
-                System.out.println("✅ Conexión exitosa a Railway y BD inicializada.");
+                System.out.println("Conexión exitosa a Railway");
             } catch (ClassNotFoundException e) {
-                System.err.println("❌ Error: No se encontró el Driver de PostgreSQL en el proyecto.");
+                System.err.println("Error: No se encontró el Driver de PostgreSQL en el proyecto.");
                 throw new SQLException(e);
             } catch (SQLException e) {
-                System.err.println("❌ Error al conectar con Railway: " + e.getMessage());
+                System.err.println("Error al conectar con Railway: " + e.getMessage());
                 throw e;
             }
         }

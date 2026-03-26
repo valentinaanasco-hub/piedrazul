@@ -3,6 +3,8 @@ package co.unicauca.piedrazul.presentation.views;
 import co.unicauca.piedrazul.application.PiedrazulFacade;
 import co.unicauca.piedrazul.domain.entities.User;
 import co.unicauca.piedrazul.main.DataBaseType;
+import co.unicauca.piedrazul.presentation.controllers.RegisterAppointmentController;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -23,6 +25,11 @@ import javafx.stage.Stage;
  * obtiene controladores desde la fachada.
  */
 public class MainView {
+
+    // Vistas cache solucion temporal
+    private ListAppointmentsView cachedListView;
+    private RegisterAppointmentView cachedRegisterView;
+    
 
     private final Stage stage;
     private final User loggedUser;
@@ -191,26 +198,73 @@ public class MainView {
     // ── Navegación ────────────────────────────────────────────────────────────
     // Muestra el listado de citas — usa ManualAppointmentController y DoctorController de la fachada
     private void showListView() {
-        ListAppointmentsView view = new ListAppointmentsView(
-                facade.getManualAppointmentController(),
-                facade.getDoctorController(),
-                loggedUserRole
+        // Si ya existe la vista, simplemente la ponemos en el centro y salimos
+        if (cachedListView != null) {
+            mainLayout.setCenter(cachedListView.getRoot());
+            return; 
+        }
+        mainLayout.setCenter(buildLoadingPlaceholder());
+
+        Task<ListAppointmentsView> task = new Task<>() {
+            @Override
+            protected ListAppointmentsView call() {
+                return new ListAppointmentsView(
+                        facade.getManualAppointmentController(),
+                        facade.getDoctorController(),
+                        loggedUserRole
+                );
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+                this.cachedListView = task.getValue();
+                mainLayout.setCenter(this.cachedListView.getRoot());
+        });
+
+        task.setOnFailed(e
+                -> mainLayout.setCenter(placeholder("⚠", "Error al cargar",
+                        task.getException().getMessage()))
         );
-        mainLayout.setCenter(view.getRoot());
+
+        new Thread(task).start(); // iniciamos tarea asincronica
     }
 
     // Muestra el formulario de registro — usa RegisterAppointmentController de la fachada
     private void showRegisterView() {
-        try {
-            RegisterAppointmentView view = new RegisterAppointmentView(
-                    facade.getRegisterAppointmentController(),
-                    loggedUserRole
-            );
-            mainLayout.setCenter(view.getRoot());
-        } catch (Exception ex) {
-            ex.printStackTrace(); // <-- Mira la consola
-            mainLayout.setCenter(placeholder("⚠", "Error", ex.getClass().getSimpleName() + ": " + ex.getMessage()));
+        // Si ya existe la vista, simplemente la ponemos en el centro y salimos
+        if (cachedRegisterView != null) {
+            mainLayout.setCenter(cachedRegisterView.getRoot());
+            return; 
         }
+        mainLayout.setCenter(buildLoadingPlaceholder());
+
+        Task<RegisterAppointmentView> task = new Task<>() {
+            @Override
+            protected RegisterAppointmentView call() {
+                RegisterAppointmentController ctrl = facade.getRegisterAppointmentController();
+                ctrl.reset();
+                return new RegisterAppointmentView(ctrl, loggedUserRole);
+            }
+        };
+
+        task.setOnSucceeded(e ->{
+            this.cachedRegisterView = task.getValue();
+            mainLayout.setCenter(this.cachedRegisterView.getRoot());
+        });
+
+        task.setOnFailed(e
+                -> mainLayout.setCenter(placeholder("⚠", "Error al cargar",
+                        task.getException().getMessage()))
+        );
+
+        new Thread(task).start();
+
+        task.setOnFailed(e
+                -> mainLayout.setCenter(placeholder("⚠", "Error al cargar",
+                        task.getException().getMessage()))
+        );
+
+        new Thread(task).start();
     }
 
     private void showPanelView() {
@@ -227,6 +281,22 @@ public class MainView {
 
     private void showConfigView() {
         mainLayout.setCenter(placeholder("⚙", "Configuración", "Próximamente"));
+    }
+
+    // Placeholder de carga mientras el Task trabaja en background
+    private VBox buildLoadingPlaceholder() {
+        VBox box = new VBox(12);
+        box.setAlignment(Pos.CENTER);
+        box.setPadding(new Insets(60));
+
+        ProgressIndicator spinner = new ProgressIndicator();
+        spinner.setPrefSize(48, 48);
+
+        Label lbl = new Label("Cargando...");
+        lbl.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 13px;");
+
+        box.getChildren().addAll(spinner, lbl);
+        return box;
     }
 
     // Pantalla de relleno para vistas en desarrollo

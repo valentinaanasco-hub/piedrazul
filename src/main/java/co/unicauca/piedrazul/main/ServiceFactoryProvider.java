@@ -18,14 +18,14 @@ public class ServiceFactoryProvider {
     public static IServiceFactory getFactory(DataBaseType dbType) {
         switch (dbType) {
             case POSTGRESQL:
-                return new PostgresServiceFactory();
+                return PostgresServiceFactory.getInstance();
             case SQLITE:
                 // Aquí retornarías new SqliteServiceFactory() cuando se implemente
                 throw new UnsupportedOperationException("SQLite no implementado aún.");
             case MYSQL:
                 throw new UnsupportedOperationException("MySQL no implementado aún.");
             default:
-                return new PostgresServiceFactory();
+                return PostgresServiceFactory.getInstance();
         }
     }
     

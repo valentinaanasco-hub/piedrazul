@@ -8,6 +8,7 @@ import co.unicauca.piedrazul.presentation.controllers.ManualAppointmentControlle
 import co.unicauca.piedrazul.presentation.controllers.DoctorController;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.beans.property.SimpleStringProperty;
@@ -44,6 +45,11 @@ public class ListAppointmentsView {
     private static final List<String> ALLOWED_ROLES = List.of(
             RoleName.ADMIN.name(), RoleName.DOCTOR.name(), RoleName.AGENDADOR.name()
     );
+    
+    // Citas en memoria para optimizar busquedas
+    private List<Appointment> cachedAppointments;
+    // Doctores cargados en memoria
+    private List<Doctor> cachedDoctors;
 
     public ListAppointmentsView(ManualAppointmentController appointmentController,
                                 DoctorController doctorController,
@@ -51,6 +57,8 @@ public class ListAppointmentsView {
         this.appointmentController = appointmentController;
         this.doctorController = doctorController;
         this.loggedUserRole = loggedUserRole;
+        this.cachedAppointments = new ArrayList();
+        this.cachedDoctors = new ArrayList();
         build();
     }
 
@@ -117,7 +125,7 @@ public class ListAppointmentsView {
 
         // Opción "Todos"
         cbDoctorFilter.getItems().add(null);
-        cbDoctorFilter.getItems().addAll(doctorController.getActiveStaff());
+        cbDoctorFilter.getItems().addAll(getActiveDoctorsStaff());
         cbDoctorFilter.setConverter(new StringConverter<Doctor>() {
             @Override public String toString(Doctor d) {
                 return d == null ? "Todos los profesionales" : d.getFullName();
@@ -265,16 +273,37 @@ public class ListAppointmentsView {
 
         return card;
     }
-
     // ── Lógica de carga y filtro ──────────────────────────────────────────────
-
+    
+    private List <Appointment> getAllApointmentsMem(){
+        if(this.cachedAppointments.isEmpty()){
+           this.cachedAppointments = appointmentController.list(); 
+        }
+        return cachedAppointments;
+    }
+    private List <Appointment> updateAllApointmentsMem(){
+        this.cachedAppointments = appointmentController.list(); 
+        return cachedAppointments;
+    }
+    
+    private List <Doctor> getActiveDoctorsStaff(){
+                if(this.cachedDoctors.isEmpty()){
+           this.cachedDoctors = doctorController.getActiveStaff(); 
+        }
+        return cachedDoctors;
+    }
+    private List <Doctor> updateActiveDoctorsStaff(){
+        this.cachedDoctors = doctorController.getActiveStaff(); 
+        return cachedDoctors;
+    }
+    
     private void loadAllAppointments() {
-        List<Appointment> all = appointmentController.list();
+        List<Appointment> all = getAllApointmentsMem();
         updateTable(all);
     }
 
     private void applyFilters() {
-        List<Appointment> all = appointmentController.list();
+        List<Appointment> all = getAllApointmentsMem();
 
         Doctor doctorFilter = cbDoctorFilter.getValue();
         LocalDate dateFilter = dateFilterPicker.getValue();

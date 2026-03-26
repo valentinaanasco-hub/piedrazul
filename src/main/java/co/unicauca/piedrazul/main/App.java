@@ -1,6 +1,5 @@
 package co.unicauca.piedrazul.main;
 
-import co.unicauca.piedrazul.application.PiedrazulFacade;
 import co.unicauca.piedrazul.infrastructure.persistence.PostgreSQLConnection;
 import co.unicauca.piedrazul.presentation.views.MainView;
 import co.unicauca.piedrazul.domain.entities.User;
@@ -52,7 +51,6 @@ public class App extends Application {
     public void start(Stage stage) {
         // 1. Definir el tipo de base de datos e inicializar la Fachada (Singleton)
         DataBaseType dbType = DataBaseType.POSTGRESQL;
-        PiedrazulFacade.getInstance(dbType);
 
         // 2. Crear un usuario simulado (Simulando un Login exitoso)
         User testUser = new User(1, "CC", "Santiago", "", "Solarte", "", "santi", "123", UserState.ACTIVO, new ArrayList<>());
