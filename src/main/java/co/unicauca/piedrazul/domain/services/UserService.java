@@ -4,6 +4,7 @@ import co.unicauca.piedrazul.domain.entities.User;
 import java.util.List;
 import co.unicauca.piedrazul.domain.access.IUserRepository;
 import co.unicauca.piedrazul.domain.entities.enums.UserState;
+import co.unicauca.piedrazul.domain.services.interfaces.IUserService;
 import co.unicauca.piedrazul.domain.services.interfaces.IUserValidator;
 
 /**
@@ -14,7 +15,7 @@ import co.unicauca.piedrazul.domain.services.interfaces.IUserValidator;
  * @author Santiago Solarte 
  */
 
-public class UserService {
+public class UserService implements IUserService {
     private final IUserRepository userRepository;
     private final IUserValidator validator; // Inyectamos la abstracción
 
@@ -24,6 +25,7 @@ public class UserService {
         this.validator = validator;
     }
 
+    @Override
     public boolean registerUser(User user) {
         // Validamos formato y campos obligatorios
         User userDuplicateUserName = findUser(user.getUsername());
@@ -38,6 +40,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Override
     public User login(String username, String password) {
         // Validamos que los parámetros de entrada no sean nulos/vacíos
         /*falta validar id*/
@@ -63,16 +66,19 @@ public class UserService {
         return user;
     }
 
+    @Override
     public List<User> listUsers() {
         return userRepository.findAll();
     }
 
+    @Override
     public User findUser(String username) {
         User user = userRepository.findByUsername(username);
         validator.validateExists(user); 
         return user;
     }
 
+    @Override
     public boolean modifyUser(User user) {
         // Validamos que el usuario que viene por parámetro sea válido
         validator.validateUser(user);
@@ -84,6 +90,7 @@ public class UserService {
         return userRepository.update(user);
     }
 
+    @Override
     public boolean deactivateUser(int id) {
         return userRepository.deactivate(id);
     }

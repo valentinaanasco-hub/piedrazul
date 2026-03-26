@@ -4,7 +4,7 @@ import co.unicauca.piedrazul.domain.access.IDoctorScheduleRepository;
 import co.unicauca.piedrazul.domain.access.IAppointmentRepository;
 import co.unicauca.piedrazul.domain.entities.Appointment;
 import co.unicauca.piedrazul.domain.entities.DoctorSchedule;
-import co.unicauca.piedrazul.domain.entities.enums.AppointmentState;
+import co.unicauca.piedrazul.domain.entities.enums.AppointmentStatus;
 import co.unicauca.piedrazul.domain.services.interfaces.IAvailabilityService;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -90,7 +90,7 @@ public class AvailabilityService implements IAvailabilityService {
 
         for (Appointment appt : appointments) {
             // Las citas CANCELADAS NO ocupan espacio, se ignoran para liberar el slot
-            if (appt.getStatus() == AppointmentState.CANCELADA) continue;
+            if (appt.getStatus() == AppointmentStatus.CANCELADA) continue;
             
             occupied.add(appt.getStartTime());
         }

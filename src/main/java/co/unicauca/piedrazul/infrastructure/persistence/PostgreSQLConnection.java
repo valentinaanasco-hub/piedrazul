@@ -15,7 +15,8 @@ import java.sql.Statement;
 public class PostgreSQLConnection {
 
     private static Connection instance;
-
+    
+    //PatronSingleton
     public static Connection getConnection() throws SQLException {
         if (instance == null || instance.isClosed()) {
             // --- DATOS DE RAILWAY  ---

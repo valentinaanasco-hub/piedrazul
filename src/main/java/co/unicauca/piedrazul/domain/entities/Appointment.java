@@ -1,6 +1,6 @@
 package co.unicauca.piedrazul.domain.entities;
 
-import co.unicauca.piedrazul.domain.entities.enums.AppointmentState;
+import co.unicauca.piedrazul.domain.entities.enums.AppointmentStatus;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -17,13 +17,32 @@ public class Appointment {
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-    private AppointmentState status; // AGENDADA, CANCELADA, ATENDIDA
+    private AppointmentStatus status; // AGENDADA, CANCELADA, ATENDIDA
     private Doctor doctor;
     private Patient patient;
 
     // Constructor vacío (necesario para mapeo desde repositorio)
     public Appointment() {
     }
+        public Appointment(int appointmentId, LocalDate date, LocalTime startTime, LocalTime endTime, AppointmentStatus status, Doctor doctor, Patient patient) {
+        this.appointmentId = appointmentId;
+        this.date = date;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.status = status;
+        this.doctor = doctor;
+        this.patient = patient;
+    }
+    public Appointment(LocalDate date, LocalTime startTime, LocalTime endTime, AppointmentStatus status, Doctor doctor, Patient patient) {
+        this.date = date;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.status = status;
+        this.doctor = doctor;
+        this.patient = patient;
+    }
+
+
 
     public int getAppointmentId() {
         return appointmentId;
@@ -57,11 +76,11 @@ public class Appointment {
         this.endTime = endTime;
     }
 
-    public AppointmentState getStatus() {
+    public AppointmentStatus getStatus() {
         return status;
     }
 
-    public void setStatus(AppointmentState status) {
+    public void setStatus(AppointmentStatus status) {
         this.status = status;
     }
 
