@@ -5,7 +5,7 @@ import co.unicauca.piedrazul.domain.entities.Appointment;
 import co.unicauca.piedrazul.domain.entities.Doctor;
 import co.unicauca.piedrazul.domain.entities.Patient;
 import co.unicauca.piedrazul.domain.entities.SystemParameter;
-import co.unicauca.piedrazul.domain.services.AppointmentService;
+import co.unicauca.piedrazul.domain.services.ManualAppointmentService;
 import co.unicauca.piedrazul.domain.services.AvailabilityService;
 import co.unicauca.piedrazul.domain.services.DoctorService;
 import co.unicauca.piedrazul.domain.services.PatientService;
@@ -18,7 +18,7 @@ import java.util.List;
 public class RegisterAppointmentController {
 
     // Servicios (DIP)
-    private final AppointmentService appointmentService;
+    private final ManualAppointmentService appointmentService;
     private final DoctorService doctorService;
     private final AvailabilityService availabilityService;
     private final PatientService patientService;
@@ -33,7 +33,7 @@ public class RegisterAppointmentController {
 
     // El controlador RECIBE sus dependencias ya construidas
     public RegisterAppointmentController(
-            AppointmentService appointmentService,
+            ManualAppointmentService appointmentService,
             DoctorService doctorService,
             AvailabilityService availabilityService,
             PatientService patientService,

@@ -2,7 +2,7 @@ package co.unicauca.piedrazul.domain.services;
 
 import co.unicauca.piedrazul.domain.access.IDoctorRepository;
 import co.unicauca.piedrazul.domain.entities.Doctor;
-import co.unicauca.piedrazul.domain.services.validators.DoctorValidator;
+import co.unicauca.piedrazul.domain.services.interfaces.IDoctorValidator;
 import java.util.List;
 
 /**
@@ -16,46 +16,46 @@ import java.util.List;
 public class DoctorService {
     
     private final IDoctorRepository doctorRepository;
-    private final DoctorValidator doctorValidator;
+    private final IDoctorValidator doctorValidator; // Dependemos de la interfaz
 
-    public DoctorService(IDoctorRepository doctorRepository, DoctorValidator doctorValidator) {
+    public DoctorService(IDoctorRepository doctorRepository, IDoctorValidator doctorValidator) {
         this.doctorRepository = doctorRepository;
         this.doctorValidator = doctorValidator;
     }
 
     public boolean registerDoctor(Doctor doctor) {
-        doctorValidator.validate(doctor);
+   
+        doctorValidator.validateDoctor(doctor);
+        
         return doctorRepository.save(doctor);
     }
-
-    public Doctor findDoctor(int id) {
+   public Doctor findDoctor(int id) {
         Doctor doctor = doctorRepository.findById(id);
-        if (doctor == null){
-            throw new IllegalArgumentException("Médico no encontrado");
-        }
+        doctorValidator.validateDoctor(doctor);
         return doctor;
     }
 
     public List<Doctor> listActiveDoctors() {
-        
         List<Doctor> doctors = doctorRepository.findAllActive();
-        if(doctors.isEmpty()){
-            throw new IllegalArgumentException("No hay registros de medicos");
-        }
-        
+        doctorValidator.validateListNotEmpty(doctors); 
         return doctors;
     }
 
     public boolean modifyDoctor(Doctor doctor) {
-        if (doctorRepository.findById(doctor.getId()) == null)
-            throw new IllegalArgumentException("Médico no encontrado");
+        // Primero verificamos que exista
+        Doctor existing = doctorRepository.findById(doctor.getId());
+        doctorValidator.validateExists(existing);
+        
+        // Validamos que los nuevos datos sean correctos
+        doctorValidator.validateDoctor(doctor); 
+        
         return doctorRepository.update(doctor);
     }
 
     public boolean deactivateDoctor(int id) {
-        // Desactiva en lugar de eliminar para conservar historial de citas
-        if (doctorRepository.findById(id) == null)
-            throw new IllegalArgumentException("Médico no encontrado");
+        Doctor doctor = doctorRepository.findById(id);
+        doctorValidator.validateExists(doctor);
+        
         return doctorRepository.deactivate(id);
     }
 }

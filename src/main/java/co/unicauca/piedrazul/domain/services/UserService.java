@@ -4,6 +4,7 @@ import co.unicauca.piedrazul.domain.entities.User;
 import java.util.List;
 import co.unicauca.piedrazul.domain.access.IUserRepository;
 import co.unicauca.piedrazul.domain.entities.enums.UserState;
+import co.unicauca.piedrazul.domain.services.interfaces.IUserValidator;
 
 /**
  * @author Valentina Añasco 
@@ -15,34 +16,45 @@ import co.unicauca.piedrazul.domain.entities.enums.UserState;
 
 public class UserService {
     private final IUserRepository userRepository;
+    private final IUserValidator validator; // Inyectamos la abstracción
 
-    // Inyección de dependencia por constructor
-    public UserService(IUserRepository userRepository) {
+    // Inyección de dependencias por constructor
+    public UserService(IUserRepository userRepository, IUserValidator validator) {
         this.userRepository = userRepository;
+        this.validator = validator;
     }
 
     public boolean registerUser(User user) {
+        // 1. Validamos formato y campos obligatorios
+        validator.validateUser(user);
 
-        // Verifica que el username no esté en uso
-        if (userRepository.findByUsername(user.getUsername()) != null)
+        // 2. Validamos lógica de negocio (regla de unicidad)
+        if (userRepository.findByUsername(user.getUsername()) != null) {
             throw new IllegalArgumentException("El nombre de usuario ya existe");
+        }
 
         return userRepository.save(user);
     }
 
     public User login(String username, String password) {
-        // Busca el usuario por su nombre de usuario
+        // Validamos que los parámetros de entrada no sean nulos/vacíos
+        validator.validateUserName(username);
+        validator.validatePassword(password);
+
         User user = userRepository.findByUsername(username);
-        if (user == null)
-            throw new IllegalArgumentException("Usuario no encontrado");
+        
+        // Delegamos la validación de existencia
+        validator.validateExists(user);
 
-        // Verifica que la contraseña coincida
-        if (!user.getPassword().equals(password))
+        // Verificamos credenciales
+        if (!user.getPassword().equals(password)) {
             throw new IllegalArgumentException("Contraseña incorrecta");
+        }
 
-        // Verifica que el usuario esté activo
-        if (user.getState().equals(UserState.INACTIVO))
+        // Verificamos estado
+        if (user.getState().equals(UserState.INACTIVO)) {
             throw new IllegalArgumentException("Usuario inactivo");
+        }
 
         return user;
     }
@@ -53,15 +65,18 @@ public class UserService {
 
     public User findUser(String username) {
         User user = userRepository.findByUsername(username);
-        if (user == null)
-            throw new IllegalArgumentException("Usuario no encontrado");
+        validator.validateExists(user); 
         return user;
     }
 
     public boolean modifyUser(User user) {
-        // Verifica que el usuario exista antes de modificarlo
-        if (userRepository.findByUsername(user.getUsername()) == null)
-            throw new IllegalArgumentException("Usuario no encontrado");
+        // Validamos que el usuario que viene por parámetro sea válido
+        validator.validateUser(user);
+        
+        // Verificamos que ya exista en la base de datos
+        User existing = userRepository.findByUsername(user.getUsername());
+        validator.validateExists(existing);
+        
         return userRepository.update(user);
     }
 

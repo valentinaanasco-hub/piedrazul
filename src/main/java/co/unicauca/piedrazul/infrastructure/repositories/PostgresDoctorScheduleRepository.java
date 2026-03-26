@@ -82,7 +82,28 @@ public class PostgresDoctorScheduleRepository implements IDoctorScheduleReposito
             return false;
         }
     }
-
+    
+    @Override
+    public DoctorSchedule findById(int scheduleId) {
+        String sql = "SELECT * FROM doctor_schedules WHERE sched_id = ?";
+        
+        try (Connection conn = PostgreSQLConnection.getConnection(); 
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, scheduleId);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToSchedule(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al buscar horario por ID: " + e.getMessage());
+        }
+        
+        return null; 
+    }
+    
     // Convierte una fila del ResultSet en un objeto DoctorSchedule
     // LocalTime.parse() convierte el texto "HH:mm" de vuelta a LocalTime
     private DoctorSchedule mapResultSetToSchedule(ResultSet rs) throws SQLException {
