@@ -2,6 +2,7 @@ package co.unicauca.piedrazul.domain.services;
 
 import co.unicauca.piedrazul.domain.access.ISpecialtyRepository;
 import co.unicauca.piedrazul.domain.entities.Specialty;
+import co.unicauca.piedrazul.domain.services.interfaces.ISpecialtyValidator;
 import java.util.List;
 
 /**
@@ -14,39 +15,36 @@ import java.util.List;
 public class SpecialtyService {
 
     private final ISpecialtyRepository specialtyRepository;
+    private final ISpecialtyValidator validator; // Inyectamos el validador
 
-    public SpecialtyService(ISpecialtyRepository specialtyRepository) {
+    public SpecialtyService(ISpecialtyRepository specialtyRepository, ISpecialtyValidator validator) {
         this.specialtyRepository = specialtyRepository;
+        this.validator = validator;
     }
-    
-    //Registra 
+
     public Specialty findByName(String name) {
         Specialty specialty = specialtyRepository.findByName(name);
-        if (specialty == null)
-            throw new IllegalArgumentException("Especialidad no encontrada");
+        validator.validateExists(specialty);
         return specialty;
     }
 
     public Specialty findSpecialty(int id) {
         Specialty specialty = specialtyRepository.findById(id);
-        if (specialty == null)
-            throw new IllegalArgumentException("Especialidad no encontrada");
+        validator.validateExists(specialty);
         return specialty;
     }
 
     public List<Specialty> listSpecialties() {
         List<Specialty> specialties = specialtyRepository.findAll();
-        if (specialties.isEmpty())
-            throw new IllegalArgumentException("No hay especialidades registradas");
+        validator.validateListNotEmpty(specialties);
         return specialties;
     }
 
     public boolean assignSpecialtyToDoctor(int doctorId, int specialtyId) {
-        if (specialtyRepository.findById(specialtyId) == null)
-            throw new IllegalArgumentException("Especialidad no encontrada");
+        Specialty specialty = specialtyRepository.findById(specialtyId);
+        validator.validateExists(specialty); // Reutilizamos validación
         return specialtyRepository.assignSpecialtyToDoctor(doctorId, specialtyId);
     }
-
     public List<Specialty> findByDoctorId(int doctorId) {
         return specialtyRepository.findSpecialtiesByDoctorId(doctorId);
     }

@@ -1,99 +1,100 @@
 package co.unicauca.piedrazul.domain.services;
 
 import co.unicauca.piedrazul.domain.access.IDoctorScheduleRepository;
+import co.unicauca.piedrazul.domain.access.IAppointmentRepository;
 import co.unicauca.piedrazul.domain.entities.Appointment;
 import co.unicauca.piedrazul.domain.entities.DoctorSchedule;
+import co.unicauca.piedrazul.domain.entities.enums.AppointmentState;
+import co.unicauca.piedrazul.domain.services.interfaces.IAvailabilityService;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import co.unicauca.piedrazul.domain.access.IAppointmentRepository;
 
 /**
- *
  * @author santi
  */
-public class AvailabilityService {
- 
+public class AvailabilityService implements IAvailabilityService {
+
     private final IDoctorScheduleRepository scheduleRepository;
     private final IAppointmentRepository appointmentRepository;
- 
-    // Inyección por constructor (DIP): depende de interfaces, no implementaciones
+
+    // Inyección por constructor (DIP)
     public AvailabilityService(IDoctorScheduleRepository scheduleRepository,
                                IAppointmentRepository appointmentRepository) {
-        this.scheduleRepository    = scheduleRepository;
+        this.scheduleRepository = scheduleRepository;
         this.appointmentRepository = appointmentRepository;
     }
-    
-    // Calcula los slots de hora LIBRES para un médico en una fecha dada.
+
+    @Override
     public List<LocalTime> getAvailableSlots(int doctorId, LocalDate date) {
         List<LocalTime> availableSlots = new ArrayList<>();
- 
+
         // 1=Lunes ... 7=Domingo
         int dayOfWeek = date.getDayOfWeek().getValue();
- 
-        // Paso 1: obtiene los horarios configurados del médico
+
+        // 1. Obtiene los horarios configurados del médico (en qué días y horas trabaja)
         List<DoctorSchedule> schedules = scheduleRepository.findByDoctorId(doctorId);
- 
-        // Paso 2: trae TODAS las citas del médico en esa fecha
-        List<Appointment> appointmentsOnDate =
+
+        // 2. Trae TODAS las citas que ya existen para ese médico en esa fecha
+        List<Appointment> appointmentsOnDate = 
             appointmentRepository.findByDoctorAndDate(doctorId, date.toString());
- 
-        // Paso 3: Set con las horas de inicio ya ocupadas
+
+        // 3. Crea un Set con las horas de inicio ya ocupadas (O(1) para búsquedas)
         Set<LocalTime> occupiedStartTimes = buildOccupiedSet(appointmentsOnDate);
- 
-        // Paso 4: genera los slots del horario y filtra los ocupados
+
+        // 4. Genera los slots basados en el horario y filtra los ocupados
         for (DoctorSchedule schedule : schedules) {
-            // Solo procesa el horario del día de la semana solicitado
+            // Solo procesamos el horario que coincida con el día de la semana de la fecha solicitada
             if (schedule.getDayOfWeek() != dayOfWeek) continue;
- 
+
             LocalTime cursor = schedule.getStartTime();
-            int intervalMinutes = schedule.getIntervalMinutes();
- 
-            while (cursor.isBefore(schedule.getEndTime())) {
-                // Verifica en memoria si este slot ya está ocupado (O(1))
+            LocalTime endTime = schedule.getEndTime();
+            int interval = schedule.getIntervalMinutes();
+
+            // Generamos slots mientras no superemos la hora de fin
+            while (cursor.isBefore(endTime)) {
+                // Si la hora actual no está en el Set de ocupadas, el slot está libre
                 if (!occupiedStartTimes.contains(cursor)) {
-                    availableSlots.add(cursor); // slot libre
+                    availableSlots.add(cursor);
                 }
-                cursor = cursor.plusMinutes(intervalMinutes); // avanza al siguiente
+                // Avanzamos el cursor según el intervalo (ej: 20 min, 30 min)
+                cursor = cursor.plusMinutes(interval);
             }
         }
- 
+
         return availableSlots;
     }
- 
-   
-    // Retorna el intervalo de atención (minutos) del médico para el día
-    // de la semana correspondiente a la fecha dada.
+
+    @Override
     public int getIntervalMinutesForDoctorOnDate(int doctorId, LocalDate date) {
         int dayOfWeek = date.getDayOfWeek().getValue();
         List<DoctorSchedule> schedules = scheduleRepository.findByDoctorId(doctorId);
- 
+
         for (DoctorSchedule schedule : schedules) {
             if (schedule.getDayOfWeek() == dayOfWeek) {
                 return schedule.getIntervalMinutes();
             }
         }
- 
-        return 30; // 30 minutos si no hay horario configurado
+        // Valor por defecto si no hay horario configurado
+        return 30; 
     }
- 
-   
-    // Construye un Set de horas de inicio ocupadas a partir de las citas existentes.
-     
+
+    // Método privado auxiliar para identificar qué horas ya no están disponibles
     private Set<LocalTime> buildOccupiedSet(List<Appointment> appointments) {
         Set<LocalTime> occupied = new HashSet<>();
- 
-        if (appointments == null) return occupied; // repositorio retornó null
- 
+
+        if (appointments == null) return occupied;
+
         for (Appointment appt : appointments) {
-            // Las citas canceladas liberan el slot
-            if ("CANCELADA".equals(appt.getStatus())) continue;
+            // Las citas CANCELADAS NO ocupan espacio, se ignoran para liberar el slot
+            if (appt.getStatus() == AppointmentState.CANCELADA) continue;
+            
             occupied.add(appt.getStartTime());
         }
- 
+
         return occupied;
     }
 }

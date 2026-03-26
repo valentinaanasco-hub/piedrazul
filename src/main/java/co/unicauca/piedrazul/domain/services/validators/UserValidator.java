@@ -1,30 +1,56 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.unicauca.piedrazul.domain.services.validators;
 
+import co.unicauca.piedrazul.domain.entities.Role;
 import co.unicauca.piedrazul.domain.entities.User;
-import co.unicauca.piedrazul.domain.entities.enums.UserState;
+import co.unicauca.piedrazul.domain.services.interfaces.IUserValidator;
+import java.util.List;
 
-/**
- *
- * @author santi
- */
-public class UserValidator {
-    public void validate(User user){
-        // Valida que los campos obligatorios no estén vacíos
-        if (user.getUsername() == null || user.getUsername().trim().isEmpty())
-            throw new IllegalArgumentException("El nombre de usuario es obligatorio");
-        if (user.getPassword() == null || user.getPassword().trim().isEmpty())
-            throw new IllegalArgumentException("La contraseña es obligatoria");
-        if (user.getFirstName() == null || user.getFirstName().trim().isEmpty())
-            throw new IllegalArgumentException("El nombre es obligatorio");
-        if (user.getFirstSurname() == null || user.getFirstSurname().trim().isEmpty())
-            throw new IllegalArgumentException("El apellido es obligatorio");
-        if(user.getRole().isEmpty()){
-            throw new IllegalArgumentException("El usuario debe tener almenos un rol");
+public class UserValidator implements IUserValidator{
+
+    @Override
+    public void validateUser(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("El objeto usuario no puede ser nulo");
         }
-            
+        validateUserName(user.getUsername());
+        validatePassword(user.getPassword());
+        validateNames(user.getFirstName(), user.getFirstSurname());
+        validateRoles(user.getRole());
+    }
+    
+    @Override
+    public void validateUserName(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre de usuario es obligatorio");
+        }
+    }
+
+    @Override
+    public void validatePassword(String password) {
+        if (password == null || password.trim().isEmpty()) {
+            throw new IllegalArgumentException("La contraseña es obligatoria");
+        }
+    }
+
+    private void validateNames(String firstName, String lastName) {
+        if (firstName == null || firstName.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre es obligatorio");
+        }
+        if (lastName == null || lastName.trim().isEmpty()) {
+            throw new IllegalArgumentException("El apellido es obligatorio");
+        }
+    }
+
+    private void validateRoles(List<Role> roles) {
+        if (roles == null || roles.isEmpty()) {
+            throw new IllegalArgumentException("El usuario debe tener al menos un rol");
+        }
+    }
+    
+    @Override
+    public void validateExists(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("Médico no encontrado");
+        }
     }
 }
