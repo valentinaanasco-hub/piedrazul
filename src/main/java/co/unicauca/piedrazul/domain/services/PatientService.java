@@ -6,14 +6,14 @@ import co.unicauca.piedrazul.domain.access.IPatientRepository;
 import co.unicauca.piedrazul.domain.services.interfaces.IPatientValidator;
 
 /**
- * @author Valentina Añasco 
+ * @author Valentina Añasco
  * @author Camila Dorado
  * @author Felipe Gutierrez
  * @author Ginner Ortega
- * @author Santiago Solarte 
+ * @author Santiago Solarte
  */
-
 public class PatientService {
+
     private final IPatientRepository patientRepository;
     private final IPatientValidator validator; // Inyectamos la interfaz del validador
 
@@ -23,18 +23,16 @@ public class PatientService {
     }
 
     public boolean registerPatient(Patient patient) {
-        // Validamos tanto los datos de Usuario como los de Paciente
-        Patient patientDuplicate = findPatient(patient.getId());
-        validator.validateExists(patientDuplicate);
-        validator.validatePatient(patient);           
+        validator.validatePatient(patient);
+
         return patientRepository.save(patient);
     }
 
     public Patient findPatient(int id) {
         Patient patient = patientRepository.findById(id);
-       
-        validator.validateExists(patient); 
-        
+
+        validator.validateExists(patient);
+
         return patient;
     }
 
@@ -45,11 +43,11 @@ public class PatientService {
     public boolean modifyPatient(Patient patient) {
         // Validamos que el paciente tenga datos correctos
         validator.validatePatient(patient);
-        
+
         // Verificamos que exista antes de modificar
         Patient existing = patientRepository.findById(patient.getId());
         validator.validateExists(existing);
-        
+
         return patientRepository.update(patient);
     }
 
@@ -57,7 +55,7 @@ public class PatientService {
         // Verificamos existencia
         Patient patient = patientRepository.findById(id);
         validator.validateExists(patient);
-        
+
         return patientRepository.deactivate(id);
     }
 }

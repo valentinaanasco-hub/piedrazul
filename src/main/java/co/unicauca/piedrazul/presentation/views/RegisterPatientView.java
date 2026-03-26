@@ -17,54 +17,43 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 /**
- * Vista de registro de pacientes (Crear Cuenta).
+ * Representa la interfaz gráfica para el registro de nuevos pacientes.
  *
  * @author Valentina Añasco
  */
 public class RegisterPatientView extends VBox {
 
-    // --- Constantes de layout ---
     private static final double VIEW_WIDTH = 500;
     private static final double PANEL_WIDTH = 420;
 
-    // --- Colores ---
     private static final String COLOR_BLUE = "#2c6cf1";
     private static final String COLOR_LIGHT_BLUE_BG = "#f3f6fa";
     private static final String COLOR_TEXT_GRAY = "#636e72";
     private static final String COLOR_RED_ASTERISK = "#e74c3c";
 
-    // --- Campos del formulario (atributos de instancia para el controlador) ---
-    private TextField tfFirstName;
-    private TextField tfMiddleName;
-    private TextField tfFirstSurname;
-    private TextField tfLastName;
-    private TextField tfEmail;
-    private TextField tfPhone;
+    private TextField tfFirstName, tfMiddleName, tfFirstSurname, tfLastName;
+    private TextField tfEmail, tfPhone, tfDocumentNumber;
     private DatePicker dpBirthDate;
-    private ComboBox<String> cbDocumentType;
-    private TextField tfDocumentNumber;
-    private PasswordField pfPassword;
-    private PasswordField pfConfirmPassword;
+    private ComboBox<String> cbDocumentType, cbGender;
+    private PasswordField pfPassword, pfConfirmPassword;
+
+    private TextField tfPasswordShown, tfConfirmShown;
+
     private CheckBox cbTerms;
     private Button btnCreate;
     private Hyperlink linkLogin;
 
-    // --- VBox contenedores de cada campo (para inyectar labels de error) ---
-    private VBox vboxFirstName;
-    private VBox vboxFirstSurname;
-    private VBox vboxEmail;
-    private VBox vboxPhone;
-    private VBox vboxBirthDate;
-    private VBox vboxDocumentType;
-    private VBox vboxDocumentNumber;
-    private VBox vboxPassword;
-    private VBox vboxConfirmPassword;
+    private Label lblInfoEmail, lblInfoPhone, lblInfoBirthDate, lblInfoDocType, lblInfoDocNumber, lblInfoPassword;
+    private Label lblEyePass, lblEyeConfirm;
+
+    private VBox vboxFirstName, vboxFirstSurname, vboxEmail, vboxPhone, vboxBirthDate, vboxGender,
+            vboxDocumentType, vboxDocumentNumber, vboxPassword, vboxConfirmPassword;
     private HBox hboxTerms;
     private final VBox vboxGeneral;
 
-    // =========================================================================
-    // CONSTRUCTOR
-    // =========================================================================
+    /**
+     * Inicializa los componentes de la vista y configura el layout principal.
+     */
     public RegisterPatientView() {
         this.setMinWidth(VIEW_WIDTH);
         this.setMaxWidth(VIEW_WIDTH);
@@ -73,11 +62,9 @@ public class RegisterPatientView extends VBox {
         this.setPadding(new Insets(30, 0, 20, 0));
         this.setSpacing(10);
 
-        // --- Header ---
         VBox header = createHeader();
         header.setPadding(new Insets(0, 0, 15, 0));
 
-        // --- Panel del formulario ---
         VBox formPanel = new VBox();
         formPanel.setMinWidth(PANEL_WIDTH);
         formPanel.setMaxWidth(PANEL_WIDTH);
@@ -94,21 +81,19 @@ public class RegisterPatientView extends VBox {
         formPanel.getChildren().add(formGrid);
         VBox.setMargin(formPanel, new Insets(10, 0, 0, 0));
 
-        // --- Contenedor de error general (fuera del panel) ---
         vboxGeneral = new VBox();
         vboxGeneral.setAlignment(Pos.CENTER);
         VBox.setMargin(vboxGeneral, new Insets(5, 0, 0, 0));
 
-        // --- Footer ---
         VBox footer = createFooter();
         footer.setPadding(new Insets(10, 0, 0, 0));
 
         this.getChildren().addAll(header, formPanel, vboxGeneral, footer);
     }
 
-    // =========================================================================
-    // HEADER
-    // =========================================================================
+    /**
+     * Crea la sección superior con el logo y títulos.
+     */
     private VBox createHeader() {
         VBox header = new VBox(8);
         header.setAlignment(Pos.CENTER);
@@ -118,7 +103,6 @@ public class RegisterPatientView extends VBox {
         Label lblTitle = new Label("Crear cuenta");
         lblTitle.setFont(Font.font("Segoe UI", FontWeight.BOLD, 25));
         lblTitle.setTextFill(Color.web("#1e272e"));
-        VBox.setMargin(lblTitle, new Insets(5, 0, 0, 0));
 
         Label lblSubtitle = new Label("Regístrate para agendar tus citas médicas en Piedrazul");
         lblSubtitle.setFont(Font.font("Segoe UI", 13));
@@ -128,39 +112,32 @@ public class RegisterPatientView extends VBox {
         return header;
     }
 
+    /**
+     * Genera el icono visual del corazón y la línea EKG mediante Canvas.
+     */
     private StackPane createEkgIcon() {
         StackPane container = new StackPane();
         container.setMinSize(62, 62);
         container.setMaxSize(62, 62);
-        container.setStyle(
-                "-fx-background-color: " + COLOR_BLUE + ";"
-                + "-fx-background-radius: 14px;"
-        );
+        container.setStyle("-fx-background-color: " + COLOR_BLUE + "; -fx-background-radius: 14px;");
 
         Canvas canvas = new Canvas(52, 52);
         GraphicsContext gc = canvas.getGraphicsContext2D();
-
         gc.setStroke(Color.WHITE);
         gc.setLineCap(StrokeLineCap.ROUND);
         gc.setLineJoin(StrokeLineJoin.ROUND);
 
-        // --- Corazón: contorno blanco ---
         gc.setLineWidth(2.2);
         gc.beginPath();
-
-        double cx = 26, cy = 25;
-        double w = 13;
-
+        double cx = 26, cy = 25, w = 13;
         gc.moveTo(cx, cy + 19);
         gc.bezierCurveTo(cx - 20, cy + 6, cx - 20, cy - 12, cx - w, cy - 12);
         gc.bezierCurveTo(cx - 6, cy - 12, cx, cy - 4, cx, cy - 6);
         gc.bezierCurveTo(cx, cy - 6, cx + 6, cy - 12, cx + w, cy - 12);
         gc.bezierCurveTo(cx + 20, cy - 12, cx + 20, cy + 6, cx, cy + 19);
-
         gc.closePath();
         gc.stroke();
 
-        // --- EKG simple: plano → baja → sube → plano ---
         gc.setLineWidth(2.0);
         double[] x = {13, 20, 23, 27, 31, 39};
         double[] y = {27, 27, 36, 18, 27, 27};
@@ -170,84 +147,84 @@ public class RegisterPatientView extends VBox {
         return container;
     }
 
-    // =========================================================================
-    // FORMULARIO
-    // =========================================================================
+    /**
+     * Organiza los campos del formulario en una cuadrícula.
+     */
     private GridPane createFormGrid() {
         GridPane grid = new GridPane();
         grid.setHgap(20);
         grid.setVgap(15);
         grid.setAlignment(Pos.CENTER);
 
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(50);
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(50);
-        grid.getColumnConstraints().addAll(col1, col2);
+        ColumnConstraints col = new ColumnConstraints();
+        col.setPercentWidth(50);
+        grid.getColumnConstraints().addAll(col, col);
 
-        int row = 0;
+        int r = 0;
 
         // --- Fila 1: Primer nombre / Apellido ---
-        vboxFirstName = buildInputVBox("Primer nombre", true, false);
+        vboxFirstName = buildInputVBox("Primer nombre", true, null);
         tfFirstName = (TextField) getFieldFrom(vboxFirstName);
-        grid.add(vboxFirstName, 0, row);
+        grid.add(vboxFirstName, 0, r);
 
-        vboxFirstSurname = buildInputVBox("Apellido", true, false);
+        vboxFirstSurname = buildInputVBox("Primer Apellido", true, null);
         tfFirstSurname = (TextField) getFieldFrom(vboxFirstSurname);
-        grid.add(vboxFirstSurname, 1, row);
-        row++;
+        grid.add(vboxFirstSurname, 1, r++);
 
         // --- Fila 2: Segundo nombre / Segundo apellido ---
-        VBox vboxMiddleName = buildInputVBox("Segundo nombre", false, false);
+        VBox vboxMiddleName = buildInputVBox("Segundo nombre", false, null);
         tfMiddleName = (TextField) getFieldFrom(vboxMiddleName);
-        grid.add(vboxMiddleName, 0, row);
+        grid.add(vboxMiddleName, 0, r);
 
-        VBox vboxLastName = buildInputVBox("Segundo apellido", false, false);
+        VBox vboxLastName = buildInputVBox("Segundo apellido", false, null);
         tfLastName = (TextField) getFieldFrom(vboxLastName);
-        grid.add(vboxLastName, 1, row);
-        row++;
+        grid.add(vboxLastName, 1, r++);
 
         // --- Fila 3: Correo / Teléfono ---
-        vboxEmail = buildInputVBox("Correo electrónico", true, true);
+        lblInfoEmail = new Label("ⓘ");
+        vboxEmail = buildInputVBox("Correo electrónico", true, lblInfoEmail);
         tfEmail = (TextField) getFieldFrom(vboxEmail);
-        grid.add(vboxEmail, 0, row);
+        grid.add(vboxEmail, 0, r);
 
-        vboxPhone = buildInputVBox("Teléfono", true, true);
+        lblInfoPhone = new Label("ⓘ");
+        vboxPhone = buildInputVBox("Teléfono", true, lblInfoPhone);
         tfPhone = (TextField) getFieldFrom(vboxPhone);
-        grid.add(vboxPhone, 1, row);
-        row++;
+        grid.add(vboxPhone, 1, r++);
 
-        // --- Fila 4: Fecha de nacimiento ---
-        vboxBirthDate = buildDatePickerVBox();
+        // --- Fila 4: Fecha de nacimiento / Género ---
+        lblInfoBirthDate = new Label("ⓘ");
+        vboxBirthDate = buildDatePickerVBox(lblInfoBirthDate);
         dpBirthDate = (DatePicker) getFieldFrom(vboxBirthDate);
-        grid.add(vboxBirthDate, 0, row);
-        grid.add(new Label(), 1, row);
-        row++;
+        grid.add(vboxBirthDate, 0, r);
+
+        vboxGender = buildGenderComboBoxVBox();
+        cbGender = (ComboBox<String>) getFieldFrom(vboxGender);
+        grid.add(vboxGender, 1, r++);
 
         // --- Fila 5: Tipo de documento / Número de documento ---
-        vboxDocumentType = buildComboBoxVBox();
+        lblInfoDocType = new Label("ⓘ");
+        vboxDocumentType = buildComboBoxVBox(lblInfoDocType);
         cbDocumentType = (ComboBox<String>) getFieldFrom(vboxDocumentType);
-        grid.add(vboxDocumentType, 0, row);
+        grid.add(vboxDocumentType, 0, r);
 
-        vboxDocumentNumber = buildInputVBox("Número de documento", true, true);
+        lblInfoDocNumber = new Label("ⓘ");
+        vboxDocumentNumber = buildInputVBox("Número de documento", true, lblInfoDocNumber);
         tfDocumentNumber = (TextField) getFieldFrom(vboxDocumentNumber);
-        grid.add(vboxDocumentNumber, 1, row);
-        row++;
+        grid.add(vboxDocumentNumber, 1, r++);
 
         // --- Fila 6: Contraseña / Confirmar contraseña ---
-        vboxPassword = buildPasswordVBox("Contraseña", true, true);
+        lblInfoPassword = new Label("ⓘ");
+        vboxPassword = buildPasswordVBox("Contraseña", true, lblInfoPassword, false);
         pfPassword = (PasswordField) getPasswordFieldFrom(vboxPassword);
-        grid.add(vboxPassword, 0, row);
+        grid.add(vboxPassword, 0, r);
 
-        vboxConfirmPassword = buildPasswordVBox("Confirmar contraseña", true, false);
+        vboxConfirmPassword = buildPasswordVBox("Confirmar contraseña", true, null, true);
         pfConfirmPassword = (PasswordField) getPasswordFieldFrom(vboxConfirmPassword);
-        grid.add(vboxConfirmPassword, 1, row);
-        row++;
+        grid.add(vboxConfirmPassword, 1, r++);
 
         // --- Fila 7: Términos y condiciones ---
         hboxTerms = createCheckboxLinks();
-        grid.add(hboxTerms, 0, row, 2, 1);
-        row++;
+        grid.add(hboxTerms, 0, r++, 2, 1);
 
         // --- Fila 8: Botón crear cuenta ---
         btnCreate = new Button("Crear cuenta");
@@ -255,44 +232,30 @@ public class RegisterPatientView extends VBox {
         btnCreate.setPadding(new Insets(12));
         btnCreate.setFont(Font.font("Segoe UI", FontWeight.BOLD, 14));
         btnCreate.setTextFill(Color.WHITE);
-        btnCreate.setStyle(
-                "-fx-background-color: " + COLOR_BLUE + ";"
-                + "-fx-background-radius: 8px;"
-                + "-fx-cursor: hand;"
-        );
-        grid.add(btnCreate, 0, row, 2, 1);
+        btnCreate.setStyle("-fx-background-color: " + COLOR_BLUE + "; -fx-background-radius: 8px; -fx-cursor: hand;");
+        grid.add(btnCreate, 0, r, 2, 1);
 
         return grid;
     }
 
-    // =========================================================================
-    // BUILDERS DE CAMPOS
-    // =========================================================================
     /**
-     * Construye un VBox con etiqueta + TextField estándar.
+     * Construye un contenedor vertical para entradas de texto estándar.
      */
-    private VBox buildInputVBox(String labelText, boolean required, boolean hasInfo) {
+    private VBox buildInputVBox(String labelText, boolean required, Label infoIcon) {
         VBox vBox = new VBox(5);
-        vBox.getChildren().addAll(buildLabelBox(labelText, required, hasInfo), buildTextField());
+        vBox.getChildren().addAll(buildLabelBox(labelText, required, infoIcon), buildTextField());
         return vBox;
     }
 
     /**
-     * Construye el VBox del DatePicker de fecha de nacimiento.
+     * Crea el selector de fecha con formato personalizado.
      */
-    private VBox buildDatePickerVBox() {
+    private VBox buildDatePickerVBox(Label infoIcon) {
         VBox vBox = new VBox(5);
-
         DatePicker dp = new DatePicker();
         dp.setPromptText("dd/MM/yyyy");
         dp.setMaxWidth(Double.MAX_VALUE);
-        dp.setStyle(
-                "-fx-background-color: white;"
-                + "-fx-border-color: #d1d8e0;"
-                + "-fx-border-radius: 8px;"
-                + "-fx-background-radius: 8px;"
-                + "-fx-font-size: 13px;"
-        );
+        applyStandardFieldStyle(dp);
         dp.setConverter(new StringConverter<LocalDate>() {
             private final DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -303,114 +266,83 @@ public class RegisterPatientView extends VBox {
 
             @Override
             public LocalDate fromString(String text) {
-                if (text == null || text.isEmpty()) {
-                    return null;
-                }
                 try {
-                    return LocalDate.parse(text, fmt);
+                    return (text == null || text.isEmpty()) ? null : LocalDate.parse(text, fmt);
                 } catch (Exception e) {
                     return null;
                 }
             }
         });
-
-        vBox.getChildren().addAll(buildLabelBox("Fecha de nacimiento", true, true), dp);
+        vBox.getChildren().addAll(buildLabelBox("Fecha de nacimiento", true, infoIcon), dp);
         return vBox;
     }
 
     /**
-     * Construye el VBox del ComboBox de tipo de documento.
+     * Construye el menú desplegable para tipos de identificación.
      */
-    private VBox buildComboBoxVBox() {
+    private VBox buildComboBoxVBox(Label infoIcon) {
         VBox vBox = new VBox(5);
-
         ComboBox<String> combo = new ComboBox<>();
-        combo.getItems().addAll(
-                "Cédula de ciudadanía",
-                "Tarjeta de identidad",
-                "Cédula de extranjería",
-                "Pasaporte",
-                "Registro civil"
-        );
+        combo.getItems().addAll("Cédula de ciudadanía", "Tarjeta de identidad", "Cédula de extranjería", "Pasaporte", "Registro civil");
         combo.setPromptText("Seleccionar...");
         combo.setMaxWidth(Double.MAX_VALUE);
-        combo.setStyle(
-                "-fx-background-color: white;"
-                + "-fx-border-color: #d1d8e0;"
-                + "-fx-border-radius: 8px;"
-                + "-fx-background-radius: 8px;"
-                + "-fx-font-size: 13px;"
-        );
-
-        vBox.getChildren().addAll(buildLabelBox("Tipo de documento", true, true), combo);
+        applyStandardFieldStyle(combo);
+        vBox.getChildren().addAll(buildLabelBox("Tipo de documento", true, infoIcon), combo);
         return vBox;
     }
 
     /**
-     * Construye el VBox de un campo de contraseña con ícono de ojo.
+     * Construye el menú desplegable para el género del paciente.
      */
-    private VBox buildPasswordVBox(String labelText, boolean required, boolean hasInfo) {
+    private VBox buildGenderComboBoxVBox() {
         VBox vBox = new VBox(5);
+        ComboBox<String> combo = new ComboBox<>();
+        combo.getItems().addAll("Hombre", "Mujer", "Otro");
+        combo.setPromptText("Seleccionar...");
+        combo.setMaxWidth(Double.MAX_VALUE);
+        applyStandardFieldStyle(combo);
+        vBox.getChildren().addAll(buildLabelBox("Género", true, null), combo);
+        return vBox;
+    }
 
+    /**
+     * Crea el campo de contraseña con soporte para alternar visibilidad.
+     */
+    private VBox buildPasswordVBox(String labelText, boolean required, Label infoIcon, boolean isConfirm) {
+        VBox vBox = new VBox(5);
         PasswordField pf = new PasswordField();
-        applyStandardFieldStyle(pf);
+        TextField tfMirror = new TextField();
 
-        StackPane stack = new StackPane();
-        stack.setAlignment(Pos.CENTER_RIGHT);
+        applyStandardFieldStyle(pf);
+        applyStandardFieldStyle(tfMirror);
+
+        tfMirror.setManaged(false);
+        tfMirror.setVisible(false);
 
         Label lblEye = new Label("👁");
         lblEye.setTextFill(Color.web(COLOR_TEXT_GRAY));
         lblEye.setPadding(new Insets(0, 10, 0, 0));
+        lblEye.setStyle("-fx-cursor: hand;");
 
-        stack.getChildren().addAll(pf, lblEye);
-        vBox.getChildren().addAll(buildLabelBox(labelText, required, hasInfo), stack);
+        if (isConfirm) {
+            this.lblEyeConfirm = lblEye;
+            this.tfConfirmShown = tfMirror;
+        } else {
+            this.lblEyePass = lblEye;
+            this.tfPasswordShown = tfMirror;
+        }
+
+        StackPane stack = new StackPane(pf, tfMirror, lblEye);
+        StackPane.setAlignment(lblEye, Pos.CENTER_RIGHT);
+
+        vBox.getChildren().addAll(buildLabelBox(labelText, required, infoIcon), stack);
         return vBox;
     }
 
-    // =========================================================================
-    // INYECCIÓN DE LABELS DE ERROR (llamado por el controlador)
-    // =========================================================================
     /**
-     * Recibe los Labels de error creados por el controlador e los inserta
-     * debajo de su campo correspondiente.
-     *
-     * @param errFirstName
-     * @param errFirstSurname
-     * @param errEmail
-     * @param errPhone
-     * @param errBirthDate
-     * @param errDocumentType
-     * @param errDocumentNumber
-     * @param errPassword
-     * @param errConfirmPassword
-     * @param errTerms
-     * @param errGeneral
+     * Genera la fila de etiquetas (Nombre, Asterisco, Info).
      */
-    public void injectErrorLabels(
-            Label errFirstName, Label errFirstSurname,
-            Label errEmail, Label errPhone,
-            Label errBirthDate, Label errDocumentType,
-            Label errDocumentNumber,
-            Label errPassword, Label errConfirmPassword,
-            Label errTerms, Label errGeneral) {
-
-        vboxFirstName.getChildren().add(errFirstName);
-        vboxFirstSurname.getChildren().add(errFirstSurname);
-        vboxEmail.getChildren().add(errEmail);
-        vboxPhone.getChildren().add(errPhone);
-        vboxBirthDate.getChildren().add(errBirthDate);
-        vboxDocumentType.getChildren().add(errDocumentType);
-        vboxDocumentNumber.getChildren().add(errDocumentNumber);
-        vboxPassword.getChildren().add(errPassword);
-        vboxConfirmPassword.getChildren().add(errConfirmPassword);
-        hboxTerms.getChildren().add(errTerms);
-        vboxGeneral.getChildren().add(errGeneral);
-    }
-
-    // =========================================================================
-    // UTILIDADES INTERNAS
-    // =========================================================================
-    private HBox buildLabelBox(String labelText, boolean required, boolean hasInfo) {
+    private HBox buildLabelBox(String labelText, boolean required, Label infoIcon) {
         HBox labelBox = new HBox(3);
         labelBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -425,10 +357,10 @@ public class RegisterPatientView extends VBox {
             labelBox.getChildren().add(asterisk);
         }
 
-        if (hasInfo) {
-            Label info = new Label("ⓘ");
-            info.setTextFill(Color.web(COLOR_TEXT_GRAY));
-            labelBox.getChildren().add(info);
+        if (infoIcon != null) {
+            infoIcon.setTextFill(Color.web(COLOR_TEXT_GRAY));
+            infoIcon.setStyle("-fx-cursor: help;");
+            labelBox.getChildren().add(infoIcon);
         }
 
         return labelBox;
@@ -442,84 +374,80 @@ public class RegisterPatientView extends VBox {
 
     private void applyStandardFieldStyle(Control field) {
         field.setPadding(new Insets(12));
-        field.setStyle(
-                "-fx-background-color: white;"
-                + "-fx-border-color: #d1d8e0;"
-                + "-fx-border-radius: 8px;"
-                + "-fx-background-radius: 8px;"
-                + "-fx-prompt-text-fill: #a4b0be;"
-                + "-fx-text-fill: #2d3436;"
-        );
+        field.setStyle("-fx-background-color: white; -fx-border-color: #d1d8e0; -fx-border-radius: 8px; "
+                + "-fx-background-radius: 8px; -fx-prompt-text-fill: #a4b0be; -fx-text-fill: #2d3436;");
     }
 
-    /**
-     * Extrae el Control (TextField, DatePicker, ComboBox) de un VBox, asumiendo
-     * que siempre está en el índice 1 (después del labelBox).
-     */
     private Control getFieldFrom(VBox vBox) {
         return (Control) vBox.getChildren().get(1);
     }
 
-    /**
-     * Extrae el PasswordField desde el StackPane que está en el VBox.
-     */
     private PasswordField getPasswordFieldFrom(VBox vBox) {
         StackPane stack = (StackPane) vBox.getChildren().get(1);
         return (PasswordField) stack.getChildren().get(0);
     }
 
-    // =========================================================================
-    // FOOTER
-    // =========================================================================
+    /**
+     * Crea la sección de aceptación de políticas legales.
+     */
     private HBox createCheckboxLinks() {
         HBox hbox = new HBox(5);
         hbox.setAlignment(Pos.TOP_LEFT);
-
         cbTerms = new CheckBox();
         cbTerms.setTranslateY(2);
 
         TextFlow textFlow = new TextFlow();
-
         Text t1 = new Text("Acepto los ");
         t1.setFill(Color.web(COLOR_TEXT_GRAY));
-
         Hyperlink l1 = new Hyperlink("términos y condiciones");
         l1.setStyle("-fx-text-fill: " + COLOR_BLUE + "; -fx-padding: 0;");
-
         Text t2 = new Text(" y la ");
         t2.setFill(Color.web(COLOR_TEXT_GRAY));
-
         Hyperlink l2 = new Hyperlink("política de privacidad");
         l2.setStyle("-fx-text-fill: " + COLOR_BLUE + "; -fx-padding: 0;");
 
         textFlow.getChildren().addAll(t1, l1, t2, l2);
         hbox.getChildren().addAll(cbTerms, textFlow);
-
         return hbox;
     }
 
+    /**
+     * Crea el pie de página con el enlace de navegación al login.
+     */
     private VBox createFooter() {
         VBox footer = new VBox();
         footer.setAlignment(Pos.CENTER);
-
         HBox hbox = new HBox(5);
         hbox.setAlignment(Pos.CENTER);
-
         Label label = new Label("¿Ya tienes cuenta?");
         label.setTextFill(Color.web(COLOR_TEXT_GRAY));
-
         linkLogin = new Hyperlink("Inicia sesión");
         linkLogin.setStyle("-fx-text-fill: " + COLOR_BLUE + ";");
-
         hbox.getChildren().addAll(label, linkLogin);
         footer.getChildren().add(hbox);
-
         return footer;
     }
 
-    // =========================================================================
-    // GETTERS (para el controlador)
-    // =========================================================================
+    /**
+     * Inserta visualmente los mensajes de error bajo cada campo. Orden
+     * esperado: firstName, firstSurname, email, phone, birthDate, gender,
+     * documentType, documentNumber, password, confirmPassword, terms, general.
+     * @param errors
+     */
+    public void injectErrorLabels(Label... errors) {
+        VBox[] containers = {
+            vboxFirstName, vboxFirstSurname, vboxEmail, vboxPhone,
+            vboxBirthDate, vboxGender, vboxDocumentType, vboxDocumentNumber,
+            vboxPassword, vboxConfirmPassword
+        };
+        for (int i = 0; i < containers.length; i++) {
+            containers[i].getChildren().add(errors[i]);
+        }
+        hboxTerms.getChildren().add(errors[10]);
+        vboxGeneral.getChildren().add(errors[11]);
+    }
+
+    // --- GETTERS ---
     public TextField getTfFirstName() {
         return tfFirstName;
     }
@@ -552,6 +480,10 @@ public class RegisterPatientView extends VBox {
         return cbDocumentType;
     }
 
+    public ComboBox<String> getCbGender() {
+        return cbGender;
+    }
+
     public TextField getTfDocumentNumber() {
         return tfDocumentNumber;
     }
@@ -574,5 +506,45 @@ public class RegisterPatientView extends VBox {
 
     public Hyperlink getLinkLogin() {
         return linkLogin;
+    }
+
+    public Label getIconInfoEmail() {
+        return lblInfoEmail;
+    }
+
+    public Label getIconInfoPhone() {
+        return lblInfoPhone;
+    }
+
+    public Label getIconInfoBirthDate() {
+        return lblInfoBirthDate;
+    }
+
+    public Label getIconInfoDocType() {
+        return lblInfoDocType;
+    }
+
+    public Label getIconInfoDocNumber() {
+        return lblInfoDocNumber;
+    }
+
+    public Label getIconInfoPassword() {
+        return lblInfoPassword;
+    }
+
+    public Label getLblEyePass() {
+        return lblEyePass;
+    }
+
+    public Label getLblEyeConfirm() {
+        return lblEyeConfirm;
+    }
+
+    public TextField getTfPasswordShown() {
+        return tfPasswordShown;
+    }
+
+    public TextField getTfConfirmShown() {
+        return tfConfirmShown;
     }
 }

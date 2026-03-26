@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.unicauca.piedrazul.infrastructure.factories;
 
 import co.unicauca.piedrazul.domain.services.interfaces.IServiceFactory;
@@ -13,7 +9,6 @@ import co.unicauca.piedrazul.domain.access.IRoleRepository;
 import co.unicauca.piedrazul.domain.access.ISpecialtyRepository;
 import co.unicauca.piedrazul.domain.access.ISystemParameterRepository;
 import co.unicauca.piedrazul.domain.access.IUserRepository;
-import co.unicauca.piedrazul.domain.entities.DoctorSchedule;
 import co.unicauca.piedrazul.domain.services.ManualAppointmentService;
 import co.unicauca.piedrazul.domain.services.AvailabilityService;
 import co.unicauca.piedrazul.domain.services.DoctorScheduleService;
@@ -23,7 +18,6 @@ import co.unicauca.piedrazul.domain.services.RoleService;
 import co.unicauca.piedrazul.domain.services.SpecialtyService;
 import co.unicauca.piedrazul.domain.services.SystemParameterService;
 import co.unicauca.piedrazul.domain.services.UserService;
-import co.unicauca.piedrazul.domain.services.interfaces.IManualAppointmentValidator;
 import co.unicauca.piedrazul.domain.services.validators.DoctorScheduleValidator;
 import co.unicauca.piedrazul.domain.services.validators.DoctorValidator;
 import co.unicauca.piedrazul.domain.services.validators.ManualAppointmentValidator;
@@ -47,6 +41,7 @@ import co.unicauca.piedrazul.infrastructure.repositories.PostgresUserRepository;
  */
 public class PostgresServiceFactory implements IServiceFactory {
 // --- Repositorios (Infraestructura) ---
+
     private final IDoctorRepository doctorRepo = new PostgresDoctorRepository();
     private final IPatientRepository patientRepo = new PostgresPatientRepository();
     private final IAppointmentRepository appointmentRepo = new PostgresAppointmentRepository();
@@ -99,10 +94,10 @@ public class PostgresServiceFactory implements IServiceFactory {
     @Override
     public ManualAppointmentService createAppointmentService() {
         return new ManualAppointmentService(
-            appointmentRepo, 
-            doctorRepo, 
-            patientRepo, 
-            manualValidator
+                appointmentRepo,
+                doctorRepo,
+                patientRepo,
+                manualValidator
         );
     }
 
