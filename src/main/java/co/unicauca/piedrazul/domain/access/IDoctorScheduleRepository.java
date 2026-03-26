@@ -11,7 +11,9 @@ import java.util.List;
  * @author Santiago Solarte
  */
 public interface IDoctorScheduleRepository {
-
+    // Para consultar un horario existente 
+    DoctorSchedule findById(int scheduleId);
+    
     // Para registrar un horario disponible de un médico
     boolean save(DoctorSchedule schedule, int doctorId);
 

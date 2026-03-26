@@ -17,17 +17,9 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 /**
- * Ventana principal de la aplicación Piedrazul.
- *
- * Responsabilidades: 1. Construir y mostrar la ventana con el sidebar de
- * navegación 2. Ensamblar repositorios → servicios (patrón Factory Method) 3.
- * Instanciar los controladores inyectando los servicios correctos (DIP) 4.
- * Navegar entre vistas reemplazando el panel central
- *
- * Los servicios se crean una sola vez en el constructor y se reutilizan en cada
- * navegación para no recrear conexiones innecesariamente.
- *
- * @author Equipo Piedrazul
+ * Gestión de la interfaz principal y navegación.
+ * * Se encarga de centralizar la instancia de servicios y repositorios 
+ * para asegurar que los controladores reciban las dependencias necesarias.
  */
 public class MainView {
 
@@ -35,32 +27,29 @@ public class MainView {
     private final User loggedUser;
     private final String loggedUserRole;
 
-    // Panel raíz con sidebar izquierdo y contenido central
     private BorderPane mainLayout;
-
-    // Botón activo actualmente (para actualizar estilos de navegación)
     private Button activeNavButton;
 
-    // ── Servicios compartidos (instanciados una sola vez) ─────────────────────
-    // Se crean aquí porque MainView es el punto de ensamblaje de la app
-    private final AppointmentService appointmentService;
-    private final DoctorService doctorService;
-    private final DoctorScheduleService scheduleService;
-    private final AvailabilityService availabilityService;
-    private final PatientService patientService;
-    private final SystemParameterService parameterService;
+    // Servicios del sistema
+    private ManualAppointmentService appointmentService;
+    private DoctorService doctorService;
+    private DoctorScheduleService doctorScheduleService;
+    private AvailabilityService availabilityService;
+    private PatientService patientService;
+    private SystemParameterService parameterService;
 
     public MainView(Stage stage, User loggedUser, String loggedUserRole) {
         this.stage = stage;
         this.loggedUser = loggedUser;
         this.loggedUserRole = loggedUserRole;
-
-        // ── Repositorios (infraestructura) ────────────────────────────────────
-        // Se instancian aquí: MainView conoce la infraestructura,
-        // los servicios y controladores solo conocen interfaces (DIP)
+        
+        /*
+        // Inicialización de validadores
         UserValidator userValidator = new UserValidator();
-        DoctorValidator doctorValidator = new DoctorValidator(userValidator);
+        DoctorValidator doctorValidator = new DoctorValidator();
         ManualAppointmentValidator manualAppointmentValidator = new ManualAppointmentValidator();
+
+        // Inicialización de infraestructura (repositorios)
         PostgresUserRepository userRepo = new PostgresUserRepository();
         PostgresDoctorRepository doctorRepo = new PostgresDoctorRepository();
         PostgresPatientRepository patientRepo = new PostgresPatientRepository();
@@ -69,25 +58,22 @@ public class MainView {
         PostgresSystemParameterRepository paramRepo = new PostgresSystemParameterRepository();
         PostgresSpecialtyRepository specialtyRepo = new PostgresSpecialtyRepository();
 
-        // ── Servicios de dominio ──────────────────────────────────────────────
-        // Cada servicio recibe solo las dependencias que necesita
-        this.scheduleService = new DoctorScheduleService(scheduleRepo);
+        // Ensamblaje de servicios
+        this.doctorScheduleService = new DoctorScheduleService(scheduleRepo);
         this.availabilityService = new AvailabilityService(scheduleRepo, appointmentRepo);
-        this.appointmentService = new AppointmentService(appointmentRepo, doctorRepo, patientRepo, manualAppointmentValidator);
+        this.appointmentService = new ManualAppointmentService(appointmentRepo, doctorRepo, patientRepo, manualAppointmentValidator);
         this.doctorService = new DoctorService(doctorRepo, doctorValidator);
         this.patientService = new PatientService(patientRepo);
         this.parameterService = new SystemParameterService(paramRepo);
+        */
     }
 
-    /**
-     * Construye y muestra la ventana principal
-     */
     public void show() {
         mainLayout = new BorderPane();
         mainLayout.setStyle("-fx-background-color: #F3F4F6;");
         mainLayout.setLeft(buildSidebar());
 
-        // Vista inicial al abrir la app
+        // Carga de la vista por defecto
         showListView();
 
         Scene scene = new Scene(mainLayout, 1100, 700);
@@ -98,7 +84,7 @@ public class MainView {
         stage.show();
     }
 
-    // ── Sidebar ───────────────────────────────────────────────────────────────
+    // Estructura del menú lateral
     private VBox buildSidebar() {
         VBox sidebar = new VBox();
         sidebar.setPrefWidth(245);
@@ -106,18 +92,15 @@ public class MainView {
                 "-fx-background-color: white;"
                 + "-fx-border-color: #E5E7EB; -fx-border-width: 0 1 0 0;");
 
-        // Logo
         sidebar.getChildren().add(buildLogo());
 
-        // Etiqueta de sección
         Label sectionLbl = new Label("Administración");
         sectionLbl.setPadding(new Insets(18, 16, 6, 18));
         sectionLbl.setStyle(
                 "-fx-text-fill: #9CA3AF; -fx-font-size: 10px; -fx-font-weight: bold;");
         sidebar.getChildren().add(sectionLbl);
 
-        // Botones de navegación
-        // Guardamos los botones para poder marcar el activo
+        // Opciones de navegación
         Button btnPanel = navButton("⊞", "Panel de Citas", this::showPanelView);
         Button btnList = navButton("☰", "Listar Citas", this::showListView);
         Button btnRegister = navButton("⊕", "Registrar Cita", this::showRegisterView);
@@ -130,7 +113,6 @@ public class MainView {
                 btnReschedule, btnExport, btnConfig
         );
 
-        // Espaciador → empuja el footer hacia abajo
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
         sidebar.getChildren().add(spacer);
@@ -145,7 +127,6 @@ public class MainView {
         box.setAlignment(Pos.CENTER_LEFT);
         box.setStyle("-fx-border-color: #E5E7EB; -fx-border-width: 0 0 1 0;");
 
-        // Ícono del logo
         Label icon = new Label("💙");
         icon.setStyle(
                 "-fx-font-size: 20px; -fx-background-color: #2563EB;"
@@ -163,10 +144,7 @@ public class MainView {
         return box;
     }
 
-    /**
-     * Crea un botón de navegación del sidebar. Al hacer clic: ejecuta la acción
-     * y marca este botón como activo.
-     */
+    // Configuración de eventos y estilos para botones del menú
     private Button navButton(String icon, String label, Runnable action) {
         Button btn = new Button(icon + "  " + label);
         btn.setMaxWidth(Double.MAX_VALUE);
@@ -187,11 +165,9 @@ public class MainView {
         });
 
         btn.setOnAction(e -> {
-            // Desmarca el botón anterior
             if (activeNavButton != null) {
                 activeNavButton.setStyle(navStyle(false));
             }
-            // Marca este botón como activo
             activeNavButton = btn;
             btn.setStyle(navStyle(true));
             action.run();
@@ -215,16 +191,13 @@ public class MainView {
                 + "-fx-background-radius: 0;";
     }
 
-    /**
-     * Footer del sidebar con avatar, nombre y rol del usuario
-     */
     private HBox buildUserFooter() {
         HBox footer = new HBox(10);
         footer.setPadding(new Insets(14, 16, 14, 18));
         footer.setAlignment(Pos.CENTER_LEFT);
         footer.setStyle("-fx-border-color: #E5E7EB; -fx-border-width: 1 0 0 0;");
 
-        // Avatar: inicial del nombre en círculo azul
+        // Generar inicial para el avatar
         String initial = (loggedUser.getFirstName() != null
                 && !loggedUser.getFirstName().isEmpty())
                 ? String.valueOf(loggedUser.getFirstName().charAt(0)).toUpperCase()
@@ -246,27 +219,16 @@ public class MainView {
         VBox info = new VBox(2, nameLabel, roleLabel);
         HBox.setHgrow(info, Priority.ALWAYS);
 
-        // Botón de logout (icono flecha)
         Label logoutIcon = new Label("⇥");
         logoutIcon.setStyle("-fx-text-fill: #9CA3AF; -fx-font-size: 16px; -fx-cursor: hand;");
         Tooltip.install(logoutIcon, new Tooltip("Cerrar sesión"));
-        // TODO: conectar con pantalla de login cuando esté implementada
 
         footer.getChildren().addAll(avatar, info, logoutIcon);
         return footer;
     }
 
-    // ── Navegación entre vistas ───────────────────────────────────────────────
-    /**
-     * Reemplaza el contenido central con la vista de Registrar Cita.
-     *
-     * Aquí ocurre el ensamblaje del módulo: 1. Crea el controlador inyectando
-     * los servicios ya construidos 2. Crea la vista pasándole el controlador y
-     * el rol del usuario 3. Monta el panel de la vista en el centro del layout
-     * principal
-     */
+    // Controladores de intercambio de paneles centrales
     private void showRegisterView() {
-        // Controlador recibe servicios (DIP) — no los instancia él mismo
         RegisterAppointmentController controller = new RegisterAppointmentController(
                 appointmentService,
                 doctorService,
@@ -282,9 +244,8 @@ public class MainView {
     }
 
     private void showListView() {
-        // TODO: reemplazar con ListAppointmentsView cuando esté implementada
         mainLayout.setCenter(placeholder("📋", "Listar Citas",
-                "Esta vista se implementa en el requerimiento 1"));
+                "Módulo en desarrollo - Requerimiento 1"));
     }
 
     private void showPanelView() {
@@ -303,9 +264,6 @@ public class MainView {
         mainLayout.setCenter(placeholder("⚙", "Configuración", "Próximamente"));
     }
 
-    /**
-     * Panel placeholder para vistas no implementadas aún
-     */
     private VBox placeholder(String icon, String title, String subtitle) {
         VBox box = new VBox(10);
         box.setAlignment(Pos.CENTER);
