@@ -4,7 +4,6 @@
  */
 package co.unicauca.piedrazul.domain.services.interfaces;
 
-import co.unicauca.piedrazul.domain.entities.DoctorSchedule;
 import co.unicauca.piedrazul.domain.services.ManualAppointmentService;
 import co.unicauca.piedrazul.domain.services.AvailabilityService;
 import co.unicauca.piedrazul.domain.services.DoctorScheduleService;
@@ -33,7 +32,7 @@ public interface IServiceFactory {
     PatientService createPatientService();
 
     // Agendamiento y disponibilidad
-    ManualAppointmentService createAppointmentService();
+    ManualAppointmentService createManualAppointmentService();
     AvailabilityService createAvailabilityService();
 
     // Configuración global del sistema

@@ -24,6 +24,7 @@ public class PiedrazulFacade {
     private SpecialtyController specialtyController;
     private RoleController roleController;
     private SystemParameterController parameterController;
+    private RegisterAppointmentController registerAppointmentController;
 
     private PiedrazulFacade(IServiceFactory factory) {
         this.serviceFactory = factory;
@@ -63,9 +64,9 @@ public class PiedrazulFacade {
         return patientController;
     }
 
-    public ManualAppointmentController getAppointmentController() {
+    public ManualAppointmentController getManualAppointmentController() {
         if (appointmentController == null) {
-            appointmentController = new ManualAppointmentController(serviceFactory.createAppointmentService());
+            appointmentController = new ManualAppointmentController(serviceFactory.createManualAppointmentService());
         }
         return appointmentController;
     }
@@ -104,4 +105,16 @@ public class PiedrazulFacade {
         }
         return parameterController;
     }
+    public RegisterAppointmentController getRegisterAppointmentController() {
+    if (registerAppointmentController == null) {
+        registerAppointmentController = new RegisterAppointmentController(
+            serviceFactory.createManualAppointmentService(),
+            serviceFactory.createDoctorService(),
+            serviceFactory.createAvailabilityService(),
+            serviceFactory.createPatientService(),
+            serviceFactory.createSystemParameterService()
+        );
+    }
+    return registerAppointmentController;
+}
 }

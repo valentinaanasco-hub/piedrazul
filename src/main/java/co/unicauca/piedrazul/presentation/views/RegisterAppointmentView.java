@@ -1,12 +1,8 @@
 package co.unicauca.piedrazul.presentation.views;
 
-import co.unicauca.piedrazul.domain.entities.Appointment;
 import co.unicauca.piedrazul.domain.entities.Doctor;
 import co.unicauca.piedrazul.domain.entities.Patient;
-import co.unicauca.piedrazul.domain.entities.SystemParameter;
-import co.unicauca.piedrazul.domain.entities.enums.AppointmentStatus;
-import co.unicauca.piedrazul.domain.entities.enums.RoleName;
-import co.unicauca.piedrazul.presentation.controllers.*;
+import co.unicauca.piedrazul.presentation.controllers.RegisterAppointmentController;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -20,78 +16,32 @@ import javafx.scene.text.FontWeight;
 import javafx.util.StringConverter;
 
 /**
- * Vista JavaFX para el módulo "Registrar Cita Manual".
- * Solo accesible para roles: ADMIN, DOCTOR, AGENDADOR.
- * El calendario usa el rango de fechas de start_date_schedule / end_date_schedule.
+ * Vista de usuario para el registro manual de citas. Maneja la interacción
+ * directa con la UI y delega la lógica al controlador.
  */
 public class RegisterAppointmentView {
 
-    private final ManualAppointmentController appointmentController;
-    private final DoctorController doctorController;
-    private final AvailabilityController availabilityController;
-    private final PatientController patientController;
-    private final SystemParameterController parameterController;
+    private final RegisterAppointmentController controller;
     private final String loggedUserRole;
 
-    private Patient selectedPatient;
+    // ── Controles que necesitan actualizarse desde múltiples métodos ──────────
+    private TextField txtDocument;      // búsqueda de paciente
+    private Label lblPatientResult; // resultado de la búsqueda
+    private ComboBox<Doctor> cbDoctor;   // selector de médico
+    private DatePicker datePicker; // selector de fecha
+    private ComboBox<LocalTime> cbSlot;     // selector de hora
+    private Label lblSlotsInfo;     // "N horarios disponibles"
+    private TextArea txtMotivo; // Motivo de consulta
+    private TextArea txtNotas; // Notas adicionales
+
     private BorderPane root;
-
-    // Controles del formulario
-    private TextField     txtDocument;
-    private Label         lblPatientResult;
-    private ComboBox<Doctor>    cbDoctor;
-    private DatePicker          datePicker;
-    private ComboBox<LocalTime> cbSlot;
-    private Label         lblSlotsInfo;
-    private TextArea      txtReason;
-
-    // Rango de fechas leído desde parámetros del sistema
-    private LocalDate startDate = LocalDate.now();
-    private LocalDate endDate   = LocalDate.now().plusMonths(3);
-
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    // Roles con acceso permitido
-    private static final List<String> ALLOWED_ROLES = List.of(
-            RoleName.ADMIN.name(), RoleName.DOCTOR.name(), RoleName.AGENDADOR.name()
-    );
-
-    public RegisterAppointmentView(ManualAppointmentController ac, DoctorController dc,
-            AvailabilityController avc, PatientController pc,
-            SystemParameterController pmc, String role) {
-        this.appointmentController   = ac;
-        this.doctorController        = dc;
-        this.availabilityController  = avc;
-        this.patientController       = pc;
-        this.parameterController     = pmc;
-        this.loggedUserRole          = role;
-        loadDateRange();
+    public RegisterAppointmentView(RegisterAppointmentController controller, String loggedUserRole) {
+        this.controller = controller;
+        this.loggedUserRole = loggedUserRole;
         build();
     }
-
-    // ── Carga el rango desde parámetros del sistema ───────────────────────────
-
-    private void loadDateRange() {
-        try {
-            SystemParameter startParam = parameterController.getSetting("start_date_schedule");
-            SystemParameter endParam   = parameterController.getSetting("end_date_schedule");
-
-            if (startParam != null && startParam.getValue() != null
-                    && !startParam.getValue().isBlank()) {
-                startDate = LocalDate.parse(startParam.getValue().trim(), DATE_FMT);
-            }
-            if (endParam != null && endParam.getValue() != null
-                    && !endParam.getValue().isBlank()) {
-                endDate = LocalDate.parse(endParam.getValue().trim(), DATE_FMT);
-            }
-        } catch (Exception e) {
-            System.err.println("⚠ No se pudo leer el rango de fechas: " + e.getMessage());
-            // Se usan los valores por defecto definidos arriba
-        }
-    }
-
-    // ── Construcción de la UI ─────────────────────────────────────────────────
 
     private void build() {
         root = new BorderPane();
@@ -99,7 +49,9 @@ public class RegisterAppointmentView {
 
         root.setTop(buildHeader());
 
-        if (!ALLOWED_ROLES.contains(loggedUserRole)) {
+        // Verifica si el rol tiene permiso para registrar citas
+        if (!loggedUserRole.equals("AGENDADOR") && !loggedUserRole.equals("DOCTOR")
+                && !loggedUserRole.equals("ADMIN")) {
             root.setCenter(buildAccessDenied());
             return;
         }
@@ -110,8 +62,7 @@ public class RegisterAppointmentView {
     private VBox buildHeader() {
         VBox header = new VBox(4);
         header.setPadding(new Insets(20, 28, 14, 28));
-        header.setStyle("-fx-background-color: white;"
-                + "-fx-border-color: #E5E7EB; -fx-border-width: 0 0 1 0;");
+        header.setStyle("-fx-background-color: white; -fx-border-color: #E5E7EB; -fx-border-width: 0 0 1 0;");
 
         Label breadcrumb = new Label("Administración / Registrar Cita");
         breadcrumb.setStyle("-fx-text-fill: #9CA3AF; -fx-font-size: 12px;");
@@ -128,7 +79,7 @@ public class RegisterAppointmentView {
     }
 
     private HBox buildBody() {
-        HBox body = new HBox(20);
+        HBox body = new HBox(24);
         body.setPadding(new Insets(24, 28, 24, 28));
         body.setAlignment(Pos.TOP_LEFT);
 
@@ -136,59 +87,82 @@ public class RegisterAppointmentView {
         HBox.setHgrow(form, Priority.ALWAYS);
 
         VBox availability = buildAvailabilityPanel();
-        availability.setMinWidth(220);
-        availability.setMaxWidth(220);
+        availability.setMinWidth(260);
+        availability.setMaxWidth(260);
 
         body.getChildren().addAll(form, availability);
         return body;
     }
 
-    // ── Formulario principal ──────────────────────────────────────────────────
-
     private VBox buildForm() {
         VBox form = new VBox(20);
+        form.setPadding(new Insets(28));
+        form.setStyle("-fx-background-color: white;"
+                + "-fx-background-radius: 12;"
+                + "-fx-border-color: #E5E7EB;"
+                + "-fx-border-radius: 12;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 10, 0, 0, 4);");
         form.setPadding(new Insets(24));
-        form.setStyle(cardStyle());
+        form.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #E5E7EB;"
+                + "-fx-border-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);");
 
         Label sectionTitle = new Label("Datos de la cita");
-        sectionTitle.setFont(Font.font("System", FontWeight.BOLD, 14));
+        sectionTitle.setFont(Font.font("System", FontWeight.BOLD, 15));
         sectionTitle.setStyle("-fx-text-fill: #374151;");
 
         // Fila 1: paciente | médico
-        HBox row1 = new HBox(16);
+        HBox row1 = new HBox(20);
         VBox patientBox = buildPatientField();
-        VBox doctorBox  = buildDoctorField();
+        VBox doctorBox = buildDoctorField();
         HBox.setHgrow(patientBox, Priority.ALWAYS);
-        HBox.setHgrow(doctorBox,  Priority.ALWAYS);
+        HBox.setHgrow(doctorBox, Priority.ALWAYS);
         row1.getChildren().addAll(patientBox, doctorBox);
 
         // Fila 2: fecha | hora
-        HBox row2 = new HBox(16);
+        HBox row2 = new HBox(20);
         VBox dateBox = buildDateField();
         VBox slotBox = buildSlotField();
         HBox.setHgrow(dateBox, Priority.ALWAYS);
         HBox.setHgrow(slotBox, Priority.ALWAYS);
         row2.getChildren().addAll(dateBox, slotBox);
 
-        // Fila 3: motivo | notas adicionales
-        HBox row3 = new HBox(16);
-        VBox reasonBox = buildReasonField();
-        HBox.setHgrow(reasonBox, Priority.ALWAYS);
-        row3.getChildren().add(reasonBox);
+        // Fila 3: Motivo | Notas
+        HBox row3 = new HBox(20);
+        VBox motivoBox = buildTextAreaField("Motivo de consulta *", "Describe el motivo de la consulta...", true);
+        VBox notasBox = buildTextAreaField("Notas adicionales", "Información adicional (opcional)", false);
+        HBox.setHgrow(motivoBox, Priority.ALWAYS);
+        HBox.setHgrow(notasBox, Priority.ALWAYS);
+        row3.getChildren().addAll(motivoBox, notasBox);
 
         // Botón registrar
-        Button btnRegister = buildPrimaryButton("Registrar Cita");
+        Button btnRegister = new Button("Registrar Cita");
+        btnRegister.setPrefWidth(200);
+        btnRegister.setStyle(
+                "-fx-background-color: #2563EB; -fx-text-fill: white;"
+                + "-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8;"
+                + "-fx-padding: 12 0; -fx-cursor: hand;");
+
+        btnRegister.setOnMouseExited(e
+                -> btnRegister.setStyle(
+                        "-fx-background-color: #2563EB; -fx-text-fill: white;"
+                        + "-fx-font-size: 14px; -fx-font-weight: bold;"
+                        + "-fx-background-radius: 8; -fx-padding: 11 32;"
+                        + "-fx-cursor: hand;"));
+
+        btnRegister.setOnMouseEntered(e -> btnRegister.setStyle("-fx-background-color: #1D4ED8; -fx-text-fill: white;"
+                + "-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 11 32; -fx-cursor: hand;"));
+        btnRegister.setOnMouseExited(e -> btnRegister.setStyle("-fx-background-color: #2563EB; -fx-text-fill: white;"
+                + "-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 11 32; -fx-cursor: hand;"));
+
         btnRegister.setOnAction(e -> handleRegister());
 
         HBox btnRow = new HBox(btnRegister);
         btnRow.setAlignment(Pos.CENTER);
-        btnRow.setPadding(new Insets(8, 0, 0, 0));
+        btnRow.setPadding(new Insets(10, 0, 0, 0));
 
-        form.getChildren().addAll(sectionTitle, row1, row2, row3, btnRow);
+        form.getChildren().addAll(sectionTitle, row1, row2, btnRow);
         return form;
     }
-
-    // ── Campos del formulario ─────────────────────────────────────────────────
 
     private VBox buildPatientField() {
         VBox box = new VBox(6);
@@ -196,19 +170,21 @@ public class RegisterAppointmentView {
 
         HBox searchRow = new HBox(6);
         txtDocument = new TextField();
-        txtDocument.setPromptText("Buscar paciente...");
+        txtDocument.setPromptText("N° documento...");
         txtDocument.setStyle(fieldStyle());
         HBox.setHgrow(txtDocument, Priority.ALWAYS);
 
-        Button btnSearch = buildSecondaryButton("Buscar");
+        Button btnSearch = new Button("Buscar");
+        btnSearch.setStyle("-fx-background-color: #F3F4F6; -fx-text-fill: #374151; -fx-font-size: 12px;"
+                + "-fx-background-radius: 6; -fx-padding: 8 12; -fx-cursor: hand; -fx-border-color: #D1D5DB; -fx-border-radius: 6;");
+
         btnSearch.setOnAction(e -> handlePatientSearch());
         txtDocument.setOnAction(e -> handlePatientSearch());
-
-        searchRow.getChildren().addAll(txtDocument, btnSearch);
 
         lblPatientResult = new Label("Sin paciente seleccionado");
         lblPatientResult.setStyle("-fx-text-fill: #9CA3AF; -fx-font-size: 12px;");
 
+        searchRow.getChildren().addAll(txtDocument, btnSearch);
         box.getChildren().addAll(lbl, searchRow, lblPatientResult);
         return box;
     }
@@ -221,14 +197,27 @@ public class RegisterAppointmentView {
         cbDoctor.setPromptText("Seleccionar profesional...");
         cbDoctor.setMaxWidth(Double.MAX_VALUE);
         cbDoctor.setStyle(fieldStyle());
+
         cbDoctor.setConverter(new StringConverter<Doctor>() {
-            @Override public String toString(Doctor d) { return d == null ? "" : d.getFullName(); }
-            @Override public Doctor fromString(String s) { return null; }
+            @Override
+            public String toString(Doctor d) {
+                return d == null ? "" : d.getFullName();
+            }
+
+            @Override
+            public Doctor fromString(String s) {
+                return null;
+            }
         });
 
-        cbDoctor.getItems().addAll(doctorController.getActiveStaff());
+        cbDoctor.getItems().addAll(controller.loadActiveDoctors());
+
         cbDoctor.setOnAction(e -> {
-            if (cbDoctor.getValue() != null) updateSlotsComboBox();
+            Doctor selected = cbDoctor.getValue();
+            if (selected != null) {
+                controller.onDoctorSelected(selected);
+                updateSlotsComboBox();
+            }
         });
 
         box.getChildren().addAll(lbl, cbDoctor);
@@ -240,10 +229,13 @@ public class RegisterAppointmentView {
         Label lbl = fieldLabel("Fecha *");
 
         datePicker = new DatePicker();
-        datePicker.setPromptText("mm/dd/yyyy");
+        datePicker.setPromptText("Seleccionar fecha...");
         datePicker.setMaxWidth(Double.MAX_VALUE);
+        datePicker.setStyle(fieldStyle());
 
-        // Restringe el calendario al rango de parámetros del sistema
+        LocalDate startDate = controller.getStartDate();
+        LocalDate endDate = controller.getEndDate();
+
         datePicker.setDayCellFactory(picker -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {
@@ -257,7 +249,11 @@ public class RegisterAppointmentView {
         });
 
         datePicker.setOnAction(e -> {
-            if (datePicker.getValue() != null) updateSlotsComboBox();
+            LocalDate selected = datePicker.getValue();
+            if (selected != null) {
+                controller.onDateSelected(selected);
+                updateSlotsComboBox();
+            }
         });
 
         box.getChildren().addAll(lbl, datePicker);
@@ -273,9 +269,24 @@ public class RegisterAppointmentView {
         cbSlot.setMaxWidth(Double.MAX_VALUE);
         cbSlot.setStyle(fieldStyle());
         cbSlot.setDisable(true);
+
         cbSlot.setConverter(new StringConverter<LocalTime>() {
-            @Override public String toString(LocalTime t) { return t == null ? "" : t.format(TIME_FMT); }
-            @Override public LocalTime fromString(String s) { return null; }
+            @Override
+            public String toString(LocalTime t) {
+                return t == null ? "" : t.format(TIME_FMT);
+            }
+
+            @Override
+            public LocalTime fromString(String s) {
+                return null;
+            }
+        });
+
+        cbSlot.setOnAction(e -> {
+            LocalTime selected = cbSlot.getValue();
+            if (selected != null) {
+                controller.onSlotSelected(selected);
+            }
         });
 
         lblSlotsInfo = new Label("Seleccione médico y fecha primero");
@@ -285,69 +296,77 @@ public class RegisterAppointmentView {
         return box;
     }
 
-    private VBox buildReasonField() {
+    private VBox buildTextAreaField(String label, String prompt, boolean isMotivo) {
         VBox box = new VBox(6);
-        Label lbl = fieldLabel("Motivo de consulta *");
+        TextArea area = new TextArea();
+        area.setPromptText(prompt);
+        area.setPrefHeight(100);
+        area.setWrapText(true);
+        area.setStyle(fieldStyle());
 
-        txtReason = new TextArea();
-        txtReason.setPromptText("Describe el motivo de la consulta...");
-        txtReason.setPrefRowCount(3);
-        txtReason.setMaxWidth(Double.MAX_VALUE);
-        txtReason.setStyle(fieldStyle() + "-fx-font-size: 13px;");
-        txtReason.setWrapText(true);
+        if (isMotivo) {
+            txtMotivo = area;
+        } else {
+            txtNotas = area;
+        }
 
-        box.getChildren().addAll(lbl, txtReason);
+        box.getChildren().addAll(fieldLabel(label), area);
         return box;
     }
 
-    // ── Panel lateral de disponibilidad ──────────────────────────────────────
-
     private VBox buildAvailabilityPanel() {
-        VBox panel = new VBox(14);
+        VBox panel = new VBox(16);
         panel.setPadding(new Insets(20));
-        panel.setStyle(cardStyle());
+        panel.setStyle("-fx-background-color: white;"
+                + "-fx-background-radius: 12;"
+                + "-fx-border-color: #E5E7EB;"
+                + "-fx-border-radius: 12;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);");
+        panel.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #E5E7EB;"
+                + "-fx-border-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);");
 
         Label title = new Label("Vista de disponibilidad");
-        title.setFont(Font.font("System", FontWeight.BOLD, 13));
+        title.setFont(Font.font("System", FontWeight.BOLD, 14));
         title.setStyle("-fx-text-fill: #374151;");
 
         Label info = new Label("Seleccione un profesional y una fecha para ver los horarios disponibles.");
         info.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 11px;");
         info.setWrapText(true);
 
-        // Leyenda de estados de hora
-        VBox legend = new VBox(8);
-        legend.setPadding(new Insets(8, 0, 0, 0));
+        VBox legend = new VBox(10);
         legend.getChildren().addAll(
-                legendItem("#6B7280", "Disponible"),
-                legendItem("#2563EB", "Seleccionado"),
-                legendItem("#9CA3AF", "Ocupado")
+                legendItem("#16A34A", "Con disponibilidad"),
+                legendItem("#DC2626", "Sin disponibilidad"),
+                legendItem("#2563EB", "Seleccionado")
         );
 
-        // Separador
-        Separator sep = new Separator();
-        sep.setStyle("-fx-border-color: #E5E7EB;");
+        VBox miniCalendar = new VBox(8);
+        miniCalendar.setAlignment(Pos.CENTER);
+        miniCalendar.setStyle("-fx-border-color: #F3F4F6; -fx-border-width: 0 0 1 0; -fx-padding: 0 0 10 0;");
+        Label month = new Label("Febrero 2026");
+        month.setStyle("-fx-font-weight: bold; -fx-text-fill: #374151;");
+        miniCalendar.getChildren().add(month);
 
-        // Rango de fechas habilitado
         VBox rangeBox = new VBox(4);
         rangeBox.setStyle("-fx-background-color: #EFF6FF; -fx-background-radius: 6; -fx-padding: 10;");
 
         Label rangeTitle = new Label("Rango habilitado");
         rangeTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #1D4ED8;");
 
-        Label rangeVal = new Label(startDate.toString() + "\nal " + endDate.toString());
+        Label rangeVal = new Label(controller.getStartDate().toString() + "\nal " + controller.getEndDate().toString());
         rangeVal.setStyle("-fx-text-fill: #1E40AF; -fx-font-size: 11px;");
-        rangeVal.setWrapText(true);
 
         rangeBox.getChildren().addAll(rangeTitle, rangeVal);
-
-        panel.getChildren().addAll(title, info, legend, sep, rangeBox);
+        panel.getChildren().addAll(title, info, legend, rangeBox);
         return panel;
     }
 
     private HBox legendItem(String color, String text) {
         HBox row = new HBox(8);
         row.setAlignment(Pos.CENTER_LEFT);
+        Region circle = new Region();
+        circle.setPrefSize(10, 10);
+        circle.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 2;");
         Label dot = new Label("●");
         dot.setStyle("-fx-text-fill: " + color + "; -fx-font-size: 14px;");
         Label lbl = new Label(text);
@@ -356,8 +375,6 @@ public class RegisterAppointmentView {
         return row;
     }
 
-    // ── Pantalla de acceso denegado ───────────────────────────────────────────
-
     private VBox buildAccessDenied() {
         VBox box = new VBox(12);
         box.setAlignment(Pos.CENTER);
@@ -365,12 +382,10 @@ public class RegisterAppointmentView {
 
         Label icon = new Label("🚫");
         icon.setFont(Font.font(52));
-
         Label title = new Label("Acceso denegado");
         title.setFont(Font.font("System", FontWeight.BOLD, 20));
         title.setStyle("-fx-text-fill: #DC2626;");
-
-        Label msg = new Label("Solo los usuarios con rol ADMIN, DOCTOR o AGENDADOR\npueden registrar citas manualmente.");
+        Label msg = new Label("Solo los usuarios con rol AGENDADOR o DOCTOR pueden registrar citas manualmente.");
         msg.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 13px;");
         msg.setAlignment(Pos.CENTER);
         msg.setWrapText(true);
@@ -379,45 +394,51 @@ public class RegisterAppointmentView {
         return box;
     }
 
-    // ── Manejadores de eventos ────────────────────────────────────────────────
-
     private void handlePatientSearch() {
         String input = txtDocument.getText().trim();
-        if (input.isEmpty()) return;
+        if (input.isEmpty()) {
+            return;
+        }
 
         try {
             int docId = Integer.parseInt(input);
-            Patient patient = patientController.getPatientById(docId);
+            Patient patient = controller.findPatientById(docId);
 
             if (patient != null) {
-                this.selectedPatient = patient;
+                controller.onPatientSelected(patient);
                 lblPatientResult.setText("✓ " + patient.getFullName());
                 lblPatientResult.setStyle("-fx-text-fill: #16A34A; -fx-font-size: 12px;");
             } else {
-                this.selectedPatient = null;
                 lblPatientResult.setText("✗ Paciente no encontrado");
                 lblPatientResult.setStyle("-fx-text-fill: #DC2626; -fx-font-size: 12px;");
             }
         } catch (NumberFormatException ex) {
-            this.selectedPatient = null;
             lblPatientResult.setText("✗ Ingrese un número válido");
             lblPatientResult.setStyle("-fx-text-fill: #DC2626; -fx-font-size: 12px;");
         }
     }
 
+    private void handleRegister() {
+        try {
+            if (controller.registerAppointment(loggedUserRole)) {
+                showAlert(Alert.AlertType.INFORMATION, "Éxito", "✓ Cita registrada exitosamente");
+                clearForm();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo guardar la cita.");
+            }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            showAlert(Alert.AlertType.WARNING, "Validación", e.getMessage());
+        }
+    }
+
     private void updateSlotsComboBox() {
-        Doctor doc   = cbDoctor.getValue();
-        LocalDate date = datePicker.getValue();
-
-        if (doc == null || date == null) return;
-
-        List<LocalTime> slots = availabilityController.checkAvailableSlots(doc.getId(), date);
+        List<LocalTime> slots = controller.getAvailableSlots();
         cbSlot.getItems().clear();
         cbSlot.setValue(null);
 
         if (slots == null || slots.isEmpty()) {
             cbSlot.setDisable(true);
-            lblSlotsInfo.setText("No hay horarios disponibles para esta fecha");
+            lblSlotsInfo.setText("Sin horarios disponibles");
             lblSlotsInfo.setStyle("-fx-text-fill: #DC2626; -fx-font-size: 11px;");
         } else {
             cbSlot.getItems().addAll(slots);
@@ -427,69 +448,15 @@ public class RegisterAppointmentView {
         }
     }
 
-    private void handleRegister() {
-        // Validación de campos obligatorios
-        if (selectedPatient == null) {
-            showAlert(Alert.AlertType.WARNING, "Datos incompletos", "Debe buscar y seleccionar un paciente.");
-            return;
-        }
-        if (cbDoctor.getValue() == null) {
-            showAlert(Alert.AlertType.WARNING, "Datos incompletos", "Debe seleccionar un profesional.");
-            return;
-        }
-        if (datePicker.getValue() == null) {
-            showAlert(Alert.AlertType.WARNING, "Datos incompletos", "Debe seleccionar una fecha.");
-            return;
-        }
-        if (cbSlot.getValue() == null) {
-            showAlert(Alert.AlertType.WARNING, "Datos incompletos", "Debe seleccionar una hora.");
-            return;
-        }
-        if (txtReason.getText().trim().isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Datos incompletos", "Debe ingresar el motivo de la consulta.");
-            return;
-        }
-
-        try {
-            LocalTime startTime = cbSlot.getValue();
-
-            Appointment appointment = new Appointment(
-                    datePicker.getValue(),
-                    startTime,
-                    startTime,                  // endTime: el servicio calcula la duración real
-                    AppointmentStatus.AGENDADA,
-                    cbDoctor.getValue(),
-                    selectedPatient
-            );
-
-            boolean ok = appointmentController.schedule(appointment);
-
-            if (ok) {
-                showAlert(Alert.AlertType.INFORMATION, "Éxito", "✓ Cita registrada exitosamente");
-                clearForm();
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Error",
-                        appointmentController.getLastErrorMessage() != null
-                                ? appointmentController.getLastErrorMessage()
-                                : "No se pudo guardar la cita. Intente de nuevo.");
-            }
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Error inesperado", e.getMessage());
-        }
-    }
-
     private void clearForm() {
         txtDocument.clear();
-        selectedPatient = null;
         lblPatientResult.setText("Sin paciente seleccionado");
-        lblPatientResult.setStyle("-fx-text-fill: #9CA3AF; -fx-font-size: 12px;");
+        lblPatientResult.setStyle("-fx-text-fill: #9CA3AF;");
         cbDoctor.setValue(null);
         datePicker.setValue(null);
         cbSlot.getItems().clear();
         cbSlot.setDisable(true);
-        lblSlotsInfo.setText("Seleccione médico y fecha primero");
-        lblSlotsInfo.setStyle("-fx-text-fill: #9CA3AF; -fx-font-size: 11px;");
-        txtReason.clear();
+        controller.reset();
     }
 
     private void showAlert(Alert.AlertType type, String title, String message) {
@@ -500,49 +467,17 @@ public class RegisterAppointmentView {
         alert.showAndWait();
     }
 
-    // ── Helpers de estilo ─────────────────────────────────────────────────────
-
     private Label fieldLabel(String text) {
         Label lbl = new Label(text);
         lbl.setStyle("-fx-text-fill: #374151; -fx-font-weight: bold; -fx-font-size: 13px;");
         return lbl;
     }
 
-    private String cardStyle() {
-        return "-fx-background-color: white;"
-                + "-fx-background-radius: 10;"
-                + "-fx-border-color: #E5E7EB;"
-                + "-fx-border-radius: 10;"
-                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 6, 0, 0, 2);";
-    }
-
     private String fieldStyle() {
-        return "-fx-background-radius: 6; -fx-border-color: #D1D5DB;"
-                + "-fx-border-radius: 6; -fx-padding: 7;";
+        return "-fx-background-radius: 6; -fx-border-color: #D1D5DB; -fx-border-radius: 6; -fx-padding: 7;";
     }
 
-    private Button buildPrimaryButton(String text) {
-        Button btn = new Button(text);
-        String base  = "-fx-background-color: #2563EB; -fx-text-fill: white;"
-                + "-fx-font-size: 14px; -fx-font-weight: bold;"
-                + "-fx-background-radius: 8; -fx-padding: 11 32; -fx-cursor: hand;";
-        String hover = "-fx-background-color: #1D4ED8; -fx-text-fill: white;"
-                + "-fx-font-size: 14px; -fx-font-weight: bold;"
-                + "-fx-background-radius: 8; -fx-padding: 11 32; -fx-cursor: hand;";
-        btn.setStyle(base);
-        btn.setOnMouseEntered(e -> btn.setStyle(hover));
-        btn.setOnMouseExited(e -> btn.setStyle(base));
-        return btn;
+    public BorderPane getRoot() {
+        return root;
     }
-
-    private Button buildSecondaryButton(String text) {
-        Button btn = new Button(text);
-        btn.setStyle("-fx-background-color: #F3F4F6; -fx-text-fill: #374151;"
-                + "-fx-font-size: 12px; -fx-background-radius: 6;"
-                + "-fx-border-color: #D1D5DB; -fx-border-radius: 6;"
-                + "-fx-padding: 8 12; -fx-cursor: hand;");
-        return btn;
-    }
-
-    public BorderPane getRoot() { return root; }
 }

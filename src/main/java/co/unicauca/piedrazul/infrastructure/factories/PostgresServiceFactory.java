@@ -13,7 +13,6 @@ import co.unicauca.piedrazul.domain.access.IRoleRepository;
 import co.unicauca.piedrazul.domain.access.ISpecialtyRepository;
 import co.unicauca.piedrazul.domain.access.ISystemParameterRepository;
 import co.unicauca.piedrazul.domain.access.IUserRepository;
-import co.unicauca.piedrazul.domain.entities.DoctorSchedule;
 import co.unicauca.piedrazul.domain.services.ManualAppointmentService;
 import co.unicauca.piedrazul.domain.services.AvailabilityService;
 import co.unicauca.piedrazul.domain.services.DoctorScheduleService;
@@ -23,7 +22,6 @@ import co.unicauca.piedrazul.domain.services.RoleService;
 import co.unicauca.piedrazul.domain.services.SpecialtyService;
 import co.unicauca.piedrazul.domain.services.SystemParameterService;
 import co.unicauca.piedrazul.domain.services.UserService;
-import co.unicauca.piedrazul.domain.services.interfaces.IManualAppointmentValidator;
 import co.unicauca.piedrazul.domain.services.validators.DoctorScheduleValidator;
 import co.unicauca.piedrazul.domain.services.validators.DoctorValidator;
 import co.unicauca.piedrazul.domain.services.validators.ManualAppointmentValidator;
@@ -97,7 +95,7 @@ public class PostgresServiceFactory implements IServiceFactory {
     }
 
     @Override
-    public ManualAppointmentService createAppointmentService() {
+    public ManualAppointmentService createManualAppointmentService() {
         return new ManualAppointmentService(
             appointmentRepo, 
             doctorRepo, 
