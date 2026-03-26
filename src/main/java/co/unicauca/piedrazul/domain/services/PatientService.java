@@ -24,18 +24,15 @@ public class PatientService {
 
     public boolean registerPatient(Patient patient) {
         // Validamos tanto los datos de Usuario como los de Paciente
-        validator.validatePatient(patient);
-        
-        // Aquí podrías agregar validaciones extra de negocio, 
-        // como verificar si el ID del paciente ya existe en el repositorio
-        
+        Patient patientDuplicate = findPatient(patient.getId());
+        validator.validateExists(patientDuplicate);
+        validator.validatePatient(patient);           
         return patientRepository.save(patient);
     }
 
     public Patient findPatient(int id) {
         Patient patient = patientRepository.findById(id);
-        
-        // Delegamos la validación de existencia al validador
+       
         validator.validateExists(patient); 
         
         return patient;

@@ -9,7 +9,7 @@ import co.unicauca.piedrazul.domain.entities.User;
  */
 public interface IUserValidator {
     void validateUser(User user);
-    void validateExists(User user) ;
+    void validateExists(User user);
     public void validateUserName(String username);
     public void validatePassword(String password);
 }

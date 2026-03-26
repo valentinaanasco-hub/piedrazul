@@ -24,22 +24,18 @@ public class RoleService {
     }
 
     public boolean assignRole(int userId, RoleName name) {
-        // 1. Buscamos el rol por su nombre (Enum)
+        // Buscamos el rol por su nombre (Enum)
         Role role = roleRepository.findByName(name);
         
-        // 2. El validador decide si el rol es válido para continuar
+        // El validador decide si el rol es válido para continuar
         validator.validateExists(role);
         
-        // 3. Procedemos con la operación en el repositorio
+        // Procedemos con la operación en el repositorio
         return roleRepository.assignRoleToUser(userId, role.getRoleId());
     }
 
     public List<Role> listRolesByUser(int userId) {
-        List<Role> roles = roleRepository.findRolesByUserId(userId);
-        
-        // Opcional: Validar si queremos que explote si no tiene roles
-        // validator.validateListNotEmpty(roles);
-        
+        List<Role> roles = roleRepository.findRolesByUserId(userId); 
         return roles;
     }
 }

@@ -20,13 +20,13 @@ public class SystemParameterService {
     }
     
     public SystemParameter findParameter(String key) {
-        // 1. Validamos que la llave recibida sea un texto válido
+        // Validamos que la llave recibida sea un texto válido
         validator.validateKey(key);
         
-        // 2. Buscamos en el repositorio
+        // Buscamos en el repositorio
         SystemParameter parameter = systemParameterRepository.findByKey(key);
         
-        // 3. Validamos que realmente se haya encontrado algo
+        // Validamos que realmente se haya encontrado algo
         validator.validateExists(parameter, key);
         
         return parameter;

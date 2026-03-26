@@ -18,17 +18,19 @@ public class UserService {
     private final IUserRepository userRepository;
     private final IUserValidator validator; // Inyectamos la abstracción
 
-    // Inyección de dependencias por constructor
+    // Inyección de dependencias 
     public UserService(IUserRepository userRepository, IUserValidator validator) {
         this.userRepository = userRepository;
         this.validator = validator;
     }
 
     public boolean registerUser(User user) {
-        // 1. Validamos formato y campos obligatorios
+        // Validamos formato y campos obligatorios
+        User userDuplicateUserName = findUser(user.getUsername());
+        validator.validateExists(userDuplicateUserName);
         validator.validateUser(user);
 
-        // 2. Validamos lógica de negocio (regla de unicidad)
+        // Validamos lógica de negocio (regla de unicidad)
         if (userRepository.findByUsername(user.getUsername()) != null) {
             throw new IllegalArgumentException("El nombre de usuario ya existe");
         }
@@ -38,8 +40,10 @@ public class UserService {
 
     public User login(String username, String password) {
         // Validamos que los parámetros de entrada no sean nulos/vacíos
+        /*falta validar id*/
         validator.validateUserName(username);
         validator.validatePassword(password);
+        
 
         User user = userRepository.findByUsername(username);
         
