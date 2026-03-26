@@ -3,19 +3,21 @@ package co.unicauca.piedrazul.domain.services;
 import co.unicauca.piedrazul.domain.entities.User;
 import java.util.List;
 import co.unicauca.piedrazul.domain.access.IUserRepository;
+import co.unicauca.piedrazul.domain.entities.Role;
+import co.unicauca.piedrazul.domain.entities.enums.RoleName;
 import co.unicauca.piedrazul.domain.entities.enums.UserState;
 import co.unicauca.piedrazul.domain.services.interfaces.IUserService;
 import co.unicauca.piedrazul.domain.services.interfaces.IUserValidator;
 
 /**
- * @author Valentina Añasco 
+ * @author Valentina Añasco
  * @author Camila Dorado
  * @author Felipe Gutierrez
  * @author Ginner Ortega
- * @author Santiago Solarte 
+ * @author Santiago Solarte
  */
-
 public class UserService implements IUserService {
+
     private final IUserRepository userRepository;
     private final IUserValidator validator; // Inyectamos la abstracción
 
@@ -27,14 +29,16 @@ public class UserService implements IUserService {
 
     @Override
     public boolean registerUser(User user) {
-        // Validamos formato y campos obligatorios
-        User userDuplicateUserName = findUser(user.getUsername());
-        validator.validateExists(userDuplicateUserName);
         validator.validateUser(user);
 
-        // Validamos lógica de negocio (regla de unicidad)
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            Role role = new Role();
+            role.setRoleName(RoleName.PACIENTE.toString());
+            user.getRoles().add(role);
+        }
+
         if (userRepository.findByUsername(user.getUsername()) != null) {
-            throw new IllegalArgumentException("El nombre de usuario ya existe");
+            throw new IllegalArgumentException("El correo electrónico ya está registrado en el sistema.");
         }
 
         return userRepository.save(user);
@@ -46,10 +50,9 @@ public class UserService implements IUserService {
         /*falta validar id*/
         validator.validateUserName(username);
         validator.validatePassword(password);
-        
 
         User user = userRepository.findByUsername(username);
-        
+
         // Delegamos la validación de existencia
         validator.validateExists(user);
 
@@ -74,7 +77,7 @@ public class UserService implements IUserService {
     @Override
     public User findUser(String username) {
         User user = userRepository.findByUsername(username);
-        validator.validateExists(user); 
+        validator.validateExists(user);
         return user;
     }
 
@@ -82,11 +85,11 @@ public class UserService implements IUserService {
     public boolean modifyUser(User user) {
         // Validamos que el usuario que viene por parámetro sea válido
         validator.validateUser(user);
-        
+
         // Verificamos que ya exista en la base de datos
         User existing = userRepository.findByUsername(user.getUsername());
         validator.validateExists(existing);
-        
+
         return userRepository.update(user);
     }
 

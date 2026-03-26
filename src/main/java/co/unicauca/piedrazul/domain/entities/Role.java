@@ -1,5 +1,7 @@
 package co.unicauca.piedrazul.domain.entities;
 
+import co.unicauca.piedrazul.domain.entities.enums.RoleName;
+
 /**
  * @author Valentina Añasco
  * @author Camila Dorado
@@ -19,6 +21,10 @@ public class Role {
     public Role(int roleId, String roleName) {
         this.roleId = roleId;
         this.roleName = roleName;
+    }
+
+    public Role(RoleName name) {
+        this.roleName = name.name();
     }
 
     public int getRoleId() {

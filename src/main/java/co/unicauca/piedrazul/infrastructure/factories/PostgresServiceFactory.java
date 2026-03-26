@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.unicauca.piedrazul.infrastructure.factories;
 
 import co.unicauca.piedrazul.domain.services.interfaces.IServiceFactory;
@@ -45,6 +41,7 @@ import co.unicauca.piedrazul.infrastructure.repositories.PostgresUserRepository;
  */
 public class PostgresServiceFactory implements IServiceFactory {
 // --- Repositorios (Infraestructura) ---
+
     private final IDoctorRepository doctorRepo = new PostgresDoctorRepository();
     private final IPatientRepository patientRepo = new PostgresPatientRepository();
     private final IAppointmentRepository appointmentRepo = new PostgresAppointmentRepository();
@@ -97,10 +94,10 @@ public class PostgresServiceFactory implements IServiceFactory {
     @Override
     public ManualAppointmentService createManualAppointmentService() {
         return new ManualAppointmentService(
-            appointmentRepo, 
-            doctorRepo, 
-            patientRepo, 
-            manualValidator
+                appointmentRepo,
+                doctorRepo,
+                patientRepo,
+                manualValidator
         );
     }
 

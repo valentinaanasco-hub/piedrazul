@@ -16,14 +16,6 @@ public class User {
     private UserState state;           // ACTIVO, INACTIVO
     private List<Role> roles;
 
-    public List<Role> getRole() {
-        return this.roles;
-    }
-
-    public void setRole(List<Role> roles) {
-        this.roles = roles;
-    }
-
     // Constructor vacío (necesario para mapeo desde repositorio)
     public User() {
     }
@@ -147,5 +139,20 @@ public class User {
 
         // .trim() al final elimina el último espacio sobrante
         return sb.toString().trim();
+    }
+
+    /**
+     * Añade un rol a la lista de roles del usuario de forma segura.
+     *
+     * @param role El objeto Role a añadir.
+     */
+    public void addRole(Role role) {
+        if (this.roles == null) {
+            this.roles = new java.util.ArrayList<>();
+        }
+
+        if (!this.roles.contains(role)) {
+            this.roles.add(role);
+        }
     }
 }

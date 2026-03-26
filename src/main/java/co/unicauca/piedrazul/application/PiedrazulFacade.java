@@ -1,16 +1,21 @@
 package co.unicauca.piedrazul.application;
 
+import co.unicauca.piedrazul.domain.entities.Patient;
+import co.unicauca.piedrazul.domain.entities.Role;
+import co.unicauca.piedrazul.domain.entities.enums.RoleName;
 import co.unicauca.piedrazul.domain.services.interfaces.IServiceFactory;
 import co.unicauca.piedrazul.main.DataBaseType;
 import co.unicauca.piedrazul.main.ServiceFactoryProvider;
 import co.unicauca.piedrazul.presentation.controllers.*;
 
 /**
- * Fachada del sistema Piedrazul.
- * Centraliza el acceso a todos los controladores del sistema.
- * * @author santi
+ * Fachada del sistema Piedrazul. Centraliza el acceso a todos los controladores
+ * del sistema. Implementa el patrón Singleton y Facade.
+ *
+ * @author santi
  */
 public class PiedrazulFacade {
+
     private static PiedrazulFacade instance;
     private final IServiceFactory serviceFactory;
 
@@ -29,11 +34,9 @@ public class PiedrazulFacade {
     private PiedrazulFacade(IServiceFactory factory) {
         this.serviceFactory = factory;
     }
-    
-   
+
     // Obtiene la instancia única de la fachada (Singleton)
-   
-    public static PiedrazulFacade getInstance(DataBaseType dbType) { 
+    public static PiedrazulFacade getInstance(DataBaseType dbType) {
         if (instance == null) {
             IServiceFactory factory = ServiceFactoryProvider.getFactory(dbType);
             instance = new PiedrazulFacade(factory);
@@ -41,8 +44,13 @@ public class PiedrazulFacade {
         return instance;
     }
 
-    //  Métodos para obtener los controladores 
+    // Coordina el registro completo de un paciente desde la vista de registro
+    public boolean registerPatient(Patient patient) {
+        patient.addRole(new Role(RoleName.PACIENTE));
+        return serviceFactory.createPatientService().registerPatient(patient);
+    }
 
+    // Métodos para obtener los controladores
     public UserController getUserController() {
         if (userController == null) {
             userController = new UserController(serviceFactory.createUserService());
@@ -105,16 +113,17 @@ public class PiedrazulFacade {
         }
         return parameterController;
     }
+
     public RegisterAppointmentController getRegisterAppointmentController() {
-    if (registerAppointmentController == null) {
-        registerAppointmentController = new RegisterAppointmentController(
-            serviceFactory.createManualAppointmentService(),
-            serviceFactory.createDoctorService(),
-            serviceFactory.createAvailabilityService(),
-            serviceFactory.createPatientService(),
-            serviceFactory.createSystemParameterService()
-        );
+        if (registerAppointmentController == null) {
+            registerAppointmentController = new RegisterAppointmentController(
+                    serviceFactory.createManualAppointmentService(),
+                    serviceFactory.createDoctorService(),
+                    serviceFactory.createAvailabilityService(),
+                    serviceFactory.createPatientService(),
+                    serviceFactory.createSystemParameterService()
+            );
+        }
+        return registerAppointmentController;
     }
-    return registerAppointmentController;
-}
 }
