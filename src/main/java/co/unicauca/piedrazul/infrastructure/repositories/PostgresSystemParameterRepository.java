@@ -21,7 +21,7 @@ public class PostgresSystemParameterRepository implements ISystemParameterReposi
                      """;
         try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstm = conn.prepareStatement(sql)) {
 
-            pstm.setString(0, key);
+            pstm.setString(1, key);
             ResultSet rs = pstm.executeQuery();
             if (rs.next()) {
                 return mapResultSetToSystemParameter(rs);

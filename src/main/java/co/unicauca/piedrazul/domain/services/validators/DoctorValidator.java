@@ -17,10 +17,10 @@ public class DoctorValidator extends UserValidator implements IDoctorValidator {
     
     @Override
     public void validateDoctor(Doctor doctor) {
-        // 1. Validamos la parte de "Usuario" 
+        // Validamos el usuario 
         super.validateUser((User)doctor);
 
-        // 2. Validamos lo específico del Médico
+        // Validamos lo específico del Médico
         validateProfessionalId(doctor.getProfessionalId());
     }
 

@@ -30,7 +30,6 @@ public class DoctorScheduleService {
      // Registra un nuevo horario para un médico tras validar las reglas de negocio.
      
     public boolean registerSchedule(DoctorSchedule schedule, int doctorId) {
-        // El validador se encarga de lanzar IllegalArgumentException si algo está mal
         validator.validate(schedule);
         
         return scheduleRepository.save(schedule, doctorId);
@@ -40,7 +39,6 @@ public class DoctorScheduleService {
    
     public List<DoctorSchedule> listSchedulesByDoctor(int doctorId) {
         List<DoctorSchedule> schedules = scheduleRepository.findByDoctorId(doctorId);
-        // Opcional: podrías validar si la lista está vacía aquí o dejar que la UI lo maneje
         return schedules;
     }
 
@@ -57,7 +55,7 @@ public class DoctorScheduleService {
         return scheduleRepository.update(schedule);
     }
 
-    // elimina horario del sistema
+    // Elimina horario del sistema
     public boolean removeSchedule(int scheduleId) {
         // Verificamos que el horario exista antes de intentar borrarlo
         DoctorSchedule existing = scheduleRepository.findById(scheduleId);
