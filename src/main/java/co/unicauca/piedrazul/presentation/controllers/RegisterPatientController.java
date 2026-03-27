@@ -313,7 +313,9 @@ public class RegisterPatientController {
 
     private void navigateToLogin() {
         Stage stage = (Stage) view.getScene().getWindow();
-        stage.getScene().setRoot(new LoginView());
+        LoginView loginView = new LoginView(); 
+        new LoginController(loginView);        
+        stage.getScene().setRoot(loginView);
     }
 
     // --- Helpers ---
