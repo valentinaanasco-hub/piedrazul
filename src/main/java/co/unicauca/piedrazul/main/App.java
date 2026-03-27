@@ -94,22 +94,17 @@ import co.unicauca.piedrazul.infrastructure.repositories.PostgresSystemParameter
 import co.unicauca.piedrazul.infrastructure.repositories.PostgresPatientRepository;
 import co.unicauca.piedrazul.presentation.controllers.RegisterAppointmentController;
 import co.unicauca.piedrazul.presentation.views.RegisterAppointmentView;
+import co.unicauca.piedrazul.presentation.views.MainView;
+import co.unicauca.piedrazul.domain.entities.User;
+import co.unicauca.piedrazul.domain.entities.enums.UserState;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-/**
- * @author Valentina Añasco
- * @author Camila Dorado
- * @author Felipe Gutierrez
- * @author Ginner Ortega
- * @author Santiago Solarte
- */
 public class App extends Application {
 
     @Override
@@ -154,8 +149,42 @@ public class App extends Application {
             e.printStackTrace();
         }
     }
+    // Variable para rastrear el estado de la conexión
+    private String statusMessage = "Iniciando...";
 
+    @Override
+    public void init() {
+        // Lógica de inicialización (Conexión a la nube)
+        System.out.println("🚀 Iniciando Piedrazul en la nube...");
+
+        try {
+            // 1. Intentar conectar a Railway
+            Connection conn = PostgreSQLConnection.getConnection();
+
+            if (conn != null && !conn.isClosed()) {
+                System.out.println("✅ Conexión exitosa a Railway");
+
+                // 2. Prueba de fuego: Insertar/Actualizar parámetro de prueba
+                String testSql = "INSERT INTO system_parameters (parameter_key, parameter_value) "
+                        + "VALUES (?, ?) ON CONFLICT (parameter_key) DO UPDATE SET parameter_value = EXCLUDED.parameter_value";
+
+                try (PreparedStatement pstmt = conn.prepareStatement(testSql)) {
+                    pstmt.setString(1, "last_connection_test");
+                    pstmt.setString(2, "Exitosa desde el PC de " + System.getProperty("user.name"));
+                    pstmt.executeUpdate();
+                    System.out.println("💾 Datos de prueba guardados en la nube.");
+                }
+
+                statusMessage = "Conectado a PostgreSQL (Railway)";
+            }
+        } catch (SQLException e) {
+            statusMessage = "Error de conexión: " + e.getMessage();
+            System.err.println("❌ " + statusMessage);
+        }
+    }
+    
     public static void main(String[] args) {
+        // Lanza la aplicación JavaFX (ejecuta init y luego start)
         launch(args);
     }
 }

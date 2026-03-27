@@ -15,7 +15,7 @@ public class UserValidator implements IUserValidator{
         validateUserName(user.getUsername());
         validatePassword(user.getPassword());
         validateNames(user.getFirstName(), user.getFirstSurname());
-        validateRoles(user.getRole());
+        validateRoles(user.getRoles());
     }
     
     @Override
@@ -50,7 +50,7 @@ public class UserValidator implements IUserValidator{
     @Override
     public void validateExists(User user) {
         if (user == null) {
-            throw new IllegalArgumentException("Médico no encontrado");
+            throw new IllegalArgumentException("El usuario solicitado no existe.");
         }
     }
 }

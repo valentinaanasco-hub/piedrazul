@@ -7,10 +7,11 @@ import co.unicauca.piedrazul.domain.entities.Appointment;
 import co.unicauca.piedrazul.domain.entities.Doctor;
 import co.unicauca.piedrazul.domain.entities.Patient;
 import co.unicauca.piedrazul.domain.entities.enums.AppointmentStatus;
+import co.unicauca.piedrazul.domain.services.interfaces.IAppointmentService;
 import java.util.List;
 import co.unicauca.piedrazul.domain.services.interfaces.IManualAppointmentValidator;
 
-public class ManualAppointmentService {
+public class ManualAppointmentService implements IAppointmentService {
 
     private final IAppointmentRepository appointmentRepository;
     private final IDoctorRepository doctorRepository;
@@ -28,6 +29,7 @@ public class ManualAppointmentService {
         this.validator = validator;
     }
 
+    @Override
     public boolean scheduleAppointment(Appointment appointment) {
         // Recuperación de información 
         Doctor doctor = doctorRepository.findById(appointment.getDoctor().getId());
@@ -43,6 +45,7 @@ public class ManualAppointmentService {
         return appointmentRepository.save(appointment);
     }
 
+    @Override
     public boolean rescheduleAppointment(Appointment appointment) {
         // Verificación de existencia previa antes de procesar cambios
         validator.validateExists(appointment);
@@ -58,6 +61,7 @@ public class ManualAppointmentService {
         return appointmentRepository.update(appointment);
     }
 
+    @Override
     public boolean cancelAppointment(int id) {
         // Localización de la cita y transición de estado a CANCELADA
         Appointment appointment = findAppointment(id);
@@ -65,6 +69,7 @@ public class ManualAppointmentService {
         return appointmentRepository.update(appointment);
     }
 
+    @Override
     public boolean markAsAttended(int id) {
         // Actualización de estado tras la ejecución exitosa de la consulta
         Appointment appointment = findAppointment(id);
@@ -72,6 +77,7 @@ public class ManualAppointmentService {
         return appointmentRepository.update(appointment);
     }
 
+    @Override
     public Appointment findAppointment(int id) {
         // Búsqueda única con validación de existencia inmediata
         Appointment appointment = appointmentRepository.findById(id);
@@ -79,6 +85,7 @@ public class ManualAppointmentService {
         return appointment;
     }
 
+    @Override
     public List<Appointment> listAppointments() {
         return appointmentRepository.findAll();
     }

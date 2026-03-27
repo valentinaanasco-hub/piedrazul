@@ -46,7 +46,27 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
 
     @Override
     public Appointment findById(int id) {
-        String sql = "SELECT * FROM appointments WHERE appt_id = ?";
+        String sql = """
+        SELECT 
+            a.appt_id, a.appt_date, a.appt_start_time, a.appt_end_time, a.appt_status,
+            u_doc.user_id        AS doc_id,
+            u_doc.user_first_name    AS doc_first_name,
+            u_doc.user_middle_name   AS doc_middle_name,
+            u_doc.user_first_surname AS doc_first_surname,
+            u_doc.user_last_name     AS doc_last_name,
+            u_pat.user_id        AS pat_id,
+            u_pat.user_first_name    AS pat_first_name,
+            u_pat.user_middle_name   AS pat_middle_name,
+            u_pat.user_first_surname AS pat_first_surname,
+            u_pat.user_last_name     AS pat_last_name,
+            p.pat_phone
+        FROM appointments a
+        JOIN doctors  d     ON a.appt_doct_id = d.doct_user_id
+        JOIN users    u_doc ON d.doct_user_id  = u_doc.user_id
+        JOIN patients p     ON a.appt_pat_id   = p.pat_user_id
+        JOIN users    u_pat ON p.pat_user_id   = u_pat.user_id
+        WHERE a.appt_id = ?
+        """;
         try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -63,7 +83,27 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
     @Override
     public List<Appointment> findAll() {
         List<Appointment> appointments = new ArrayList<>();
-        String sql = "SELECT * FROM appointments";
+        String sql = """
+        SELECT 
+            a.appt_id, a.appt_date, a.appt_start_time, a.appt_end_time, a.appt_status,
+            u_doc.user_id        AS doc_id,
+            u_doc.user_first_name    AS doc_first_name,
+            u_doc.user_middle_name   AS doc_middle_name,
+            u_doc.user_first_surname AS doc_first_surname,
+            u_doc.user_last_name     AS doc_last_name,
+            u_pat.user_id        AS pat_id,
+            u_pat.user_first_name    AS pat_first_name,
+            u_pat.user_middle_name   AS pat_middle_name,
+            u_pat.user_first_surname AS pat_first_surname,
+            u_pat.user_last_name     AS pat_last_name,
+            p.pat_phone
+        FROM appointments a
+        JOIN doctors  d     ON a.appt_doct_id = d.doct_user_id
+        JOIN users    u_doc ON d.doct_user_id  = u_doc.user_id
+        JOIN patients p     ON a.appt_pat_id   = p.pat_user_id
+        JOIN users    u_pat ON p.pat_user_id   = u_pat.user_id
+        ORDER BY a.appt_date DESC, a.appt_start_time ASC
+        """;
         try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql); ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 appointments.add(mapResultSetToAppointment(rs));
@@ -76,50 +116,90 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
 
     @Override
     public Appointment findByDoctorAndDateAndHour(int doctorId, String date, String startTime, String endTime) {
-        // Busca si ya existe una cita con exactamente ese médico, fecha y horario
-        String sql = "SELECT * FROM appointments "
-                + "WHERE appt_doct_id = ? "
-                + "AND appt_date = ? "
-                + "AND appt_start_time = ? "
-                + "AND appt_end_time = ?";
+        String sql = """
+    SELECT 
+        a.appt_id, a.appt_date, a.appt_start_time, a.appt_end_time, a.appt_status,
+        u_doc.user_id            AS doc_id,
+        u_doc.user_first_name    AS doc_first_name,
+        u_doc.user_middle_name   AS doc_middle_name,
+        u_doc.user_first_surname AS doc_first_surname,
+        u_doc.user_last_name     AS doc_last_name,
+        u_pat.user_id            AS pat_id,
+        u_pat.user_first_name    AS pat_first_name,
+        u_pat.user_middle_name   AS pat_middle_name,
+        u_pat.user_first_surname AS pat_first_surname,
+        u_pat.user_last_name     AS pat_last_name,
+        p.pat_phone
+    FROM appointments a
+    JOIN doctors  d     ON a.appt_doct_id = d.doct_user_id
+    JOIN users    u_doc ON d.doct_user_id  = u_doc.user_id
+    JOIN patients p     ON a.appt_pat_id   = p.pat_user_id
+    JOIN users    u_pat ON p.pat_user_id   = u_pat.user_id
+    WHERE a.appt_doct_id = ? 
+      AND a.appt_date = ? 
+      AND a.appt_start_time = ? 
+      AND a.appt_end_time = ?
+    """;
+
         try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setInt(1, doctorId);
             pstmt.setString(2, date);
             pstmt.setString(3, startTime);
             pstmt.setString(4, endTime);
+
             try (ResultSet rs = pstmt.executeQuery()) {
-                // Retorna la cita si existe, null si el horario está libre
                 if (rs.next()) {
                     return mapResultSetToAppointment(rs);
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error al buscar cita por médico y fecha: " + e.getMessage());
+            System.err.println("Error al buscar cita por médico, fecha y hora: " + e.getMessage());
         }
         return null;
     }
 
     @Override
     public List<Appointment> findByDoctorAndDate(int doctorId, String date) {
-        // Busca si ya existe una cita con exactamente ese médico, fecha y horario
-        String sql = "SELECT * FROM appointments "
-                + "WHERE appt_doct_id = ? "
-                + "AND appt_date = ? ";
+        List<Appointment> appointments = new ArrayList<>();
+        String sql = """
+    SELECT 
+        a.appt_id, a.appt_date, a.appt_start_time, a.appt_end_time, a.appt_status,
+        u_doc.user_id            AS doc_id,
+        u_doc.user_first_name    AS doc_first_name,
+        u_doc.user_middle_name   AS doc_middle_name,
+        u_doc.user_first_surname AS doc_first_surname,
+        u_doc.user_last_name     AS doc_last_name,
+        u_pat.user_id            AS pat_id,
+        u_pat.user_first_name    AS pat_first_name,
+        u_pat.user_middle_name   AS pat_middle_name,
+        u_pat.user_first_surname AS pat_first_surname,
+        u_pat.user_last_name     AS pat_last_name,
+        p.pat_phone
+    FROM appointments a
+    JOIN doctors  d     ON a.appt_doct_id = d.doct_user_id
+    JOIN users    u_doc ON d.doct_user_id  = u_doc.user_id
+    JOIN patients p     ON a.appt_pat_id   = p.pat_user_id
+    JOIN users    u_pat ON p.pat_user_id   = u_pat.user_id
+    WHERE a.appt_doct_id = ? 
+      AND a.appt_date = ?
+    ORDER BY a.appt_start_time ASC
+    """;
+
         try (Connection conn = PostgreSQLConnection.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setInt(1, doctorId);
             pstmt.setString(2, date);
-            List<Appointment> appointments = new ArrayList<>();
+
             try (ResultSet rs = pstmt.executeQuery()) {
-                // Retorna la cita si existe, null si el horario está libre
                 while (rs.next()) {
                     appointments.add(mapResultSetToAppointment(rs));
                 }
-                return appointments;
             }
         } catch (SQLException e) {
-            System.err.println("Error al buscar cita por médico y fecha: " + e.getMessage());
+            System.err.println("Error al buscar citas por médico y fecha: " + e.getMessage());
         }
-        return null;
+        return appointments;
     }
 
     @Override
@@ -152,8 +232,6 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
         }
     }
 
-    // Convierte una fila del ResultSet en un objeto Appointment
-    // Los textos de fecha y hora se parsean de vuelta a LocalDate y LocalTime
     private Appointment mapResultSetToAppointment(ResultSet rs) throws SQLException {
         Appointment appointment = new Appointment();
         appointment.setAppointmentId(rs.getInt("appt_id"));
@@ -162,13 +240,23 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
         appointment.setEndTime(LocalTime.parse(rs.getString("appt_end_time")));
         appointment.setStatus(AppointmentStatus.valueOf(rs.getString("appt_status")));
 
-        // Solo asigna los ids para no hacer JOIN complejo aquí
+        // Doctor con nombre completo
         Doctor doctor = new Doctor();
-        doctor.setId(rs.getInt("appt_doct_id"));
+        doctor.setId(rs.getInt("doc_id"));
+        doctor.setFirstName(rs.getString("doc_first_name"));
+        doctor.setMiddleName(rs.getString("doc_middle_name"));
+        doctor.setFirstSurname(rs.getString("doc_first_surname"));
+        doctor.setLastName(rs.getString("doc_last_name"));
         appointment.setDoctor(doctor);
 
+        // Paciente con nombre completo y teléfono
         Patient patient = new Patient();
-        patient.setId(rs.getInt("appt_pat_id"));
+        patient.setId(rs.getInt("pat_id"));
+        patient.setFirstName(rs.getString("pat_first_name"));
+        patient.setMiddleName(rs.getString("pat_middle_name"));
+        patient.setFirstSurname(rs.getString("pat_first_surname"));
+        patient.setLastName(rs.getString("pat_last_name"));
+        patient.setPhone(rs.getString("pat_phone"));
         appointment.setPatient(patient);
 
         return appointment;

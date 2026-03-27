@@ -9,7 +9,6 @@ import co.unicauca.piedrazul.domain.access.IRoleRepository;
 import co.unicauca.piedrazul.domain.access.ISpecialtyRepository;
 import co.unicauca.piedrazul.domain.access.ISystemParameterRepository;
 import co.unicauca.piedrazul.domain.access.IUserRepository;
-import co.unicauca.piedrazul.domain.entities.DoctorSchedule;
 import co.unicauca.piedrazul.domain.services.ManualAppointmentService;
 import co.unicauca.piedrazul.domain.services.AvailabilityService;
 import co.unicauca.piedrazul.domain.services.DoctorScheduleService;
@@ -19,7 +18,6 @@ import co.unicauca.piedrazul.domain.services.RoleService;
 import co.unicauca.piedrazul.domain.services.SpecialtyService;
 import co.unicauca.piedrazul.domain.services.SystemParameterService;
 import co.unicauca.piedrazul.domain.services.UserService;
-import co.unicauca.piedrazul.domain.services.interfaces.IManualAppointmentValidator;
 import co.unicauca.piedrazul.domain.services.validators.DoctorScheduleValidator;
 import co.unicauca.piedrazul.domain.services.validators.DoctorValidator;
 import co.unicauca.piedrazul.domain.services.validators.ManualAppointmentValidator;
@@ -38,29 +36,66 @@ import co.unicauca.piedrazul.infrastructure.repositories.PostgresSystemParameter
 import co.unicauca.piedrazul.infrastructure.repositories.PostgresUserRepository;
 
 /**
- *
- * @author santi
+ * @author Valentina Añasco
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte
  */
 public class PostgresServiceFactory implements IServiceFactory {
-// --- Repositorios (Infraestructura) ---
-    private final IDoctorRepository doctorRepo = new PostgresDoctorRepository();
-    private final IPatientRepository patientRepo = new PostgresPatientRepository();
-    private final IAppointmentRepository appointmentRepo = new PostgresAppointmentRepository();
-    private final IDoctorScheduleRepository scheduleRepo = new PostgresDoctorScheduleRepository();
-    private final ISpecialtyRepository specialtyRepo = new PostgresSpecialtyRepository();
-    private final IUserRepository userRepo = new PostgresUserRepository();
-    private final ISystemParameterRepository paramRepo = new PostgresSystemParameterRepository();
-    private final IRoleRepository roleRepo = new PostgresRoleRepository();
 
-    // --- Validadores (Lógica de Negocio) ---
-    private final UserValidator userValidator = new UserValidator();
-    private final DoctorValidator doctorValidator = new DoctorValidator();
-    private final PatientValidator patientValidator = new PatientValidator();
-    private final ManualAppointmentValidator manualValidator = new ManualAppointmentValidator();
-    private final DoctorScheduleValidator scheduleValidator = new DoctorScheduleValidator();
-    private final RoleValidator roleValidator = new RoleValidator();
-    private final SpecialtyValidator specialtyValidator = new SpecialtyValidator();
-    private final SystemParameterValidator systemParameterValidator = new SystemParameterValidator();
+    // Instancia única de la fábrica
+    private static PostgresServiceFactory instance;
+
+    // Repositorios: una sola instancia compartida por todos los servicios
+    private final IDoctorRepository doctorRepo;
+    private final IPatientRepository patientRepo;
+    private final IAppointmentRepository appointmentRepo;
+    private final IDoctorScheduleRepository scheduleRepo;
+    private final ISpecialtyRepository specialtyRepo;
+    private final IUserRepository userRepo;
+    private final ISystemParameterRepository paramRepo;
+    private final IRoleRepository roleRepo;
+
+    // Validadores: sin estado, se pueden compartir igual que los repositorios
+    private final UserValidator userValidator;
+    private final DoctorValidator doctorValidator;
+    private final PatientValidator patientValidator;
+    private final ManualAppointmentValidator manualValidator;
+    private final DoctorScheduleValidator scheduleValidator;
+    private final RoleValidator roleValidator;
+    private final SpecialtyValidator specialtyValidator;
+    private final SystemParameterValidator systemParameterValidator;
+
+    // Constructor privado: solo se ejecuta una vez
+    public PostgresServiceFactory() {
+        //Repositorios
+        doctorRepo = new PostgresDoctorRepository();
+        patientRepo = new PostgresPatientRepository();
+        appointmentRepo = new PostgresAppointmentRepository();
+        scheduleRepo = new PostgresDoctorScheduleRepository();
+        specialtyRepo = new PostgresSpecialtyRepository();
+        userRepo = new PostgresUserRepository();
+        paramRepo = new PostgresSystemParameterRepository();
+        roleRepo = new PostgresRoleRepository();
+        //Validadores
+        userValidator = new UserValidator();
+        doctorValidator = new DoctorValidator();
+        patientValidator = new PatientValidator();
+        manualValidator = new ManualAppointmentValidator();
+        scheduleValidator = new DoctorScheduleValidator();
+        roleValidator = new RoleValidator();
+        specialtyValidator = new SpecialtyValidator();
+        systemParameterValidator = new SystemParameterValidator();
+    }
+
+    // Punto de acceso único a la fábrica
+    public static PostgresServiceFactory getInstance() {
+        if (instance == null) {
+            instance = new PostgresServiceFactory();
+        }
+        return instance;
+    }
 
     @Override
     public UserService createUserService() {
@@ -93,13 +128,8 @@ public class PostgresServiceFactory implements IServiceFactory {
     }
 
     @Override
-    public ManualAppointmentService createAppointmentService() {
-        return new ManualAppointmentService(
-            appointmentRepo, 
-            doctorRepo, 
-            patientRepo, 
-            manualValidator
-        );
+    public ManualAppointmentService createManualAppointmentService() {
+        return new ManualAppointmentService(appointmentRepo, doctorRepo, patientRepo, manualValidator);
     }
 
     @Override

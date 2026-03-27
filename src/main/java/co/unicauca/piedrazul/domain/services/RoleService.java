@@ -3,6 +3,7 @@ package co.unicauca.piedrazul.domain.services;
 import co.unicauca.piedrazul.domain.access.IRoleRepository;
 import co.unicauca.piedrazul.domain.entities.Role;
 import co.unicauca.piedrazul.domain.entities.enums.RoleName;
+import co.unicauca.piedrazul.domain.services.interfaces.IRoleService;
 import co.unicauca.piedrazul.domain.services.interfaces.IRoleValidator;
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
  * @author Santiago Solarte 
  */
 
-public class RoleService {
+public class RoleService implements IRoleService {
     private final IRoleRepository roleRepository;
     private final IRoleValidator validator; // Inyectamos la abstracción
 
@@ -23,6 +24,7 @@ public class RoleService {
         this.validator = validator;
     }
 
+    @Override
     public boolean assignRole(int userId, RoleName name) {
         // Buscamos el rol por su nombre (Enum)
         Role role = roleRepository.findByName(name);
@@ -34,6 +36,7 @@ public class RoleService {
         return roleRepository.assignRoleToUser(userId, role.getRoleId());
     }
 
+    @Override
     public List<Role> listRolesByUser(int userId) {
         List<Role> roles = roleRepository.findRolesByUserId(userId); 
         return roles;

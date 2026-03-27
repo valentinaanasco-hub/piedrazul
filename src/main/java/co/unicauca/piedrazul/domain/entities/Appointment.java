@@ -24,6 +24,25 @@ public class Appointment {
     // Constructor vacío (necesario para mapeo desde repositorio)
     public Appointment() {
     }
+        public Appointment(int appointmentId, LocalDate date, LocalTime startTime, LocalTime endTime, AppointmentStatus status, Doctor doctor, Patient patient) {
+        this.appointmentId = appointmentId;
+        this.date = date;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.status = status;
+        this.doctor = doctor;
+        this.patient = patient;
+    }
+    public Appointment(LocalDate date, LocalTime startTime, LocalTime endTime, AppointmentStatus status, Doctor doctor, Patient patient) {
+        this.date = date;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.status = status;
+        this.doctor = doctor;
+        this.patient = patient;
+    }
+
+
 
     public int getAppointmentId() {
         return appointmentId;
