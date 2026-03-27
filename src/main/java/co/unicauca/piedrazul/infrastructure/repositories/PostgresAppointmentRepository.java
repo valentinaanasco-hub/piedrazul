@@ -13,7 +13,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import co.unicauca.piedrazul.domain.access.IAppointmentRepository;
-import co.unicauca.piedrazul.domain.entities.enums.AppointmentState;
+import co.unicauca.piedrazul.domain.entities.enums.AppointmentStatus;
 
 /**
  * @author Valentina Añasco
@@ -160,7 +160,7 @@ public class PostgresAppointmentRepository implements IAppointmentRepository {
         appointment.setDate(LocalDate.parse(rs.getString("appt_date")));
         appointment.setStartTime(LocalTime.parse(rs.getString("appt_start_time")));
         appointment.setEndTime(LocalTime.parse(rs.getString("appt_end_time")));
-        appointment.setStatus(AppointmentState.valueOf(rs.getString("appt_status")));
+        appointment.setStatus(AppointmentStatus.valueOf(rs.getString("appt_status")));
 
         // Solo asigna los ids para no hacer JOIN complejo aquí
         Doctor doctor = new Doctor();

@@ -1,10 +1,10 @@
 package co.unicauca.piedrazul.presentation.controllers;
 
-import co.unicauca.piedrazul.domain.entities.enums.AppointmentState;
 import co.unicauca.piedrazul.domain.entities.Appointment;
 import co.unicauca.piedrazul.domain.entities.Doctor;
 import co.unicauca.piedrazul.domain.entities.Patient;
 import co.unicauca.piedrazul.domain.entities.SystemParameter;
+import co.unicauca.piedrazul.domain.entities.enums.AppointmentStatus;
 import co.unicauca.piedrazul.domain.services.ManualAppointmentService;
 import co.unicauca.piedrazul.domain.services.AvailabilityService;
 import co.unicauca.piedrazul.domain.services.DoctorService;
@@ -15,9 +15,15 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Valentina Añasco
+ * @author Camila Dorado
+ * @author Felipe Gutierrez
+ * @author Ginner Ortega
+ * @author Santiago Solarte
+ */
 public class RegisterAppointmentController {
 
-    // Servicios (DIP)
     private final ManualAppointmentService appointmentService;
     private final DoctorService doctorService;
     private final AvailabilityService availabilityService;
@@ -31,7 +37,9 @@ public class RegisterAppointmentController {
     private LocalTime selectedSlot;
     private List<LocalTime> availableSlots = new ArrayList<>();
 
-    // El controlador RECIBE sus dependencias ya construidas
+    // Último mensaje de error para la vista
+    private String lastErrorMessage;
+
     public RegisterAppointmentController(
             ManualAppointmentService appointmentService,
             DoctorService doctorService,
@@ -46,12 +54,18 @@ public class RegisterAppointmentController {
         this.parameterService = parameterService;
     }
 
-    // ───────────── DATOS INICIALES ─────────────
+    // Retorna médicos activos; lista vacía si no hay registros
     public List<Doctor> loadActiveDoctors() {
-        return doctorService.listActiveDoctors();
+        try {
+            lastErrorMessage = null;
+            return doctorService.listActiveDoctors();
+        } catch (IllegalArgumentException e) {
+            lastErrorMessage = e.getMessage();
+            return new ArrayList<>();
+        }
     }
 
-    // Fecha mínima para el DatePicker
+    // Fecha mínima para el DatePicker; hoy si no hay parámetro configurado
     public LocalDate getStartDate() {
         try {
             SystemParameter param = parameterService.findParameter("start_date_schedule");
@@ -59,12 +73,12 @@ public class RegisterAppointmentController {
                 return LocalDate.parse(param.getValue());
             }
         } catch (Exception e) {
-            System.err.println("Error leyendo start_date_schedule");
+            lastErrorMessage = e.getMessage();
         }
         return LocalDate.now();
     }
 
-    // Fecha máxima para el DatePicker
+    // Fecha máxima para el DatePicker; un mes adelante si no hay parámetro
     public LocalDate getEndDate() {
         try {
             SystemParameter param = parameterService.findParameter("end_date_schedule");
@@ -72,18 +86,19 @@ public class RegisterAppointmentController {
                 return LocalDate.parse(param.getValue());
             }
         } catch (Exception e) {
-            System.err.println("Error leyendo end_date_schedule");
+            lastErrorMessage = e.getMessage();
         }
         return LocalDate.now().plusMonths(1);
     }
 
-    // ───────────── EVENTOS UI ─────────────
+    // Actualiza el médico seleccionado y recalcula horarios disponibles
     public void onDoctorSelected(Doctor doctor) {
         this.selectedDoctor = doctor;
         this.selectedSlot = null;
         refreshAvailableSlots();
     }
 
+    // Actualiza la fecha seleccionada y recalcula horarios disponibles
     public void onDateSelected(LocalDate date) {
         this.selectedDate = date;
         this.selectedSlot = null;
@@ -94,22 +109,28 @@ public class RegisterAppointmentController {
         if (selectedDoctor == null || selectedDate == null) {
             return;
         }
-
-        availableSlots = availabilityService.getAvailableSlots(
-                selectedDoctor.getId(),
-                selectedDate
-        );
+        try {
+            availableSlots = availabilityService.getAvailableSlots(
+                    selectedDoctor.getId(),
+                    selectedDate
+            );
+        } catch (Exception e) {
+            lastErrorMessage = e.getMessage();
+            availableSlots = new ArrayList<>();
+        }
     }
 
     public void onSlotSelected(LocalTime slot) {
         this.selectedSlot = slot;
     }
 
-    // ───────────── PACIENTE ─────────────
+    // Busca un paciente por documento; null si no existe o hay error
     public Patient findPatientById(int id) {
         try {
+            lastErrorMessage = null;
             return patientService.findPatient(id);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            lastErrorMessage = e.getMessage();
             return null;
         }
     }
@@ -118,52 +139,52 @@ public class RegisterAppointmentController {
         this.selectedPatient = patient;
     }
 
-    // ───────────── REGISTRAR CITA ─────────────
+    // Registra la cita con los datos seleccionados en el formulario
     public boolean registerAppointment(String loggedUserRole) {
+        try {
+            lastErrorMessage = null;
 
-        /*
-        if (!loggedUserRole.equals("AGENDADOR") &&
-            !loggedUserRole.equals("DOCTOR")) {
-            throw new IllegalArgumentException("No tiene permisos");
+            if (selectedDoctor == null || selectedPatient == null
+                    || selectedDate == null || selectedSlot == null) {
+                throw new IllegalArgumentException("Complete todos los campos obligatorios.");
+            }
+
+            int interval = availabilityService.getIntervalMinutesForDoctorOnDate(
+                    selectedDoctor.getId(),
+                    selectedDate
+            );
+
+            LocalTime endTime = selectedSlot.plusMinutes(interval);
+
+            Appointment appointment = new Appointment();
+            appointment.setDoctor(selectedDoctor);
+            appointment.setPatient(selectedPatient);
+            appointment.setDate(selectedDate);
+            appointment.setStartTime(selectedSlot);
+            appointment.setEndTime(endTime);
+            appointment.setStatus(AppointmentStatus.AGENDADA);
+
+            return appointmentService.scheduleAppointment(appointment);
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            lastErrorMessage = e.getMessage();
+            throw e; // la vista muestra el mensaje en un Alert
+        } catch (Exception e) {
+            lastErrorMessage = e.getMessage();
+            return false;
         }
-        /*
-        
-         */
-        if (selectedDoctor == null || selectedPatient == null
-                || selectedDate == null || selectedSlot == null) {
-            throw new IllegalArgumentException("Faltan datos");
-        }
-
-        // calcular hora fin
-        int interval = availabilityService.getIntervalMinutesForDoctorOnDate(
-                selectedDoctor.getId(),
-                selectedDate
-        );
-
-        LocalTime endTime = selectedSlot.plusMinutes(interval);
-
-        // crear cita
-        Appointment appointment = new Appointment();
-        appointment.setDoctor(selectedDoctor);
-        appointment.setPatient(selectedPatient);
-        appointment.setDate(selectedDate);
-        appointment.setStartTime(selectedSlot);
-        appointment.setEndTime(endTime);
-        appointment.setStatus(AppointmentState.AGENDADA);
-
-        return appointmentService.scheduleAppointment(appointment);
     }
 
-    // ───────────── RESET ─────────────
+    // Reinicia el estado del formulario
     public void reset() {
         selectedDoctor = null;
         selectedPatient = null;
         selectedDate = null;
         selectedSlot = null;
         availableSlots = new ArrayList<>();
+        lastErrorMessage = null;
     }
 
-    // ───────────── GETTERS ─────────────
     public List<LocalTime> getAvailableSlots() {
         return availableSlots;
     }
@@ -182,5 +203,9 @@ public class RegisterAppointmentController {
 
     public LocalTime getSelectedSlot() {
         return selectedSlot;
+    }
+
+    public String getLastErrorMessage() {
+        return lastErrorMessage;
     }
 }

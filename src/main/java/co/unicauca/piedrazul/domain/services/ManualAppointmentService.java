@@ -6,7 +6,7 @@ import co.unicauca.piedrazul.domain.access.IPatientRepository;
 import co.unicauca.piedrazul.domain.entities.Appointment;
 import co.unicauca.piedrazul.domain.entities.Doctor;
 import co.unicauca.piedrazul.domain.entities.Patient;
-import co.unicauca.piedrazul.domain.entities.enums.AppointmentState;
+import co.unicauca.piedrazul.domain.entities.enums.AppointmentStatus;
 import java.util.List;
 import co.unicauca.piedrazul.domain.services.interfaces.IManualAppointmentValidator;
 
@@ -39,7 +39,7 @@ public class ManualAppointmentService {
         // El validador asegura que no existan conflictos de horario o datos nulos
         validator.validate(appointment, doctor, patient, existing);
 
-        appointment.setStatus(AppointmentState.AGENDADA);
+        appointment.setStatus(AppointmentStatus.AGENDADA);
         return appointmentRepository.save(appointment);
     }
 
@@ -54,21 +54,21 @@ public class ManualAppointmentService {
         // Reutilización de lógica de validación para asegurar consistencia en el cambio
         validator.validate(appointment, doctor, patient, existing);
 
-        appointment.setStatus(AppointmentState.REAGENDADA);
+        appointment.setStatus(AppointmentStatus.REAGENDADA);
         return appointmentRepository.update(appointment);
     }
 
     public boolean cancelAppointment(int id) {
         // Localización de la cita y transición de estado a CANCELADA
         Appointment appointment = findAppointment(id);
-        appointment.setStatus(AppointmentState.CANCELADA);
+        appointment.setStatus(AppointmentStatus.CANCELADA);
         return appointmentRepository.update(appointment);
     }
 
     public boolean markAsAttended(int id) {
         // Actualización de estado tras la ejecución exitosa de la consulta
         Appointment appointment = findAppointment(id);
-        appointment.setStatus(AppointmentState.ATENDIDA);
+        appointment.setStatus(AppointmentStatus.ATENDIDA);
         return appointmentRepository.update(appointment);
     }
 

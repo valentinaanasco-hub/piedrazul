@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.unicauca.piedrazul.main;
 
 import co.unicauca.piedrazul.infrastructure.factories.PostgresServiceFactory;
@@ -28,5 +24,4 @@ public class ServiceFactoryProvider {
                 return new PostgresServiceFactory();
         }
     }
-    
 }

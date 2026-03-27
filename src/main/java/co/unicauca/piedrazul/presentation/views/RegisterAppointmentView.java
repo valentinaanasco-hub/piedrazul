@@ -49,18 +49,16 @@ public class RegisterAppointmentView {
 
         root.setTop(buildHeader());
 
-        // Si no tiene permiso, muestra pantalla de acceso denegado
-        if (!loggedUserRole.equals("AGENDADOR") || !loggedUserRole.equals("DOCTOR") || !loggedUserRole.equals("ADMIN")) {
-            // Control de acceso basado en roles
-            if (!loggedUserRole.equals("AGENDADOR") && !loggedUserRole.equals("DOCTOR")) {
-                root.setCenter(buildAccessDenied());
-                return;
-            }
-
-            root.setCenter(buildBody());
+        // Verifica si el rol tiene permiso para registrar citas
+        if (!loggedUserRole.equals("AGENDADOR") && !loggedUserRole.equals("DOCTOR")
+                && !loggedUserRole.equals("ADMIN")) {
+            root.setCenter(buildAccessDenied());
+            return;
         }
+
+        root.setCenter(buildBody());
     }
-    
+
     private VBox buildHeader() {
         VBox header = new VBox(4);
         header.setPadding(new Insets(20, 28, 14, 28));

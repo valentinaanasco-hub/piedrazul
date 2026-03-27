@@ -4,7 +4,7 @@ package co.unicauca.piedrazul.domain.entities.enums;
  *
  * @author santi
  */
-public enum AppointmentState {
+public enum AppointmentStatus {
     AGENDADA,
     REAGENDADA,
     CANCELADA,
