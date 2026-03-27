@@ -17,6 +17,9 @@ import co.unicauca.piedrazul.domain.services.interfaces.IManualAppointmentValida
  */
 public class ManualAppointmentValidator implements IManualAppointmentValidator {
 
+    private static final int REASON_MAX_LENGTH = 255;
+    private static final int NOTES_MAX_LENGTH = 500;
+
     @Override
     public void validate(Appointment appointment, Doctor doctor, Patient patient, List<Appointment> existing) {
         validateDate(appointment.getDate());
@@ -24,6 +27,8 @@ public class ManualAppointmentValidator implements IManualAppointmentValidator {
         validateDoctor(doctor);
         validatePatient(patient);
         validateTimeConflict(appointment, existing);
+        validateReason(appointment.getReason());
+        validateNotes(appointment.getNotes());
     }
 
     @Override
@@ -78,6 +83,25 @@ public class ManualAppointmentValidator implements IManualAppointmentValidator {
             if (appointment.getStartTime().equals(a.getStartTime())) {
                 throw new IllegalArgumentException("El médico ya tiene una cita en ese horario");
             }
+        }
+    }
+
+    private void validateReason(String reason) {
+        if (reason == null || reason.isBlank()) {
+            throw new IllegalArgumentException("El motivo de consulta es obligatorio");
+        }
+        if (reason.trim().length() > REASON_MAX_LENGTH) {
+            throw new IllegalArgumentException(
+                    "El motivo de consulta no puede superar los " + REASON_MAX_LENGTH + " caracteres"
+            );
+        }
+    }
+
+    private void validateNotes(String notes) {
+        if (notes != null && notes.trim().length() > NOTES_MAX_LENGTH) {
+            throw new IllegalArgumentException(
+                    "Las notas adicionales no pueden superar los " + NOTES_MAX_LENGTH + " caracteres"
+            );
         }
     }
 }

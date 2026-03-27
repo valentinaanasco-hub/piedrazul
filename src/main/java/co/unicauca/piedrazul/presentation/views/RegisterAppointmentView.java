@@ -160,13 +160,13 @@ public class RegisterAppointmentView {
         btnRow.setAlignment(Pos.CENTER);
         btnRow.setPadding(new Insets(10, 0, 0, 0));
 
-        form.getChildren().addAll(sectionTitle, row1, row2, btnRow);
+        form.getChildren().addAll(sectionTitle, row1, row2, row3, btnRow);
         return form;
     }
 
     private VBox buildPatientField() {
         VBox box = new VBox(6);
-        Label lbl = fieldLabel("Paciente *");
+        HBox lbl = fieldLabel("N° de documento del Paciente *");
 
         HBox searchRow = new HBox(6);
         txtDocument = new TextField();
@@ -191,7 +191,7 @@ public class RegisterAppointmentView {
 
     private VBox buildDoctorField() {
         VBox box = new VBox(6);
-        Label lbl = fieldLabel("Profesional *");
+        HBox lbl = fieldLabel("Profesional *");
 
         cbDoctor = new ComboBox<>();
         cbDoctor.setPromptText("Seleccionar profesional...");
@@ -226,7 +226,7 @@ public class RegisterAppointmentView {
 
     private VBox buildDateField() {
         VBox box = new VBox(6);
-        Label lbl = fieldLabel("Fecha *");
+        HBox lbl = fieldLabel("Fecha *");
 
         datePicker = new DatePicker();
         datePicker.setPromptText("Seleccionar fecha...");
@@ -262,7 +262,7 @@ public class RegisterAppointmentView {
 
     private VBox buildSlotField() {
         VBox box = new VBox(6);
-        Label lbl = fieldLabel("Hora *");
+        HBox lbl = fieldLabel("Hora *");
 
         cbSlot = new ComboBox<>();
         cbSlot.setPromptText("--:--");
@@ -420,6 +420,11 @@ public class RegisterAppointmentView {
 
     private void handleRegister() {
         try {
+            String reason = txtMotivo.getText().trim();
+            String notes = txtNotas.getText().trim();
+
+            controller.setReasonAndNotes(reason, notes.isEmpty() ? null : notes);
+
             if (controller.registerAppointment(loggedUserRole)) {
                 showAlert(Alert.AlertType.INFORMATION, "Éxito", "✓ Cita registrada exitosamente");
                 clearForm();
@@ -456,6 +461,8 @@ public class RegisterAppointmentView {
         datePicker.setValue(null);
         cbSlot.getItems().clear();
         cbSlot.setDisable(true);
+        txtMotivo.clear();
+        txtNotas.clear();
         controller.reset();
     }
 
@@ -467,10 +474,25 @@ public class RegisterAppointmentView {
         alert.showAndWait();
     }
 
-    private Label fieldLabel(String text) {
-        Label lbl = new Label(text);
+    private HBox fieldLabel(String text) {
+        HBox box = new HBox(2);
+        box.setAlignment(Pos.CENTER_LEFT);
+
+        // Quita el asterisco del texto si ya viene incluido
+        String cleanText = text.replace(" *", "").replace("*", "");
+        boolean hasAsterisk = text.contains("*");
+
+        Label lbl = new Label(cleanText);
         lbl.setStyle("-fx-text-fill: #374151; -fx-font-weight: bold; -fx-font-size: 13px;");
-        return lbl;
+        box.getChildren().add(lbl);
+
+        if (hasAsterisk) {
+            Label asterisk = new Label(" *");
+            asterisk.setStyle("-fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-font-size: 13px;");
+            box.getChildren().add(asterisk);
+        }
+
+        return box;
     }
 
     private String fieldStyle() {

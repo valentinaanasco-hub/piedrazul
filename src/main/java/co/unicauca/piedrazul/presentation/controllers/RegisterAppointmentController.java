@@ -35,6 +35,8 @@ public class RegisterAppointmentController {
     private Patient selectedPatient;
     private LocalDate selectedDate;
     private LocalTime selectedSlot;
+    private String selectedReason;
+    private String selectedNotes;
     private List<LocalTime> availableSlots = new ArrayList<>();
 
     // Último mensaje de error para la vista
@@ -145,7 +147,8 @@ public class RegisterAppointmentController {
             lastErrorMessage = null;
 
             if (selectedDoctor == null || selectedPatient == null
-                    || selectedDate == null || selectedSlot == null) {
+                    || selectedDate == null || selectedSlot == null
+                    || selectedReason == null) {
                 throw new IllegalArgumentException("Complete todos los campos obligatorios.");
             }
 
@@ -162,6 +165,8 @@ public class RegisterAppointmentController {
             appointment.setDate(selectedDate);
             appointment.setStartTime(selectedSlot);
             appointment.setEndTime(endTime);
+            appointment.setReason(selectedReason);
+            appointment.setNotes(selectedNotes);
             appointment.setStatus(AppointmentStatus.AGENDADA);
 
             return appointmentService.scheduleAppointment(appointment);
@@ -175,12 +180,19 @@ public class RegisterAppointmentController {
         }
     }
 
+    public void setReasonAndNotes(String reason, String notes) {
+        this.selectedReason = reason;
+        this.selectedNotes = notes;
+    }
+
     // Reinicia el estado del formulario
     public void reset() {
         selectedDoctor = null;
         selectedPatient = null;
         selectedDate = null;
         selectedSlot = null;
+        selectedReason = null;
+        selectedNotes = null;
         availableSlots = new ArrayList<>();
         lastErrorMessage = null;
     }
@@ -203,6 +215,14 @@ public class RegisterAppointmentController {
 
     public LocalTime getSelectedSlot() {
         return selectedSlot;
+    }
+
+    public String getSelectedReason() {
+        return selectedReason;
+    }
+
+    public String getSelectedNotes() {
+        return selectedNotes;
     }
 
     public String getLastErrorMessage() {

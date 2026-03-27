@@ -118,7 +118,7 @@ class EntitiesTest {
         LocalTime start = LocalTime.of(8, 0);
         LocalTime end = LocalTime.of(8, 30);
 
-        Appointment a = new Appointment(1, date, start, end, AppointmentStatus.AGENDADA, doctor, patient);
+        Appointment a = new Appointment(1, date, start, end, doctor, patient, "Dolor de estómago crónico", "Notas de prueba", AppointmentStatus.AGENDADA);
 
         assertEquals(1, a.getAppointmentId());
         assertEquals(date, a.getDate());
