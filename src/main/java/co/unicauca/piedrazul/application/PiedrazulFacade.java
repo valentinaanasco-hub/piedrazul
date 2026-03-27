@@ -2,11 +2,14 @@ package co.unicauca.piedrazul.application;
 
 import co.unicauca.piedrazul.domain.entities.Patient;
 import co.unicauca.piedrazul.domain.entities.Role;
+import co.unicauca.piedrazul.domain.entities.User;
 import co.unicauca.piedrazul.domain.entities.enums.RoleName;
 import co.unicauca.piedrazul.domain.services.interfaces.IServiceFactory;
 import co.unicauca.piedrazul.main.DataBaseType;
 import co.unicauca.piedrazul.main.ServiceFactoryProvider;
 import co.unicauca.piedrazul.presentation.controllers.*;
+
+import java.util.List;
 
 /**
  * Fachada del sistema Piedrazul. Centraliza el acceso a todos los controladores
@@ -44,7 +47,26 @@ public class PiedrazulFacade {
         return instance;
     }
 
-    // Coordina el registro completo de un paciente desde la vista de registro
+    /**
+     * Autentica al usuario y carga sus roles desde la BD. UserService.login()
+     * solo trae datos de la tabla users — los roles viven en users_roles y se
+     * cargan por separado.
+     *
+     * @param username Correo o nombre de usuario.
+     * @param password Contraseña en texto plano.
+     * @return Usuario autenticado con roles cargados, o null si falla.
+     */
+    public User login(String username, String password) {
+        User user = serviceFactory.createUserService().login(username, password);
+        if (user != null) {
+            List<Role> roles = serviceFactory.createRoleService().listRolesByUser(user.getId());
+            user.setRoles(roles);
+        }
+        return user;
+    }
+
+    // Coordina el registro completo de un paciente desde la vista de registro.
+    // PatientService maneja users + patients en una sola transacción.
     public boolean registerPatient(Patient patient) {
         patient.addRole(new Role(RoleName.PACIENTE));
         return serviceFactory.createPatientService().registerPatient(patient);

@@ -29,7 +29,6 @@ public class MainView {
     // Vistas cache solucion temporal
     private ListAppointmentsView cachedListView;
     private RegisterAppointmentView cachedRegisterView;
-    
 
     private final Stage stage;
     private final User loggedUser;
@@ -60,6 +59,9 @@ public class MainView {
         stage.setMinWidth(900);
         stage.setMinHeight(600);
         stage.setScene(scene);
+        stage.sizeToScene();
+        stage.centerOnScreen();
+        stage.show();
         stage.show();
     }
 
@@ -201,7 +203,7 @@ public class MainView {
         // Si ya existe la vista, simplemente la ponemos en el centro y salimos
         if (cachedListView != null) {
             mainLayout.setCenter(cachedListView.getRoot());
-            return; 
+            return;
         }
         mainLayout.setCenter(buildLoadingPlaceholder());
 
@@ -217,8 +219,8 @@ public class MainView {
         };
 
         task.setOnSucceeded(e -> {
-                this.cachedListView = task.getValue();
-                mainLayout.setCenter(this.cachedListView.getRoot());
+            this.cachedListView = task.getValue();
+            mainLayout.setCenter(this.cachedListView.getRoot());
         });
 
         task.setOnFailed(e
@@ -234,7 +236,7 @@ public class MainView {
         // Si ya existe la vista, simplemente la ponemos en el centro y salimos
         if (cachedRegisterView != null) {
             mainLayout.setCenter(cachedRegisterView.getRoot());
-            return; 
+            return;
         }
         mainLayout.setCenter(buildLoadingPlaceholder());
 
@@ -247,7 +249,7 @@ public class MainView {
             }
         };
 
-        task.setOnSucceeded(e ->{
+        task.setOnSucceeded(e -> {
             this.cachedRegisterView = task.getValue();
             mainLayout.setCenter(this.cachedRegisterView.getRoot());
         });
