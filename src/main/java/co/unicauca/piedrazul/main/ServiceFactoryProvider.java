@@ -24,5 +24,4 @@ public class ServiceFactoryProvider {
                 return PostgresServiceFactory.getInstance();
         }
     }
-    
 }

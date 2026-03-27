@@ -11,7 +11,7 @@ import co.unicauca.piedrazul.domain.services.interfaces.IAppointmentService;
 import java.util.List;
 import co.unicauca.piedrazul.domain.services.interfaces.IManualAppointmentValidator;
 
-public class ManualAppointmentService implements IAppointmentService{
+public class ManualAppointmentService implements IAppointmentService {
 
     private final IAppointmentRepository appointmentRepository;
     private final IDoctorRepository doctorRepository;

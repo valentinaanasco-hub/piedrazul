@@ -4,6 +4,7 @@ import co.unicauca.piedrazul.domain.entities.Patient;
 import co.unicauca.piedrazul.domain.entities.Role;
 import co.unicauca.piedrazul.domain.entities.User;
 import co.unicauca.piedrazul.domain.entities.enums.RoleName;
+import co.unicauca.piedrazul.domain.services.interfaces.IAppointmentService;
 import co.unicauca.piedrazul.domain.services.interfaces.IServiceFactory;
 import co.unicauca.piedrazul.main.DataBaseType;
 import co.unicauca.piedrazul.main.ServiceFactoryProvider;
@@ -96,7 +97,7 @@ public class PiedrazulFacade {
 
     public ManualAppointmentController getManualAppointmentController() {
         if (appointmentController == null) {
-            appointmentController = new ManualAppointmentController(serviceFactory.createManualAppointmentService());
+            appointmentController = new ManualAppointmentController((IAppointmentService) serviceFactory.createManualAppointmentService());
         }
         return appointmentController;
     }

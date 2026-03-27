@@ -20,11 +20,14 @@ public class Appointment {
     private AppointmentStatus status; // AGENDADA, CANCELADA, ATENDIDA
     private Doctor doctor;
     private Patient patient;
+    private String reason;   
+    private String notes;    
 
     // Constructor vacío (necesario para mapeo desde repositorio)
     public Appointment() {
     }
-        public Appointment(int appointmentId, LocalDate date, LocalTime startTime, LocalTime endTime, AppointmentStatus status, Doctor doctor, Patient patient) {
+
+    public Appointment(int appointmentId, LocalDate date, LocalTime startTime, LocalTime endTime, Doctor doctor, Patient patient, String reason, String notes, AppointmentStatus status) {
         this.appointmentId = appointmentId;
         this.date = date;
         this.startTime = startTime;
@@ -32,7 +35,10 @@ public class Appointment {
         this.status = status;
         this.doctor = doctor;
         this.patient = patient;
+        this.reason = reason;
+        this.notes = notes;
     }
+
     public Appointment(LocalDate date, LocalTime startTime, LocalTime endTime, AppointmentStatus status, Doctor doctor, Patient patient) {
         this.date = date;
         this.startTime = startTime;
@@ -41,8 +47,6 @@ public class Appointment {
         this.doctor = doctor;
         this.patient = patient;
     }
-
-
 
     public int getAppointmentId() {
         return appointmentId;
@@ -99,4 +103,22 @@ public class Appointment {
     public void setPatient(Patient patient) {
         this.patient = patient;
     }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
+    }
+    
+    
 }
