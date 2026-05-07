@@ -12,24 +12,24 @@ public class PostgreSQLConnection {
     //PatronSingleton
     public static Connection getConnection() throws SQLException {
         if (instance == null || instance.isClosed()) {
-            // Datos de Railway (Se mantienen igual)
-            String host = "centerbeam.proxy.rlwy.net";
-            String port = "55609";
-            String db = "railway";
-            String user = "postgres";
-            String pass = "IRAhYvIIaZGyJWHOUKqQqcjaEdAmtTXR";
+            // Datos de Docker
+            String host = "localhost";
+            String port = "5432";
+            String db   = "piedrazul";
+            String user = "piedrazul_user";
+            String pass = "piedrazul_pass";
 
             String url = "jdbc:postgresql://" + host + ":" + port + "/" + db;
 
             try {
                 Class.forName("org.postgresql.Driver");
                 instance = DriverManager.getConnection(url, user, pass);
-                System.out.println("Conexión exitosa a Railway");
+                System.out.println("Conexión exitosa a Docker");
             } catch (ClassNotFoundException e) {
                 System.err.println("Error: No se encontró el Driver de PostgreSQL en el proyecto.");
                 throw new SQLException(e);
             } catch (SQLException e) {
-                System.err.println("Error al conectar con Railway: " + e.getMessage());
+                System.err.println("Error al conectar con Docker: " + e.getMessage());
                 throw e;
             }
         }
