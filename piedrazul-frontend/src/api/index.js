@@ -32,11 +32,13 @@ export const medicalApi = {
 
 // --- Appointment Service ---
 export const appointmentApi = {
-  create:              (data)       => api.post('/api/v1/appointments', data),
+  create:              (data)           => api.post('/api/v1/appointments', data),
   listByDoctorAndDate: (doctorId, date) =>
       api.get(`/api/v1/appointments?doctorId=${doctorId}&date=${date}`),
-  getParameters:       ()           => api.get('/api/v1/appointments/parameters'),
-  updateParameter:     (key, value) =>
+  listByPatient:       (patientId)      =>
+      api.get(`/api/v1/appointments/patient/${patientId}`),
+  getParameters:       ()               => api.get('/api/v1/appointments/parameters'),
+  updateParameter:     (key, value)     =>
       api.put(`/api/v1/appointments/parameters/${key}`, { value }),
 }
 

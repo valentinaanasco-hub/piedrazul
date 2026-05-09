@@ -19,10 +19,8 @@ export default function LoginPage() {
 
   const validate = () => {
     const e = {}
-    if (!form.username.trim())
-      e.username = 'El usuario es obligatorio'
-    if (!form.password)
-      e.password = 'La contraseña es obligatoria'
+    if (!form.username.trim()) e.username = 'El usuario es obligatorio'
+    if (!form.password)        e.password = 'La contraseña es obligatoria'
     return e
   }
 
@@ -37,11 +35,18 @@ export default function LoginPage() {
         username: form.username.trim(),
         password: form.password,
       })
-      login(response.data)
-      navigate('/dashboard')
+      const userData = response.data
+      login(userData)
+
+      // Redirige según rol
+      const roles = userData.roles?.map(r => r.toUpperCase()) || []
+      if (roles.includes('PACIENTE')) {
+        navigate('/patient/schedule')
+      } else {
+        navigate('/dashboard')
+      }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Credenciales incorrectas'
-      setErrors({ general: msg })
+      setErrors({ general: err.response?.data?.message || 'Credenciales incorrectas' })
     } finally {
       setLoading(false)
     }
@@ -66,7 +71,6 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
 
-              {/* --- Correo o usuario --- */}
               <div>
                 <label className="block text-sm text-gray-500 mb-1">
                   Correo o usuario <span className="text-red-500">*</span>
@@ -79,7 +83,6 @@ export default function LoginPage() {
                 {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
               </div>
 
-              {/* --- Contraseña con toggle --- */}
               <div>
                 <label className="block text-sm text-gray-500 mb-1">
                   Contraseña <span className="text-red-500">*</span>
@@ -101,13 +104,11 @@ export default function LoginPage() {
                 {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
               </div>
 
-              {/* --- Recordarme --- */}
               <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer">
                 <input type="checkbox" className="rounded" />
                 Recordarme
               </label>
 
-              {/* --- Error general --- */}
               {errors.general && (
                   <p className="text-red-500 text-sm bg-red-50 rounded-xl py-2 px-3">
                     {errors.general}
@@ -122,7 +123,6 @@ export default function LoginPage() {
             </form>
           </div>
 
-          {/* --- Footer --- */}
           <p className="text-center text-gray-500 text-sm mt-6">
             ¿No tienes cuenta?{' '}
             <Link to="/register" className="text-blue-600 font-semibold hover:underline">
