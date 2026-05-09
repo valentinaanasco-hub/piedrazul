@@ -1,0 +1,73 @@
+server:
+  port: 8090
+
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      # --- Configuración global de CORS ---
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"   # Frontend React en desarrollo
+              - "http://localhost:5173"   # Frontend Vite
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
+      # --- Rutas hacia cada microservicio ---
+      routes:
+
+        # Identity Service
+        - id: identity-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/v1/identity/**
+
+        # Patient Service
+        - id: patient-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/patients/**
+
+        # Medical Staff Service
+        - id: medical-staff-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/medical/**
+
+        # Appointment Service
+        - id: appointment-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/v1/appointments/**
+
+# --- Swagger ---
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
+# --- URLs internas de los servicios (usadas por el Saga) ---
+services:
+  identity:
+    url: http://localhost:8081
+  patient:
+    url: http://localhost:8083
+  medical-staff:
+    url: http://localhost:8082
+  appointment:
+    url: http://localhost:8084
