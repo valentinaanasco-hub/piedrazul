@@ -1,5 +1,11 @@
 package co.unicauca.piedrazul.medical.domain.service;
 
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import co.unicauca.piedrazul.medical.domain.entities.Doctor;
 import co.unicauca.piedrazul.medical.domain.entities.DoctorSchedule;
 import co.unicauca.piedrazul.medical.domain.factory.AvailabilityGeneratorFactory;
@@ -7,11 +13,6 @@ import co.unicauca.piedrazul.medical.domain.factory.AvailabilitySlot;
 import co.unicauca.piedrazul.medical.domain.repository.DoctorRepository;
 import co.unicauca.piedrazul.medical.domain.repository.DoctorScheduleRepository;
 import co.unicauca.piedrazul.medical.domain.repository.SpecialtyRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Servicio de dominio para gestión del personal médico.
@@ -71,7 +72,7 @@ public class MedicalStaffService {
                 .filter(s -> s.getDayOfWeek() == dayValue)
                 .findFirst()
                 .map(schedule -> {
-                    var generator = generatorFactory.getGenerator("STANDARD");
+                    var generator = generatorFactory.getGenerator();
                     return generator.generate(schedule, occupiedSlots)
                             .stream()
                             .filter(AvailabilitySlot::isAvailable)

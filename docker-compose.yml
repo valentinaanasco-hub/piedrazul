@@ -1,32 +1,91 @@
-version: '3.8'
-
 services:
 
-  # ── Base de datos compartida (por ahora) ──────────────────
-  postgres:
+  # ── Base de datos — Identity Service ──────────────────────
+  postgres-identity:
     image: postgres:16-alpine
-    container_name: piedrazul-db
+    container_name: postgres-identity
     restart: unless-stopped
     environment:
-      POSTGRES_DB: piedrazul
-      POSTGRES_USER: piedrazul_user
-      POSTGRES_PASSWORD: piedrazul_pass
+      POSTGRES_DB: identity_db
+      POSTGRES_USER: identity_user
+      POSTGRES_PASSWORD: identity_pass
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_identity_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-identity.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - piedrazul-network
 
-  # ── RabbitMQ ──────────────────
+  # ── Base de datos — Patient Service ───────────────────────
+  postgres-patient:
+    image: postgres:16-alpine
+    container_name: postgres-patient
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: patient_db
+      POSTGRES_USER: patient_user
+      POSTGRES_PASSWORD: patient_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_patient_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-patient.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - piedrazul-network
+
+  # ── Base de datos — Medical Staff Service ─────────────────
+  postgres-medical:
+    image: postgres:16-alpine
+    container_name: postgres-medical
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: medical_db
+      POSTGRES_USER: medical_user
+      POSTGRES_PASSWORD: medical_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_medical_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-medical.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - piedrazul-network
+
+  # ── Base de datos — Appointment Service ───────────────────
+  postgres-appointment:
+    image: postgres:16-alpine
+    container_name: postgres-appointment
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: appointment_db
+      POSTGRES_USER: appointment_user
+      POSTGRES_PASSWORD: appointment_pass
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_appointment_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-appointment.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - piedrazul-network
+
+  # ── Redis — caché de usuarios para appointment-service ────
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - piedrazul-network
+
+  # ── RabbitMQ ──────────────────────────────────────────────
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq
     restart: unless-stopped
     ports:
-      - "5672:5672" # Puerto para comunicacion entre servicios
-      - "15672:15672" # Puerto para visualizacion de rabbitMQ(Colas...) en web
+      - "5672:5672"   # Puerto para comunicacion entre servicios
+      - "15672:15672" # Puerto para visualizacion de rabbitMQ en web
     environment:
       RABBITMQ_DEFAULT_USER: piedrazul
       RABBITMQ_DEFAULT_PASS: piedrazul_pass
@@ -35,20 +94,22 @@ services:
 
   # ── Identity Service ──────────────────────────────────────
   identity-service:
-    build: ./identity-service
+    build:
+      context: .
+      dockerfile: identity-service/Dockerfile
     container_name: identity-service
     restart: unless-stopped
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/piedrazul
-      SPRING_DATASOURCE_USERNAME: piedrazul_user
-      SPRING_DATASOURCE_PASSWORD: piedrazul_pass
-      SPRING_RABBITMQ_HOST: rabbitmq     
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-identity:5432/identity_db
+      SPRING_DATASOURCE_USERNAME: identity_user
+      SPRING_DATASOURCE_PASSWORD: identity_pass
+      SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: piedrazul
       SPRING_RABBITMQ_PASSWORD: piedrazul_pass
     ports:
       - "8081:8081"
     depends_on:
-      - postgres
+      - postgres-identity
       - rabbitmq
     networks:
       - piedrazul-network
@@ -59,16 +120,16 @@ services:
     container_name: medical-staff-service
     restart: unless-stopped
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/piedrazul
-      SPRING_DATASOURCE_USERNAME: piedrazul_user
-      SPRING_DATASOURCE_PASSWORD: piedrazul_pass
-      SPRING_RABBITMQ_HOST: rabbitmq     
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-medical:5432/medical_db
+      SPRING_DATASOURCE_USERNAME: medical_user
+      SPRING_DATASOURCE_PASSWORD: medical_pass
+      SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: piedrazul
       SPRING_RABBITMQ_PASSWORD: piedrazul_pass
     ports:
       - "8082:8082"
     depends_on:
-      - postgres
+      - postgres-medical
       - rabbitmq
     networks:
       - piedrazul-network
@@ -79,37 +140,42 @@ services:
     container_name: patient-service
     restart: unless-stopped
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/piedrazul
-      SPRING_DATASOURCE_USERNAME: piedrazul_user
-      SPRING_DATASOURCE_PASSWORD: piedrazul_pass
-      SPRING_RABBITMQ_HOST: rabbitmq     
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-patient:5432/patient_db
+      SPRING_DATASOURCE_USERNAME: patient_user
+      SPRING_DATASOURCE_PASSWORD: patient_pass
+      SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: piedrazul
       SPRING_RABBITMQ_PASSWORD: piedrazul_pass
     ports:
       - "8083:8083"
     depends_on:
-      - postgres
+      - postgres-patient
       - rabbitmq
     networks:
       - piedrazul-network
 
   # ── Appointment Service ───────────────────────────────────
   appointment-service:
-    build: ./appointment-service
+    build:
+      context: .
+      dockerfile: appointment-service/Dockerfile
     container_name: appointment-service
     restart: unless-stopped
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/piedrazul
-      SPRING_DATASOURCE_USERNAME: piedrazul_user
-      SPRING_DATASOURCE_PASSWORD: piedrazul_pass
-      SPRING_RABBITMQ_HOST: rabbitmq     
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-appointment:5432/appointment_db
+      SPRING_DATASOURCE_USERNAME: appointment_user
+      SPRING_DATASOURCE_PASSWORD: appointment_pass
+      SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: piedrazul
       SPRING_RABBITMQ_PASSWORD: piedrazul_pass
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     ports:
       - "8084:8084"
     depends_on:
-      - postgres
+      - postgres-appointment
       - rabbitmq
+      - redis
     networks:
       - piedrazul-network
 
@@ -130,7 +196,10 @@ services:
       - piedrazul-network
 
 volumes:
-  postgres_data:
+  postgres_identity_data:
+  postgres_patient_data:
+  postgres_medical_data:
+  postgres_appointment_data:
 
 networks:
   piedrazul-network:

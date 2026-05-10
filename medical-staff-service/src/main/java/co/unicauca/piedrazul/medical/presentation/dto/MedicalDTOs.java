@@ -1,8 +1,9 @@
 package co.unicauca.piedrazul.medical.presentation.dto;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
-import java.util.List;
 
 /**
  * DTOs del medical-staff-service.
@@ -44,4 +45,11 @@ public class MedicalDTOs {
     ) {}
 
     public record MessageResponse(String message) {}
+
+    // --- Response completo del médico con horario y disponibilidad ---
+    public record DoctorFullInfoResponse(
+            DoctorResponse doctor,
+            List<ScheduleResponse> schedules,
+            List<String> availableSlots
+    ) {}
 }

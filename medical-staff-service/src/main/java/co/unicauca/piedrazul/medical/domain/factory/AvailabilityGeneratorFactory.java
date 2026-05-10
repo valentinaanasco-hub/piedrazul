@@ -1,35 +1,24 @@
 package co.unicauca.piedrazul.medical.domain.factory;
 
-import org.springframework.stereotype.Component;
-
 /**
- * Fábrica del patrón Factory Method.
- * Decide qué generador de disponibilidad usar según el contexto.
- * Actualmente retorna el generador estándar; en el futuro podría
- * retornar generadores especializados (urgencias, telemedicina, etc).
- *
- * Contexto: patrón Factory Method — creator concreto.
- *
- * @author Ginner Ortega
+ * Creator abstracto del patrón Factory Method.
+ * Define el método de fábrica que las subclases deben implementar
+ * para crear el generador de disponibilidad apropiado.
+ * Cada subclase decide qué tipo de generador crear.
  */
-@Component
-public class AvailabilityGeneratorFactory {
-
-    private final StandardAvailabilityGenerator standardGenerator;
-
-    public AvailabilityGeneratorFactory(StandardAvailabilityGenerator standardGenerator) {
-        this.standardGenerator = standardGenerator;
-    }
+public abstract class AvailabilityGeneratorFactory {
 
     /**
-     * Retorna el generador apropiado según el tipo de horario.
-     *
-     * @param scheduleType Tipo de horario (STANDARD por defecto).
-     * @return Generador de disponibilidad.
+     * Factory Method — cada subclase implementa este método
+     * para retornar el generador de disponibilidad correspondiente
      */
-    public AvailabilityGenerator getGenerator(String scheduleType) {
-        // Extensible: si en el futuro hay tipos especiales (urgencias, telemedicina)
-        // se agregan aquí sin modificar el código existente
-        return standardGenerator;
+    public abstract AvailabilityGenerator createGenerator();
+
+    /**
+     * Método de negocio que usa el generador creado por la subclase.
+     * El creator no sabe qué implementación concreta se usará.
+     */
+    public AvailabilityGenerator getGenerator() {
+        return createGenerator();
     }
 }

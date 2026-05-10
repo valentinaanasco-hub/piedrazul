@@ -35,6 +35,12 @@
             <version>0.1.0</version>
         </dependency>
 
+        <!-- Redis — caché local de usuarios -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
