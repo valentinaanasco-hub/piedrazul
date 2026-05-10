@@ -7,10 +7,10 @@ RUN mvn dependency:go-offline -f shared-events/pom.xml -q
 COPY shared-events/src shared-events/src
 RUN mvn install -f shared-events/pom.xml -DskipTests -q
 
-# appointment-service
-COPY appointment-service/pom.xml .
+# identity-service
+COPY identity-service/pom.xml .
 RUN mvn dependency:go-offline -q
-COPY appointment-service/src ./src
+COPY identity-service/src ./src
 RUN mvn package -DskipTests -q
 
 FROM eclipse-temurin:21-jre-alpine
