@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import PatientLayout from '../../components/PatientLayout'
-import { appointmentApi } from '../../api'
+import { appointmentApi, medicalApi } from '../../api'
 import { useAuth } from '../../api/AuthContext'
 import { Link } from 'react-router-dom'
 
@@ -13,17 +13,71 @@ const STATUS_STYLES = {
     REAGENDADA: 'bg-blue-100 text-blue-700',
 }
 
-export default function MyAppointmentsPage() {
-    const { user }            = useAuth()
-    const [appointments, setAppointments] = useState([])
-    const [loading, setLoading]           = useState(true)
+const MONTHS = ['ene','feb','mar','abr','may','jun',
+    'jul','ago','sep','oct','nov','dic']
 
-    useEffect(() => {
+export default function MyAppointmentsPage() {
+    const { user }                          = useAuth()
+    const [appointments, setAppointments]   = useState([])
+    const [doctorNames, setDoctorNames]     = useState({})
+    const [loading, setLoading]             = useState(true)
+    const [cancelling, setCancelling]       = useState(null)
+    const [confirmCancel, setConfirmCancel] = useState(null)
+
+    const loadAppointments = () => {
+        setLoading(true)
         appointmentApi.listByPatient(user?.id)
-            .then(res => setAppointments(res.data))
+            .then(res => {
+                const appts = res.data || []
+                setAppointments(appts)
+
+                // Cargar nombres de médicos únicos
+                const uniqueDoctorIds = [...new Set(appts.map(a => a.doctorId))]
+                return Promise.all(
+                    uniqueDoctorIds.map(id =>
+                        medicalApi.listDoctors()
+                            .then(r => {
+                                const doc = r.data?.find(d => d.id === id)
+                                return { id, name: doc?.fullName || `Profesional ${id}` }
+                            })
+                            .catch(() => ({ id, name: `Profesional ${id}` }))
+                    )
+                )
+            })
+            .then(names => {
+                const map = {}
+                names.forEach(n => { map[n.id] = n.name })
+                setDoctorNames(map)
+            })
             .catch(() => setAppointments([]))
             .finally(() => setLoading(false))
-    }, [user])
+    }
+
+    useEffect(() => { loadAppointments() }, [user])
+
+    const handleCancel = async (id) => {
+        setCancelling(id)
+        try {
+            await appointmentApi.cancel(id)
+            setConfirmCancel(null)
+            loadAppointments()
+        } catch {
+            alert('No se pudo cancelar la cita. Intenta de nuevo.')
+        } finally {
+            setCancelling(null)
+        }
+    }
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return ''
+        const [y, m, d] = dateStr.split('-')
+        return `${parseInt(d)} ${MONTHS[parseInt(m) - 1]} ${y}`
+    }
+
+    const formatTime = (timeStr) => {
+        if (!timeStr) return ''
+        return typeof timeStr === 'string' ? timeStr.substring(0, 5) : timeStr
+    }
 
     return (
         <PatientLayout>
@@ -36,17 +90,8 @@ export default function MyAppointmentsPage() {
 
                 <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
 
-                    {/* Encabezado tabla */}
-                    <div className="grid grid-cols-4 px-6 py-3 bg-gray-50 border-b border-gray-100">
-                        {['Hora', 'Profesional', 'Especialidad', 'Estado'].map(h => (
-                            <p key={h} className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{h}</p>
-                        ))}
-                    </div>
-
                     {loading ? (
-                        <div className="text-center py-12 text-gray-400 text-sm">
-                            Cargando tus citas...
-                        </div>
+                        <div className="text-center py-12 text-gray-400 text-sm">Cargando tus citas...</div>
                     ) : appointments.length === 0 ? (
                         <div className="text-center py-12">
                             <p className="text-3xl mb-3">📅</p>
@@ -60,30 +105,62 @@ export default function MyAppointmentsPage() {
                     ) : (
                         <div className="divide-y divide-gray-50">
                             {appointments.map(apt => (
-                                <div key={apt.id} className="grid grid-cols-4 px-6 py-4 items-center
-                  hover:bg-gray-50 transition-colors">
-                                    <div>
-                                        <p className="font-semibold text-gray-800 text-sm">{apt.startTime}</p>
-                                        <p className="text-gray-400 text-xs mt-0.5">
-                                            {apt.date
-                                                ? new Date(apt.date + 'T00:00:00').toLocaleDateString('es-CO', {
-                                                    day: 'numeric', month: 'short', year: 'numeric'
-                                                })
-                                                : ''}
-                                        </p>
+                                <div key={apt.appointmentId} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                                    <div className="flex items-center gap-4">
+
+                                        {/* Fecha + hora */}
+                                        <div className="w-24 shrink-0">
+                                            <p className="font-bold text-gray-800 text-sm">{formatTime(apt.startTime)}</p>
+                                            <p className="text-gray-400 text-xs mt-0.5">{formatDate(apt.date)}</p>
+                                        </div>
+
+                                        {/* Profesional */}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-800 truncate">
+                                                {doctorNames[apt.doctorId] || `Profesional ${apt.doctorId}`}
+                                            </p>
+                                            <p className="text-gray-400 text-xs mt-0.5 truncate">
+                                                {apt.reason || '—'}
+                                            </p>
+                                        </div>
+
+                                        {/* Estado */}
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0
+                      ${STATUS_STYLES[apt.status] || 'bg-gray-100 text-gray-600'}`}>
+                      {apt.status}
+                    </span>
+
+                                        {/* Botón cancelar — solo si está AGENDADA */}
+                                        {apt.status === 'AGENDADA' && (
+                                            confirmCancel === apt.appointmentId ? (
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    <span className="text-xs text-gray-500">¿Cancelar?</span>
+                                                    <button onClick={() => handleCancel(apt.appointmentId)}
+                                                            disabled={cancelling === apt.appointmentId}
+                                                            className="text-xs bg-red-500 text-white px-3 py-1 rounded-lg
+                              hover:bg-red-600 transition-colors disabled:opacity-50">
+                                                        {cancelling === apt.appointmentId ? '...' : 'Sí'}
+                                                    </button>
+                                                    <button onClick={() => setConfirmCancel(null)}
+                                                            className="text-xs border border-gray-200 text-gray-500 px-3 py-1
+                              rounded-lg hover:bg-gray-50 transition-colors">
+                                                        No
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button onClick={() => setConfirmCancel(apt.appointmentId)}
+                                                        className="text-xs text-red-500 hover:text-red-700 shrink-0
+                            transition-colors font-medium">
+                                                    Cancelar
+                                                </button>
+                                            )
+                                        )}
                                     </div>
-                                    <p className="text-gray-700 text-sm">{apt.doctorName || '—'}</p>
-                                    <p className="text-gray-500 text-sm">{apt.reason || '—'}</p>
-                                    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold w-fit
-                    ${STATUS_STYLES[apt.status] || 'bg-gray-100 text-gray-600'}`}>
-                    {apt.status}
-                  </span>
                                 </div>
                             ))}
                         </div>
                     )}
 
-                    {/* Footer */}
                     {!loading && appointments.length > 0 && (
                         <div className="px-6 py-4 border-t border-gray-50 flex justify-between items-center">
                             <p className="text-sm text-gray-400">

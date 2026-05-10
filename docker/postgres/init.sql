@@ -115,6 +115,14 @@ CREATE TABLE IF NOT EXISTS users_cache (
     CONSTRAINT pk_users_cache PRIMARY KEY (user_id)
 );
 
+CREATE TABLE IF NOT EXISTS users_cache (
+    user_id INTEGER,
+    user_full_name VARCHAR(200),
+    user_role VARCHAR(50),
+    user_state VARCHAR(20) DEFAULT 'ACTIVO',
+    CONSTRAINT pk_users_cache PRIMARY KEY (user_id)
+);
+
 INSERT INTO roles (role_name) SELECT 'ADMIN'     WHERE NOT EXISTS (SELECT 1 FROM roles WHERE role_name = 'ADMIN');
 INSERT INTO roles (role_name) SELECT 'DOCTOR'    WHERE NOT EXISTS (SELECT 1 FROM roles WHERE role_name = 'DOCTOR');
 INSERT INTO roles (role_name) SELECT 'PACIENTE'  WHERE NOT EXISTS (SELECT 1 FROM roles WHERE role_name = 'PACIENTE');

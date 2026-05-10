@@ -22,23 +22,25 @@ export const patientApi = {
 
 // --- Medical Staff Service ---
 export const medicalApi = {
-  listDoctors:     ()               => api.get('/api/v1/medical/doctors'),
-  getDoctorSchedule: (doctorId)     => api.get(`/api/v1/medical/doctors/${doctorId}/schedule`),
-  getAvailability: (doctorId, date) =>
+  listDoctors:       ()               => api.get('/api/v1/medical/doctors'),
+  getDoctorSchedule: (doctorId)       => api.get(`/api/v1/medical/doctors/${doctorId}/schedule`),
+  getAvailability:   (doctorId, date) =>
       api.get(`/api/v1/medical/availability?doctorId=${doctorId}&date=${date}`),
-  updateSchedule:  (doctorId, data) =>
+  updateSchedule:    (doctorId, data) =>
       api.put(`/api/v1/medical/doctors/${doctorId}/schedule`, data),
 }
 
 // --- Appointment Service ---
 export const appointmentApi = {
-  create:              (data)           => api.post('/api/v1/appointments', data),
-  listByDoctorAndDate: (doctorId, date) =>
-      api.get(`/api/v1/appointments?doctorId=${doctorId}&date=${date}`),
-  listByPatient:       (patientId)      =>
+  create:              (data)             => api.post('/api/v1/appointments', data),
+  listByDoctorAndDate: (doctorId, date)   =>
+      api.get(`/api/v1/appointments/doctor/${doctorId}/date/${date}`),
+  listByPatient:       (patientId)        =>
       api.get(`/api/v1/appointments/patient/${patientId}`),
-  getParameters:       ()               => api.get('/api/v1/appointments/parameters'),
-  updateParameter:     (key, value)     =>
+  cancel:              (id)               =>
+      api.patch(`/api/v1/appointments/${id}/cancel`),
+  getParameters:       ()                 => api.get('/api/v1/appointments/parameters'),
+  updateParameter:     (key, value)       =>
       api.put(`/api/v1/appointments/parameters/${key}`, { value }),
 }
 

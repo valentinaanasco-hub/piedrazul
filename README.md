@@ -21,11 +21,6 @@ Arquitectura de microservicios con Spring Boot + React.
 - Java 21
 - Node 20+
 
-### Base de datos
-```bash
-docker-compose up postgres -d
-```
-
 ### Todos los servicios
 ```bash
 docker-compose up -d

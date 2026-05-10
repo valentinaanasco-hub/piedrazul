@@ -1,5 +1,11 @@
 package co.unicauca.piedrazul.medical.domain.service;
 
+import java.time.LocalDate;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import co.unicauca.piedrazul.medical.domain.entities.Doctor;
 import co.unicauca.piedrazul.medical.domain.entities.DoctorSchedule;
 import co.unicauca.piedrazul.medical.domain.factory.AvailabilityGeneratorFactory;
@@ -7,11 +13,6 @@ import co.unicauca.piedrazul.medical.domain.factory.AvailabilitySlot;
 import co.unicauca.piedrazul.medical.domain.repository.DoctorRepository;
 import co.unicauca.piedrazul.medical.domain.repository.DoctorScheduleRepository;
 import co.unicauca.piedrazul.medical.domain.repository.SpecialtyRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.util.List;
 
 /**
  * Servicio de dominio para gestión del personal médico.
@@ -39,7 +40,7 @@ public class MedicalStaffService {
     }
 
     public List<Doctor> listAllDoctors() {
-        return doctorRepository.findAll();
+        return mapRowsToDoctors(doctorRepository.findAllWithNames());
     }
 
     public Doctor findDoctorById(int id) {
@@ -48,7 +49,7 @@ public class MedicalStaffService {
     }
 
     public List<Doctor> listDoctorsBySpecialty(int specialtyId) {
-        return doctorRepository.findBySpecialtyId(specialtyId);
+        return mapRowsToDoctors(doctorRepository.findBySpecialtyIdWithNames(specialtyId));
     }
 
     public List<DoctorSchedule> getDoctorSchedule(int doctorId) {
@@ -64,20 +65,14 @@ public class MedicalStaffService {
         return scheduleRepository.saveAll(newSchedules);
     }
 
-    /**
-     * Genera franjas disponibles para un médico en una fecha.
-     * sched_day_of_week: 1=Lunes...7=Domingo (ISO 8601 = DayOfWeek.getValue())
-     */
     public List<String> getAvailability(int doctorId, LocalDate date, List<String> occupiedSlots) {
         findDoctorById(doctorId);
-
-        int dayValue = date.getDayOfWeek().getValue(); // 1=Lunes...7=Domingo
-
+        int dayValue = date.getDayOfWeek().getValue();
         return scheduleRepository.findByDoctorId(doctorId).stream()
                 .filter(s -> s.getDayOfWeek() == dayValue)
                 .findFirst()
                 .map(schedule -> {
-                    var generator = generatorFactory.getGenerator("STANDARD");
+                    var generator = generatorFactory.getGenerator();
                     return generator.generate(schedule, occupiedSlots)
                             .stream()
                             .filter(AvailabilitySlot::isAvailable)
@@ -85,5 +80,25 @@ public class MedicalStaffService {
                             .toList();
                 })
                 .orElse(List.of());
+    }
+
+    // --- Mapeo de filas nativas a entidades Doctor ---
+    private List<Doctor> mapRowsToDoctors(List<Object[]> rows) {
+        return rows.stream().map(row -> {
+            Doctor doctor = new Doctor();
+            doctor.setId(((Number) row[0]).intValue());
+            doctor.setLicenseNumber((String) row[1]);
+            doctor.setFirstName((String) row[2]);
+            doctor.setMiddleName(row[3] != null ? (String) row[3] : null);
+            doctor.setFirstSurname((String) row[4]);
+            doctor.setLastName(row[5] != null ? (String) row[5] : null);
+            // Cargar especialidades
+            doctor.setSpecialties(
+                    doctorRepository.findById(doctor.getId())
+                            .map(Doctor::getSpecialties)
+                            .orElse(List.of())
+            );
+            return doctor;
+        }).toList();
     }
 }
