@@ -1,5 +1,7 @@
 package co.unicauca.piedrazul.appointment.presentation.mapper;
 
+import co.unicauca.piedrazul.appointment.domain.builder.AppointmentDirector;
+import co.unicauca.piedrazul.appointment.domain.builder.IAppointmentBuilder;
 import co.unicauca.piedrazul.appointment.domain.entities.Appointment;
 import co.unicauca.piedrazul.appointment.presentation.dto.AppointmentDTOs.AppointmentResponse;
 import co.unicauca.piedrazul.appointment.presentation.dto.AppointmentDTOs.CreateAppointmentRequest;
@@ -7,26 +9,31 @@ import org.springframework.stereotype.Component;
 
 /**
  * Mapper para convertir entre entidad Appointment y sus DTOs
+ * Usa el patrón Builder (Director + Builder) para construir la entidad
  */
 @Component
 public class AppointmentMapper {
 
-    public Appointment toEntity(CreateAppointmentRequest request) {
-        Appointment appointment = new Appointment();
-        appointment.setDoctorId(request.doctorId());
-        appointment.setPatientId(request.patientId());
-        appointment.setDate(request.date());
-        appointment.setStartTime(request.startTime());
-        appointment.setEndTime(request.endTime());
-        if (request.reason() != null) {
-            appointment.setReason(request.reason());
-        } else {
-            appointment.setReason("Sin especificar");
-        }
-        appointment.setNotes(request.notes());
-        return appointment;
+    private final AppointmentDirector director;
+    private final IAppointmentBuilder builder;
+
+    public AppointmentMapper(AppointmentDirector director, IAppointmentBuilder builder) {
+        this.director = director;
+        this.builder = builder;
     }
 
+    /**
+     * Convierte un CreateAppointmentRequest a entidad Appointment
+     * El Director configura los pasos, el cliente obtiene el resultado del Builder
+     */
+    public Appointment toEntity(CreateAppointmentRequest request) {
+        director.buildManualAppointment(builder, request);
+        return builder.build();
+    }
+
+    /**
+     * Convierte una entidad Appointment a AppointmentResponse
+     */
     public AppointmentResponse toResponse(Appointment appointment) {
         return new AppointmentResponse(
                 appointment.getAppointmentId(),

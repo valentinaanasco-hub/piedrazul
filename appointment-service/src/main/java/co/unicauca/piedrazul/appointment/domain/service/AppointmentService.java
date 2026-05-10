@@ -3,7 +3,8 @@ package co.unicauca.piedrazul.appointment.domain.service;
 import co.unicauca.piedrazul.appointment.domain.entities.Appointment;
 import co.unicauca.piedrazul.appointment.domain.entities.enums.AppointmentStatus;
 import co.unicauca.piedrazul.appointment.domain.repository.AppointmentRepository;
-import co.unicauca.piedrazul.appointment.domain.validator.AppointmentValidator;
+import co.unicauca.piedrazul.appointment.domain.template.ManualAppointmentScheduling;
+import co.unicauca.piedrazul.appointment.domain.template.RescheduleAppointmentScheduling;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,28 +14,28 @@ import java.util.List;
 
 /**
  * Servicio de dominio para gestión de citas médicas
+ * Usa el patrón Template Method para el flujo de agendamiento y reagendamiento
  */
 @Service
 public class AppointmentService implements IAppointmentService {
 
     private final AppointmentRepository appointmentRepository;
-    private final List<AppointmentValidator> validators;
+    private final ManualAppointmentScheduling manualScheduling;
+    private final RescheduleAppointmentScheduling rescheduleScheduling;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
-                               List<AppointmentValidator> validators) {
+                               ManualAppointmentScheduling manualScheduling,
+                               RescheduleAppointmentScheduling rescheduleScheduling) {
         this.appointmentRepository = appointmentRepository;
-        this.validators = validators;
+        this.manualScheduling = manualScheduling;
+        this.rescheduleScheduling = rescheduleScheduling;
     }
 
     @Override
     @Transactional
     public Appointment scheduleAppointment(Appointment appointment) {
-        int doctorId = appointment.getDoctorId();
-        LocalDate date = appointment.getDate();
-        List<Appointment> existingOnDate = getActiveAppointmentsByDoctorAndDate(doctorId, date);
-        runValidators(appointment, existingOnDate);
-        appointment.setStatus(AppointmentStatus.AGENDADA);
-        return appointmentRepository.save(appointment);
+        // Delega al Template Method — el esqueleto está en AppointmentSchedulingTemplate
+        return manualScheduling.execute(appointment);
     }
 
     @Override
@@ -50,13 +51,8 @@ public class AppointmentService implements IAppointmentService {
         appointment.setDate(newDate);
         appointment.setStartTime(newStartTime);
         appointment.setEndTime(newEndTime);
-
-        int doctorId = appointment.getDoctorId();
-        List<Appointment> existingOnDate = getActiveAppointmentsByDoctorAndDate(doctorId, newDate);
-        runValidators(appointment, existingOnDate);
-
-        appointment.setStatus(AppointmentStatus.REAGENDADA);
-        return appointmentRepository.save(appointment);
+        // Delega al Template Method — el esqueleto está en AppointmentSchedulingTemplate
+        return rescheduleScheduling.execute(appointment);
     }
 
     @Override
@@ -90,16 +86,5 @@ public class AppointmentService implements IAppointmentService {
     @Override
     public List<Appointment> listByPatient(int patientId) {
         return appointmentRepository.findByPatientIdOrderByDateDescStartTimeAsc(patientId);
-    }
-
-    public List<Appointment> getActiveAppointmentsByDoctorAndDate(int doctorId, LocalDate date) {
-        return appointmentRepository.findByDoctorIdAndDateAndStatusNot(
-                doctorId, date, AppointmentStatus.CANCELADA);
-    }
-
-    private void runValidators(Appointment appointment, List<Appointment> existingOnDate) {
-        for (AppointmentValidator validator : validators) {
-            validator.validate(appointment, existingOnDate);
-        }
     }
 }
