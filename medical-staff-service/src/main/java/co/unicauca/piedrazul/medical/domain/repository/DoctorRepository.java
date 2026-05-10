@@ -1,12 +1,12 @@
 package co.unicauca.piedrazul.medical.domain.repository;
 
-import java.util.List;
-
+import co.unicauca.piedrazul.medical.domain.entities.Doctor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import co.unicauca.piedrazul.medical.domain.entities.Doctor;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Repositorio JPA para la entidad Doctor.
@@ -16,10 +16,31 @@ import co.unicauca.piedrazul.medical.domain.entities.Doctor;
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor, Integer> {
 
-    // Busca médicos por especialidad
-    @Query("SELECT DISTINCT d FROM Doctor d JOIN d.specialties s WHERE s.id = ?1")
-    List<Doctor> findBySpecialtyId(int specialtyId);
+    /**
+     * Lista todos los médicos con su nombre completo desde users.
+     */
+    @Query(value = """
+        SELECT d.doct_user_id, d.doct_professional_id,
+               u.user_first_name, u.user_middle_name,
+               u.user_first_surname, u.user_last_name
+        FROM doctors d
+        JOIN users u ON u.user_id = d.doct_user_id
+        """, nativeQuery = true)
+    List<Object[]> findAllWithNames();
 
-    // Verifica si existe un médico con ese id
+    /**
+     * Busca médicos por especialidad con nombre completo.
+     */
+    @Query(value = """
+        SELECT d.doct_user_id, d.doct_professional_id,
+               u.user_first_name, u.user_middle_name,
+               u.user_first_surname, u.user_last_name
+        FROM doctors d
+        JOIN users u ON u.user_id = d.doct_user_id
+        JOIN doctor_specialties ds ON ds.ds_doct_id = d.doct_user_id
+        WHERE ds.ds_spec_id = :specialtyId
+        """, nativeQuery = true)
+    List<Object[]> findBySpecialtyIdWithNames(int specialtyId);
+
     boolean existsById(int id);
 }

@@ -19,7 +19,7 @@ public class Doctor {
     @Column(name = "doct_professional_id", length = 50)
     private String licenseNumber;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "doctor_specialties",
             joinColumns = @JoinColumn(name = "ds_doct_id"),
