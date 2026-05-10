@@ -1,3 +1,41 @@
+# Piedrazul — Monorepo
+
+Sistema de agendamiento de citas médicas.
+Arquitectura de microservicios con Spring Boot + React.
+
+## Servicios
+
+| Servicio | Puerto | Descripción |
+|---|---|---|
+| api-gateway | 8090 | Enrutamiento central |
+| identity-service | 8081 | Autenticación, usuarios, roles |
+| medical-staff-service | 8082 | Médicos, especialidades, horarios |
+| patient-service | 8083 | Pacientes |
+| appointment-service | 8084 | Citas, disponibilidad, parámetros |
+| piedrazul-desktop | — | Cliente JavaFX (iteración 1) |
+
+## Levantar el entorno local
+
+### Requisitos
+- Docker Desktop instalado
+- Java 21
+- Node 20+
+
+### Base de datos
+```bash
+docker-compose up postgres -d
+```
+
+### Todos los servicios
+```bash
+docker-compose up -d
+```
+
+### Solo la base de datos (desarrollo local)
+```bash
+docker-compose up postgres -d
+```
+=======
 # 💙 Piedrazul — Red de Servicios Médicos
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white)
@@ -69,3 +107,4 @@ Este proyecto fue desarrollado por estudiantes de **Ingeniería de Sistemas de l
 
 > [!NOTE]
 > Este software fue desarrollado como parte del curso de Ingeniería de Software II (Sexto Semestre).
+

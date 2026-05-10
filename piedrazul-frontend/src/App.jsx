@@ -1,0 +1,10 @@
+import { AuthProvider } from './api/AuthContext'
+import AppRouter from './router/AppRouter'
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
+  )
+}
