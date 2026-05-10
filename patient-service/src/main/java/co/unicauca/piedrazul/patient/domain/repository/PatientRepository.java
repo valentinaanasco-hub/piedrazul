@@ -1,12 +1,12 @@
 package co.unicauca.piedrazul.patient.domain.repository;
 
-import co.unicauca.piedrazul.patient.domain.entities.Patient;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import co.unicauca.piedrazul.patient.domain.entities.Patient;
 
 /**
  * Repositorio JPA para la entidad Patient.

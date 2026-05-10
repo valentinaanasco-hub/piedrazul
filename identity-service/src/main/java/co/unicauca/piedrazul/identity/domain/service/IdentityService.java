@@ -1,5 +1,6 @@
 package co.unicauca.piedrazul.identity.domain.service;
 
+import co.unicauca.piedrazul.identity.application.UserEventPublisher;
 import co.unicauca.piedrazul.identity.domain.entities.Role;
 import co.unicauca.piedrazul.identity.domain.entities.User;
 import co.unicauca.piedrazul.identity.domain.enums.UserState;
@@ -23,13 +24,16 @@ public class IdentityService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final UserEventPublisher eventPublisher;
 
     public IdentityService(UserRepository userRepository,
                            RoleRepository roleRepository,
-                           BCryptPasswordEncoder passwordEncoder) {
+                           BCryptPasswordEncoder passwordEncoder,
+                           UserEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -72,7 +76,9 @@ public class IdentityService {
                 .orElseThrow(() -> new IllegalArgumentException("Rol no encontrado: " + roleName));
         user.setRoles(List.of(role));
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        eventPublisher.publishUserRegistered(saved);
+        return saved;
     }
 
     /**
@@ -106,5 +112,6 @@ public class IdentityService {
         User user = findById(id);
         user.setState(UserState.INACTIVO);
         userRepository.save(user);
+        eventPublisher.publishUserRegistered(user);
     }
 }

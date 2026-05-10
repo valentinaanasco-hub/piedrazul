@@ -1,9 +1,12 @@
 package co.unicauca.piedrazul.patient.presentation.mapper;
 
+import org.springframework.stereotype.Component;
+
 import co.unicauca.piedrazul.patient.domain.entities.Patient;
 import co.unicauca.piedrazul.patient.domain.enums.UserState;
-import co.unicauca.piedrazul.patient.presentation.dto.PatientDTOs.*;
-import org.springframework.stereotype.Component;
+import co.unicauca.piedrazul.patient.presentation.dto.PatientDTOs.AgendadorRegisterRequest;
+import co.unicauca.piedrazul.patient.presentation.dto.PatientDTOs.PatientResponse;
+import co.unicauca.piedrazul.patient.presentation.dto.PatientDTOs.WebRegisterRequest;
 
 /**
  * Mapper que convierte entre entidades Patient y DTOs.
