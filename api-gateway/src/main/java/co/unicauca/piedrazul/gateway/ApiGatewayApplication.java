@@ -9,11 +9,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * y orquesta flujos complejos como el registro de pacientes mediante el patrón Saga.
  *
  * @author Santiago Solarte
+ * @author Ginner Ortega
  */
 @SpringBootApplication
 public class ApiGatewayApplication {
 
     public static void main(String[] args) {
+
         SpringApplication.run(ApiGatewayApplication.class, args);
     }
 }

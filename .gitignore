@@ -26,3 +26,4 @@ docker/volumes/
 # OS
 .DS_Store
 Thumbs.db
+/piedrazul-frontend/nbproject/private/

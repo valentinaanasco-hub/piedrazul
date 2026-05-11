@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Punto de entrada del Identity Service.
  *
  * @author Santiago Solarte
+ * @author GINNER Ortega
  */
 @SpringBootApplication
 public class IdentityServiceApplication {
