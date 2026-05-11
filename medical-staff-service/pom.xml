@@ -21,6 +21,18 @@
     </properties>
 
     <dependencies>
+        
+        <!-- Reddis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- Shared - events -->
+        <dependency>
+            <groupId>co.unicauca.piedrazul</groupId>
+            <artifactId>shared-events</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
         <!-- Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

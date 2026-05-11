@@ -1,4 +1,4 @@
-package co.unicauca.piedrazul.appointment.application;
+package co.unicauca.piedrazul.medical.application;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,16 +8,12 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-/**
- * Configuración de Redis para appointment-service
- * Define la serialización JSON para los objetos almacenados en caché
- */
 @Configuration
-@EnableRedisRepositories(basePackages = "co.unicauca.piedrazul.appointment.domain.repository")
+@EnableRedisRepositories(basePackages = "co.unicauca.piedrazul.medical.domain.repository")
 public class RedisConfig {
-
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
+    
+    @Bean 
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory){
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
         template.setKeySerializer(new StringRedisSerializer());
