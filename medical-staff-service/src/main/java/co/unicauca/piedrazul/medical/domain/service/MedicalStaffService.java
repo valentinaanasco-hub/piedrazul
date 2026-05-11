@@ -70,28 +70,18 @@ public class MedicalStaffService {
         return scheduleRepository.saveAll(newSchedules);
     }
 
-<<<<<<< HEAD
-    /**
-     * Genera franjas disponibles para un médico en una fecha.
-     * sched_day_of_week: 1=Lunes...7=Domingo 
-     */
     public List<String> getAvailability(int doctorId, LocalDate date) {
         findDoctorById(doctorId);
 
         int dayValue = date.getDayOfWeek().getValue();
 
         List<String> occupiedSlots = occupiedSlotCacheRepository
-                    .findByDoctorIdAndDate(doctorId, date)
-                    .stream()
-                    .filter(slot -> !"CANCELADA".equals(slot.getStatus()))
-                    .map(slot -> slot.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")))
-                    .toList();
+                .findByDoctorIdAndDate(doctorId, date)
+                .stream()
+                .filter(slot -> !"CANCELADA".equals(slot.getStatus()))
+                .map(slot -> slot.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")))
+                .toList();
 
-=======
-    public List<String> getAvailability(int doctorId, LocalDate date, List<String> occupiedSlots) {
-        findDoctorById(doctorId);
-        int dayValue = date.getDayOfWeek().getValue();
->>>>>>> 8e33411a8f9fefedbb45fe8765d76522ce78f6e7
         return scheduleRepository.findByDoctorId(doctorId).stream()
                 .filter(s -> s.getDayOfWeek() == dayValue)
                 .findFirst()

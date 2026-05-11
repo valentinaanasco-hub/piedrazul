@@ -4,6 +4,7 @@ server:
 spring:
   main:
     web-application-type: reactive
+    allow-bean-definition-overriding: true
   application:
     name: api-gateway
 
@@ -71,3 +72,4 @@ services:
     url: http://localhost:8082
   appointment:
     url: http://localhost:8084
+
