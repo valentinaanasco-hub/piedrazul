@@ -117,16 +117,13 @@ public class MedicalStaffController {
     @GetMapping("/availability")
     @Operation(
             summary = "Obtener disponibilidad de un médico",
-            description = "Retorna las franjas horarias disponibles para un médico en una fecha dada"
+            description = "Retorna las franjas horarias disponibles para un médico en una fecha dada. Los slots ocupados se consultan automáticamente desde Redis"
     )
     public ResponseEntity<?> getAvailability(
             @RequestParam int doctorId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam(required = false) List<String> occupied) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         try {
-            List<String> slots = medicalStaffService.getAvailability(
-                    doctorId, date, occupied != null ? occupied : List.of()
-            );
+            List<String> slots = medicalStaffService.getAvailability(doctorId, date);
             return ResponseEntity.ok(slots);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
@@ -139,14 +136,13 @@ public class MedicalStaffController {
     @GetMapping("/doctors/{id}/full-info")
     @Operation(
             summary = "Información completa del médico",
-            description = "Retorna en una sola llamada los datos del médico, sus horarios y las franjas disponibles para una fecha. Usa el patrón Facade para simplificar la interfaz del subsistema."
+            description = "Retorna en una sola llamada los datos del médico, sus horarios y las franjas disponibles para una fecha. Usa el patrón Facade para simplificar la interfaz del subsistema"
     )
     public ResponseEntity<?> getDoctorFullInfo(
             @PathVariable int id,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam(required = false) List<String> occupied) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         try {
-            DoctorFullInfoResponse info = doctorFacade.getDoctorFullInfo(id, date, occupied);
+            DoctorFullInfoResponse info = doctorFacade.getDoctorFullInfo(id, date);
             return ResponseEntity.ok(info);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()

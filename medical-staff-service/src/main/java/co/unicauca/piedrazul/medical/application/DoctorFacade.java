@@ -36,15 +36,13 @@ public class DoctorFacade {
      * Retorna en una sola llamada los datos del médico,
      * sus horarios configurados y las franjas disponibles para la fecha dada.
      * Oculta la complejidad de coordinar tres subsistemas distintos.
+     * Los slots ocupados se consultan automáticamente desde Redis.
      *
-     * @param doctorId      ID del médico
-     * @param date          Fecha para calcular disponibilidad
-     * @param occupiedSlots Franjas ya ocupadas por citas existentes
+     * @param doctorId ID del médico
+     * @param date     Fecha para calcular disponibilidad
      * @return Respuesta completa con médico, horarios y slots disponibles
      */
-    public DoctorFullInfoResponse getDoctorFullInfo(int doctorId,
-                                                     LocalDate date,
-                                                     List<String> occupiedSlots) {
+    public DoctorFullInfoResponse getDoctorFullInfo(int doctorId, LocalDate date) {
         // Subsistema 1 — datos del médico
         Doctor doctor = medicalStaffService.findDoctorById(doctorId);
         DoctorResponse doctorResponse = medicalMapper.toResponse(doctor);
@@ -56,9 +54,8 @@ public class DoctorFacade {
             scheduleResponses.add(medicalMapper.toResponse(schedule));
         }
 
-        // Subsistema 3 — disponibilidad calculada para la fecha
-        List<String> slots = medicalStaffService.getAvailability(
-                doctorId, date, occupiedSlots != null ? occupiedSlots : List.of());
+        // Subsistema 3 — disponibilidad calculada para la fecha (consulta Redis automáticamente)
+        List<String> slots = medicalStaffService.getAvailability(doctorId, date);
 
         return new DoctorFullInfoResponse(doctorResponse, scheduleResponses, slots);
     }

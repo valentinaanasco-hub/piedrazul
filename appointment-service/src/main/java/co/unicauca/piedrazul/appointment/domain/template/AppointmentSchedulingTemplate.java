@@ -1,11 +1,12 @@
 package co.unicauca.piedrazul.appointment.domain.template;
 
 import co.unicauca.piedrazul.appointment.domain.entities.Appointment;
-import co.unicauca.piedrazul.appointment.domain.entities.enums.AppointmentStatus;
 import co.unicauca.piedrazul.appointment.domain.repository.AppointmentRepository;
 import co.unicauca.piedrazul.appointment.domain.validator.AppointmentValidator;
 
 import java.util.List;
+
+import co.unicauca.piedrazul.appointment.application.AppointmentEventPublisher;
 
 /**
  * Clase abstracta del patrón Template Method para el flujo de agendamiento
@@ -16,11 +17,14 @@ public abstract class AppointmentSchedulingTemplate {
 
     protected final AppointmentRepository appointmentRepository;
     protected final List<AppointmentValidator> validators;
+    protected final AppointmentEventPublisher eventPublisher;
 
     protected AppointmentSchedulingTemplate(AppointmentRepository appointmentRepository,
-                                             List<AppointmentValidator> validators) {
+                                             List<AppointmentValidator> validators,
+                                            AppointmentEventPublisher eventPublisher) {
         this.appointmentRepository = appointmentRepository;
         this.validators = validators;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -34,7 +38,9 @@ public abstract class AppointmentSchedulingTemplate {
         List<Appointment> existingOnDate = getActiveAppointments(appointment);
         runValidators(appointment, existingOnDate);
         assignStatus(appointment);
-        return appointmentRepository.save(appointment);
+        Appointment saved = appointmentRepository.save(appointment);
+        eventPublisher.publishAppointmentCreated(appointment);
+        return saved;
     }
 
     /**
@@ -45,10 +51,9 @@ public abstract class AppointmentSchedulingTemplate {
     // --- Pasos fijos del algoritmo ---
 
     private List<Appointment> getActiveAppointments(Appointment appointment) {
-        return appointmentRepository.findByDoctorIdAndDateAndStatusNot(
+        return appointmentRepository.findByDoctorIdAndDateForUpdate(
                 appointment.getDoctorId(),
-                appointment.getDate(),
-                AppointmentStatus.CANCELADA);
+                appointment.getDate());
     }
 
     private void runValidators(Appointment appointment, List<Appointment> existingOnDate) {

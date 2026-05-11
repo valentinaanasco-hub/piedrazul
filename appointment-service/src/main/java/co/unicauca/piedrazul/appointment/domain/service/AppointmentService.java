@@ -5,12 +5,15 @@ import co.unicauca.piedrazul.appointment.domain.entities.enums.AppointmentStatus
 import co.unicauca.piedrazul.appointment.domain.repository.AppointmentRepository;
 import co.unicauca.piedrazul.appointment.domain.template.ManualAppointmentScheduling;
 import co.unicauca.piedrazul.appointment.domain.template.RescheduleAppointmentScheduling;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+
+import co.unicauca.piedrazul.appointment.application.AppointmentEventPublisher;
 
 /**
  * Servicio de dominio para gestión de citas médicas
@@ -22,13 +25,16 @@ public class AppointmentService implements IAppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final ManualAppointmentScheduling manualScheduling;
     private final RescheduleAppointmentScheduling rescheduleScheduling;
-
+    private final AppointmentEventPublisher eventPublisher;
+    
     public AppointmentService(AppointmentRepository appointmentRepository,
                                ManualAppointmentScheduling manualScheduling,
-                               RescheduleAppointmentScheduling rescheduleScheduling) {
+                               RescheduleAppointmentScheduling rescheduleScheduling,
+                              AppointmentEventPublisher eventPublisher) {
         this.appointmentRepository = appointmentRepository;
         this.manualScheduling = manualScheduling;
         this.rescheduleScheduling = rescheduleScheduling;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -52,7 +58,9 @@ public class AppointmentService implements IAppointmentService {
         appointment.setStartTime(newStartTime);
         appointment.setEndTime(newEndTime);
         // Delega al Template Method — el esqueleto está en AppointmentSchedulingTemplate
-        return rescheduleScheduling.execute(appointment);
+        Appointment rescheduled = rescheduleScheduling.execute(appointment);
+        // ya se publico dentro del template
+        return rescheduled;
     }
 
     @Override
@@ -60,7 +68,9 @@ public class AppointmentService implements IAppointmentService {
     public Appointment cancelAppointment(int appointmentId) {
         Appointment appointment = findById(appointmentId);
         appointment.setStatus(AppointmentStatus.CANCELADA);
-        return appointmentRepository.save(appointment);
+        Appointment saved = appointmentRepository.save(appointment);
+        eventPublisher.publishAppointmentCreated(appointment);
+        return saved;
     }
 
     @Override
@@ -68,7 +78,9 @@ public class AppointmentService implements IAppointmentService {
     public Appointment markAsAttended(int appointmentId) {
         Appointment appointment = findById(appointmentId);
         appointment.setStatus(AppointmentStatus.ATENDIDA);
-        return appointmentRepository.save(appointment);
+        Appointment saved = appointmentRepository.save(appointment);
+        eventPublisher.publishAppointmentCreated(appointment);
+        return saved;
     }
 
     @Override

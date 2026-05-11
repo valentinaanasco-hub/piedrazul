@@ -116,7 +116,9 @@ services:
 
   # ── Medical Staff Service ─────────────────────────────────
   medical-staff-service:
-    build: ./medical-staff-service
+    build:
+      context: .
+      dockerfile: medical-staff-service/Dockerfile
     container_name: medical-staff-service
     restart: unless-stopped
     environment:
@@ -126,11 +128,14 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: piedrazul
       SPRING_RABBITMQ_PASSWORD: piedrazul_pass
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     ports:
       - "8082:8082"
     depends_on:
       - postgres-medical
       - rabbitmq
+      - redis
     networks:
       - piedrazul-network
 

@@ -17,3 +17,9 @@ CREATE TABLE IF NOT EXISTS appointments (
     CONSTRAINT pk_appointments PRIMARY KEY (appt_id),
     CONSTRAINT ck_appt_status_valid CHECK (appt_status IN ('AGENDADA', 'REAGENDADA', 'CANCELADA', 'ATENDIDA'))
 );
+
+-- Índice único parcial para evitar citas duplicadas en el mismo slot
+-- Solo aplica a citas activas (no canceladas)
+CREATE UNIQUE INDEX IF NOT EXISTS uk_active_appointments 
+ON appointments (appt_doct_id, appt_date, appt_start_time)
+WHERE appt_status IN ('AGENDADA', 'REAGENDADA', 'ATENDIDA');

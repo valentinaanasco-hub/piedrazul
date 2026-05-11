@@ -6,6 +6,8 @@ out/
 # Maven
 target/
 *.class
+.LCK*
+pom.xml.versionsBackup
 
 # Spring Boot
 *.jar
