@@ -4,11 +4,13 @@
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS doctors (
-    doct_user_id INTEGER,
-    doct_professional_id VARCHAR(50) NOT NULL,
+    doct_user_id         INTEGER      NOT NULL,
+    doct_professional_id VARCHAR(50)  NOT NULL,
+    doct_first_name      VARCHAR(100) NOT NULL,
+    doct_first_surname   VARCHAR(100) NOT NULL,
     CONSTRAINT pk_doctors PRIMARY KEY (doct_user_id),
     CONSTRAINT uk_doct_professional_id UNIQUE (doct_professional_id)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS specialties (
     spec_id SERIAL,

@@ -24,6 +24,7 @@ export const patientApi = {
 export const medicalApi = {
   listDoctors:       ()               => api.get('/api/v1/medical/doctors'),
   getDoctorSchedule: (doctorId)       => api.get(`/api/v1/medical/doctors/${doctorId}/schedule`),
+  // El backend ahora obtiene los slots ocupados desde Redis internamente
   getAvailability:   (doctorId, date) =>
       api.get(`/api/v1/medical/availability?doctorId=${doctorId}&date=${date}`),
   updateSchedule:    (doctorId, data) =>
@@ -32,15 +33,15 @@ export const medicalApi = {
 
 // --- Appointment Service ---
 export const appointmentApi = {
-  create:              (data)             => api.post('/api/v1/appointments', data),
-  listByDoctorAndDate: (doctorId, date)   =>
+  create:              (data)           => api.post('/api/v1/appointments', data),
+  listByDoctorAndDate: (doctorId, date) =>
       api.get(`/api/v1/appointments/doctor/${doctorId}/date/${date}`),
-  listByPatient:       (patientId)        =>
+  listByPatient:       (patientId)      =>
       api.get(`/api/v1/appointments/patient/${patientId}`),
-  cancel:              (id)               =>
+  cancel:              (id)             =>
       api.patch(`/api/v1/appointments/${id}/cancel`),
-  getParameters:       ()                 => api.get('/api/v1/appointments/parameters'),
-  updateParameter:     (key, value)       =>
+  getParameters:       ()               => api.get('/api/v1/appointments/parameters'),
+  updateParameter:     (key, value)     =>
       api.put(`/api/v1/appointments/parameters/${key}`, { value }),
 }
 

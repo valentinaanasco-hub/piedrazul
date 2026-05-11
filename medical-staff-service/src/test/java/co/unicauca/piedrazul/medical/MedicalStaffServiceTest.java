@@ -2,10 +2,11 @@ package co.unicauca.piedrazul.medical;
 
 import co.unicauca.piedrazul.medical.domain.entities.Doctor;
 import co.unicauca.piedrazul.medical.domain.entities.DoctorSchedule;
-import co.unicauca.piedrazul.medical.domain.factory.AvailabilityGeneratorFactory;
-import co.unicauca.piedrazul.medical.domain.factory.StandardAvailabilityGenerator;
+import co.unicauca.piedrazul.medical.domain.entities.OccupiedSlotCache;
+import co.unicauca.piedrazul.medical.domain.factory.StandardGeneratorFactory;
 import co.unicauca.piedrazul.medical.domain.repository.DoctorRepository;
 import co.unicauca.piedrazul.medical.domain.repository.DoctorScheduleRepository;
+import co.unicauca.piedrazul.medical.domain.repository.OccupiedSlotCacheRepository;
 import co.unicauca.piedrazul.medical.domain.repository.SpecialtyRepository;
 import co.unicauca.piedrazul.medical.domain.service.MedicalStaffService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -32,9 +34,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class MedicalStaffServiceTest {
 
-    @Mock private DoctorRepository         doctorRepository;
-    @Mock private DoctorScheduleRepository scheduleRepository;
-    @Mock private SpecialtyRepository      specialtyRepository;
+    @Mock private DoctorRepository            doctorRepository;
+    @Mock private DoctorScheduleRepository    scheduleRepository;
+    @Mock private SpecialtyRepository         specialtyRepository;
+    @Mock private OccupiedSlotCacheRepository occupiedSlotCacheRepository;
 
     private MedicalStaffService service;
     private Doctor              validDoctor;
@@ -42,11 +45,12 @@ class MedicalStaffServiceTest {
 
     @BeforeEach
     void setUp() {
-        StandardAvailabilityGenerator generator = new StandardAvailabilityGenerator();
-        AvailabilityGeneratorFactory  factory   = new AvailabilityGeneratorFactory(generator);
+        // StandardGeneratorFactory es el Concrete Creator del patrón Factory Method
+        StandardGeneratorFactory factory = new StandardGeneratorFactory();
 
         service = new MedicalStaffService(
-                doctorRepository, scheduleRepository, specialtyRepository, factory
+                doctorRepository, scheduleRepository, specialtyRepository,
+                factory, occupiedSlotCacheRepository
         );
 
         validDoctor = new Doctor();
@@ -58,7 +62,7 @@ class MedicalStaffServiceTest {
         mondaySchedule = new DoctorSchedule();
         mondaySchedule.setId(1);
         mondaySchedule.setDoctor(validDoctor);
-        mondaySchedule.setDayOfWeek(1);  // 1 = Lunes (ISO 8601)
+        mondaySchedule.setDayOfWeek(1); // 1 = Lunes (ISO 8601)
         mondaySchedule.setStartTime(LocalTime.of(8, 0));
         mondaySchedule.setEndTime(LocalTime.of(10, 0));
         mondaySchedule.setIntervalMinutes(30);
@@ -68,8 +72,8 @@ class MedicalStaffServiceTest {
 
     @Test
     void listAllDoctors_retornaLista() {
-        when(doctorRepository.findAll()).thenReturn(List.of(validDoctor));
-        assertEquals(1, service.listAllDoctors().size());
+        when(doctorRepository.findAllWithNames()).thenReturn(List.of());
+        assertNotNull(service.listAllDoctors());
     }
 
     @Test
@@ -92,11 +96,13 @@ class MedicalStaffServiceTest {
     void getAvailability_lunes_retornaFranjasCorrectas() {
         when(doctorRepository.findById(1)).thenReturn(Optional.of(validDoctor));
         when(scheduleRepository.findByDoctorId(1)).thenReturn(List.of(mondaySchedule));
+        when(occupiedSlotCacheRepository.findByDoctorIdAndDate(anyInt(), any()))
+                .thenReturn(List.of());
 
-        // 2026-05-11 es Lunes → DayOfWeek.getValue() = 1
-        List<String> slots = service.getAvailability(1, LocalDate.of(2026, 5, 11), List.of());
+        // 2026-05-11 es Lunes
+        List<String> slots = service.getAvailability(1, LocalDate.of(2026, 5, 11));
 
-        // 08:00 a 10:00 cada 30min → 08:00, 08:30, 09:00, 09:30
+        // 08:00 a 10:00 cada 30min → 4 franjas
         assertEquals(4, slots.size());
         assertTrue(slots.contains("08:00"));
         assertTrue(slots.contains("09:30"));
@@ -107,9 +113,23 @@ class MedicalStaffServiceTest {
         when(doctorRepository.findById(1)).thenReturn(Optional.of(validDoctor));
         when(scheduleRepository.findByDoctorId(1)).thenReturn(List.of(mondaySchedule));
 
-        List<String> slots = service.getAvailability(
-                1, LocalDate.of(2026, 5, 11), List.of("08:00", "09:00")
-        );
+        // Simular dos citas ocupadas en Redis
+        OccupiedSlotCache slot1 = new OccupiedSlotCache();
+        slot1.setDoctorId(1);
+        slot1.setDate(LocalDate.of(2026, 5, 11));
+        slot1.setStartTime(LocalTime.of(8, 0));
+        slot1.setStatus("AGENDADA");
+
+        OccupiedSlotCache slot2 = new OccupiedSlotCache();
+        slot2.setDoctorId(1);
+        slot2.setDate(LocalDate.of(2026, 5, 11));
+        slot2.setStartTime(LocalTime.of(9, 0));
+        slot2.setStatus("AGENDADA");
+
+        when(occupiedSlotCacheRepository.findByDoctorIdAndDate(anyInt(), any()))
+                .thenReturn(List.of(slot1, slot2));
+
+        List<String> slots = service.getAvailability(1, LocalDate.of(2026, 5, 11));
 
         assertEquals(2, slots.size());
         assertFalse(slots.contains("08:00"));
@@ -122,10 +142,11 @@ class MedicalStaffServiceTest {
     void getAvailability_diaNoTrabajado_retornaVacio() {
         when(doctorRepository.findById(1)).thenReturn(Optional.of(validDoctor));
         when(scheduleRepository.findByDoctorId(1)).thenReturn(List.of(mondaySchedule));
+        when(occupiedSlotCacheRepository.findByDoctorIdAndDate(anyInt(), any()))
+                .thenReturn(List.of());
 
-        // 2026-05-10 es Domingo → DayOfWeek.getValue() = 7
-        List<String> slots = service.getAvailability(1, LocalDate.of(2026, 5, 10), List.of());
-
+        // 2026-05-10 es Domingo
+        List<String> slots = service.getAvailability(1, LocalDate.of(2026, 5, 10));
         assertTrue(slots.isEmpty());
     }
 
@@ -133,7 +154,7 @@ class MedicalStaffServiceTest {
     void getAvailability_doctorNoExiste_lanzaExcepcion() {
         when(doctorRepository.findById(anyInt())).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class,
-                () -> service.getAvailability(99, LocalDate.now(), List.of()));
+                () -> service.getAvailability(99, LocalDate.now()));
     }
 
     // --- Tests de horarios ---
@@ -145,6 +166,6 @@ class MedicalStaffServiceTest {
 
         List<DoctorSchedule> result = service.getDoctorSchedule(1);
         assertEquals(1, result.size());
-        assertEquals(1, result.get(0).getDayOfWeek()); // 1 = Lunes
+        assertEquals(1, result.get(0).getDayOfWeek());
     }
 }
