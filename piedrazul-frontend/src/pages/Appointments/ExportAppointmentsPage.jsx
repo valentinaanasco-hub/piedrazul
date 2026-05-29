@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout'
 import { medicalApi, appointmentApi, patientApi, identityApi } from '../../api'
 
-const STATUSES = ['AGENDADA', 'ATENDIDA', 'CANCELADA', 'REAGENDADA']
+const STATUSES = ['AGENDADA', 'ATENDIDA', 'CANCELADA', 'REAGENDADA', 'NO_ASISTIO']
+
+const STATUS_LABELS = {
+  AGENDADA:   'Agendada',
+  ATENDIDA:   'Atendida',
+  CANCELADA:  'Cancelada',
+  REAGENDADA: 'Reagendada',
+  NO_ASISTIO: 'No Asistio',
+}
 
 export default function ExportAppointmentsPage() {
   const [doctors,       setDoctors]       = useState([])
@@ -184,7 +192,7 @@ export default function ExportAppointmentsPage() {
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm
                                  focus:outline-none focus:border-blue-500 transition-colors">
                 <option value="">Todos</option>
-                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                {STATUSES.map(s => <option key={s} value={s}>{STATUS_LABELS[s] || s}</option>)}
               </select>
             </div>
 
@@ -304,13 +312,14 @@ const STATUS_STYLES = {
   ATENDIDA:   'bg-gray-100 text-gray-600',
   CANCELADA:  'bg-red-100 text-red-600',
   REAGENDADA: 'bg-blue-100 text-blue-700',
+  NO_ASISTIO: 'bg-orange-100 text-orange-700',
 }
 
 function StatusBadge({ status }) {
   return (
     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold
       ${STATUS_STYLES[status] || 'bg-gray-100 text-gray-600'}`}>
-      {status}
+      {STATUS_LABELS[status] || status}
     </span>
   )
 }
