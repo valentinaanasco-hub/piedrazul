@@ -10,7 +10,7 @@ const STATUS_STYLES = {
   CANCELADA:   'bg-red-100 text-red-700',
   ATENDIDA:    'bg-gray-100 text-gray-600',
   REAGENDADA:  'bg-blue-100 text-blue-700',
-  NO_ASISTIO: 'bg-orange-100 text-orange-700',
+  NO ASISTIO: 'bg-orange-100 text-orange-700',
 }
 
 export default function AppointmentsPage() {
@@ -23,7 +23,7 @@ export default function AppointmentsPage() {
   const [loading,        setLoading]        = useState(false)
   const [searched,       setSearched]       = useState(false)
 
-  const STATUSES = ['AGENDADA', 'REAGENDADA', 'ATENDIDA', 'CANCELADA', 'NO_ASISTIO']
+  const STATUSES = ['AGENDADA', 'REAGENDADA', 'ATENDIDA', 'CANCELADA', 'NO ASISTIO']
 
   useEffect(() => {
     medicalApi.listDoctors()
