@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout'
 import { appointmentApi, identityApi, medicalApi } from '../../api'
 import { useAuth } from '../../api/AuthContext'
+import { isHoliday, isWeekend } from '../../utils/colombianHolidays'
 
 function addMinutes(timeStr, minutes) {
   const [h, m] = timeStr.split(':').map(Number)
@@ -84,25 +85,46 @@ function RescheduleModal({ appointment, doctorId, onClose, onSuccess }) {
   const [loading,          setLoading]          = useState(false)
   const [saving,           setSaving]           = useState(false)
   const [error,            setError]            = useState('')
+  const [dateWarning,      setDateWarning]      = useState('')
 
   // Fecha mínima: mañana
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   const minDate = tomorrow.toISOString().split('T')[0]
 
+  const handleDateChange = (value) => {
+    setNewDate(value)
+    setError('')
+    setDateWarning('')
+    if (!value) return
+    const d = new Date(value + 'T12:00:00')
+    if (isWeekend(d)) {
+      setDateWarning('Esta fecha es fin de semana — es posible que no haya horarios disponibles.')
+    } else if (isHoliday(d)) {
+      setDateWarning('Esta fecha es festivo en Colombia — es posible que no haya horarios disponibles.')
+    }
+  }
+
   useEffect(() => {
     if (!newDate) { setSlots([]); setSelectedTime(''); return }
     setLoading(true)
     setSelectedTime('')
-    Promise.all([
-      medicalApi.getAvailability(doctorId, newDate),
-      medicalApi.getDoctorSchedule(doctorId),
-    ]).then(([availRes, schedRes]) => {
-      // Solo los slots disponibles
-      setSlots((availRes.data || []).filter(s => s.available))
-      const scheds = schedRes.data || []
-      if (scheds.length > 0) setIntervalMinutes(scheds[0].intervalMinutes || 30)
-    }).catch(() => setSlots([]))
+
+    // Llamadas independientes — si el schedule falla igual mostramos slots
+    const availPromise = medicalApi.getAvailability(doctorId, newDate).catch(() => ({ data: [] }))
+    const schedPromise = medicalApi.getDoctorSchedule(doctorId).catch(() => ({ data: [] }))
+
+    Promise.all([availPromise, schedPromise])
+      .then(([availRes, schedRes]) => {
+        const raw = availRes.data || []
+        // El backend devuelve List<String>: ["08:00","08:30",...]
+        // O List<{time,available}>: [{time:"08:00", available:true},...]
+        // Normalizamos ambos formatos
+        const times = raw.map(s => typeof s === 'string' ? s : s.time).filter(Boolean)
+        setSlots(times)
+        const scheds = schedRes.data || []
+        if (scheds.length > 0) setIntervalMinutes(scheds[0].intervalMinutes || 30)
+      })
       .finally(() => setLoading(false))
   }, [newDate, doctorId])
 
@@ -139,9 +161,14 @@ function RescheduleModal({ appointment, doctorId, onClose, onSuccess }) {
             Nueva fecha <span className="text-red-500">*</span>
           </label>
           <input type="date" value={newDate} min={minDate}
-                 onChange={e => { setNewDate(e.target.value); setError('') }}
+                 onChange={e => handleDateChange(e.target.value)}
                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm
                    focus:outline-none focus:border-blue-500 transition-colors" />
+          {dateWarning && (
+            <p className="text-yellow-600 text-xs mt-1.5 flex items-center gap-1">
+              <span>⚠</span> {dateWarning}
+            </p>
+          )}
         </div>
 
         {/* Horarios disponibles */}
@@ -156,17 +183,20 @@ function RescheduleModal({ appointment, doctorId, onClose, onSuccess }) {
               <p className="text-sm text-gray-400 py-4 text-center">Sin horarios disponibles para esta fecha</p>
             ) : (
               <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
-                {slots.map((s, i) => (
-                  <button key={i}
-                          onClick={() => setSelectedTime(s.time?.substring(0,5))}
-                          className={`py-2 rounded-xl text-sm font-medium border transition-colors
-                            ${selectedTime === s.time?.substring(0,5)
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'border-gray-200 text-gray-700 hover:border-blue-400 hover:bg-blue-50'
-                            }`}>
-                    {s.time?.substring(0,5)}
-                  </button>
-                ))}
+                {slots.map((s, i) => {
+                  const t = typeof s === 'string' ? s.substring(0,5) : s.time?.substring(0,5)
+                  return (
+                    <button key={i}
+                            onClick={() => setSelectedTime(t)}
+                            className={`py-2 rounded-xl text-sm font-medium border transition-colors
+                              ${selectedTime === t
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'border-gray-200 text-gray-700 hover:border-blue-400 hover:bg-blue-50'
+                              }`}>
+                      {t}
+                    </button>
+                  )
+                })}
               </div>
             )}
           </div>
