@@ -256,7 +256,7 @@ function AgendadorDashboard({ user }) {
     REAGENDADA: 'Reagendada',
     ATENDIDA:   'Atendida',
     CANCELADA:  'Cancelada',
-    NO_ASISTIO: 'No asistió',
+    NO_ASISTIO: 'NO ASISTIO',
   }
 
   return (
@@ -387,7 +387,7 @@ function AgendadorDashboard({ user }) {
                 { key: 'REAGENDADA', label: 'Reagendadas', color: 'bg-blue-500'  },
                 { key: 'ATENDIDA',   label: 'Atendidas',   color: 'bg-gray-400'  },
                 { key: 'CANCELADA',  label: 'Canceladas',  color: 'bg-red-400'   },
-                { key: 'NO_ASISTIO', label: 'No asistió',  color: 'bg-orange-400'},
+                { key: 'NO_ASISTIO', label: 'NO ASISTIO',  color: 'bg-orange-400'},
               ].map(({ key, label, color }) => {
                 const count = statusCount[key] || 0
                 const total = allApts?.length || 1
