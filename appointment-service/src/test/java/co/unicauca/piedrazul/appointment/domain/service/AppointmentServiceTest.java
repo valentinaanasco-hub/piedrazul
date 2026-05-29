@@ -33,9 +33,6 @@ class AppointmentServiceTest {
     @Mock private RescheduleAppointmentScheduling rescheduleScheduling;
     @Mock private AppointmentEventPublisher       eventPublisher;
 
-    @Mock
-    private AppointmentEventPublisher eventPublisher;
-
     private AppointmentService appointmentService;
 
     @BeforeEach
