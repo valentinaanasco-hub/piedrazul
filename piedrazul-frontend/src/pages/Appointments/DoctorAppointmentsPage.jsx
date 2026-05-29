@@ -23,7 +23,7 @@ const STATUS_LABELS = {
   REAGENDADA:  'Reagendada',
   ATENDIDA:    'Atendida',
   CANCELADA:   'Cancelada',
-  NO_ASISTIDO: 'No asistido',
+  NO_ASISTIDO: 'No asistió',
 }
 
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -35,7 +35,7 @@ function StatusModal({ appointment, onClose, onConfirm, updating }) {
 
   const options = [
     { value: 'ATENDIDA',    label: 'Marcar como Atendida' },
-    { value: 'NO_ASISTIDO', label: 'Marcar como No asistido' },
+    { value: 'NO_ASISTIDO', label: 'Marcar como No asistió' },
     { value: 'CANCELADA',   label: 'Cancelar cita' },
   ]
 
