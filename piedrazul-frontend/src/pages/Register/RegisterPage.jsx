@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { patientApi } from '../../api'
 
+const ALLOWED_DOMAINS = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'icloud.com', 'live.com']
+
 const DOCUMENT_TYPES = [
   { value: 'CC', label: 'Cédula de ciudadanía' },
   { value: 'TI', label: 'Tarjeta de identidad' },
@@ -62,6 +64,11 @@ export default function RegisterPage() {
       e.email = 'El correo es obligatorio'
     else if (!/^[\w._%+\-]+@[\w.\-]+\.[a-zA-Z]{2,}$/.test(form.email))
       e.email = 'Formato de correo inválido'
+    else {
+      const domain = form.email.trim().split('@')[1]?.toLowerCase()
+      if (!ALLOWED_DOMAINS.includes(domain))
+        e.email = `Dominio no permitido. Usa: ${ALLOWED_DOMAINS.join(', ')}`
+    }
 
     if (!form.phone.trim())
       e.phone = 'El teléfono es obligatorio'
