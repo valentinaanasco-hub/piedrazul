@@ -41,4 +41,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     // Listar todas las citas activas
     List<Appointment> findByStatusNot(AppointmentStatus status);
+
+    // Buscar citas de un paciente con un estado específico
+    List<Appointment> findByPatientIdAndStatus(int patientId, AppointmentStatus status);
 }

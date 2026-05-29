@@ -32,25 +32,31 @@ spring:
 
         # Identity Service
         - id: identity-service
-          uri: http://localhost:8081
+          uri: http://identity-service:8081
           predicates:
             - Path=/api/v1/identity/**
 
         # Patient Service
         - id: patient-service
-          uri: http://localhost:8083
+          uri: http://patient-service:8083
           predicates:
             - Path=/api/v1/patients/**
 
         # Medical Staff Service
         - id: medical-staff-service
-          uri: http://localhost:8082
+          uri: http://medical-staff-service:8082
           predicates:
             - Path=/api/v1/medical/**
 
+        # Configuration Service (part of Medical Staff Service)
+        - id: configuration-service
+          uri: http://configuration-service:8085
+          predicates:
+            - Path=/api/v1/configuration/**
+
         # Appointment Service
         - id: appointment-service
-          uri: http://localhost:8084
+          uri: http://appointment-service:8084
           predicates:
             - Path=/api/v1/appointments/**
 
@@ -65,11 +71,11 @@ springdoc:
 # --- URLs internas de los servicios (usadas por el Saga) ---
 services:
   identity:
-    url: http://localhost:8081
+    url: http://identity-service:8081
   patient:
-    url: http://localhost:8083
+    url: http://patient-service:8083
   medical-staff:
-    url: http://localhost:8082
+    url: http://medical-staff-service:8082
   appointment:
-    url: http://localhost:8084
+    url: http://appointment-service:8084
 

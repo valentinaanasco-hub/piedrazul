@@ -9,17 +9,6 @@ const DAYS   = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
-const SPECIALTY_ICONS = {
-    default:            '🩺',
-    'medicina general': '🩺',
-    'fisioterapia':     '💪',
-    'terapia neural':   '🧠',
-    'quiropraxia':      '🦴',
-}
-
-function getIcon(name) {
-    return SPECIALTY_ICONS[name?.toLowerCase()] || SPECIALTY_ICONS.default
-}
 
 function addMinutes(timeStr, minutes) {
     const [h, m] = timeStr.split(':').map(Number)
@@ -155,7 +144,7 @@ export default function ScheduleAppointmentPage() {
                 <div className="flex items-center justify-center h-full">
                     <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center max-w-sm">
                         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <span className="text-green-500 text-3xl">✓</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         </div>
                         <h2 className="text-xl font-bold text-gray-800">¡Cita Confirmada!</h2>
                         <p className="text-gray-500 text-sm mt-2">Redirigiendo a tus citas...</p>
@@ -184,7 +173,9 @@ export default function ScheduleAppointmentPage() {
                   ${idx < step   ? 'bg-blue-600 text-white' : ''}
                   ${idx === step ? 'bg-blue-600 text-white ring-4 ring-blue-100' : ''}
                   ${idx > step   ? 'bg-gray-100 text-gray-400' : ''}`}>
-                                    {idx < step ? '✓' : idx + 1}
+                                    {idx < step
+                                        ? <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                        : idx + 1}
                                 </div>
                                 <span className={`text-sm whitespace-nowrap
                   ${idx === step ? 'font-semibold text-gray-800' : 'text-gray-400'}`}>
@@ -218,7 +209,7 @@ export default function ScheduleAppointmentPage() {
                         ${selectedSpecialty?.name === spec.name
                                                     ? 'border-blue-600 bg-blue-50'
                                                     : 'border-gray-100 hover:border-blue-300 hover:bg-gray-50'}`}>
-                                            <div className="text-2xl mb-3">{getIcon(spec.name)}</div>
+                                            <div className="mb-3"></div>
                                             <p className={`font-semibold text-sm
                         ${selectedSpecialty?.name === spec.name ? 'text-blue-700' : 'text-gray-800'}`}>
                                                 {spec.name}
@@ -330,7 +321,7 @@ export default function ScheduleAppointmentPage() {
                                     </p>
 
                                     {!selectedDate ? (
-                                        <p className="text-gray-300 text-xs">← Selecciona una fecha primero</p>
+                                        <p className="text-gray-300 text-xs">Selecciona una fecha primero</p>
                                     ) : loadingSlots ? (
                                         <p className="text-gray-400 text-xs">Cargando horarios...</p>
                                     ) : availability.length === 0 ? (
@@ -353,7 +344,7 @@ export default function ScheduleAppointmentPage() {
                                             </select>
                                             {selectedTime && (
                                                 <p className="text-blue-600 text-xs mt-2 font-medium">
-                                                    ✓ Hora seleccionada: {selectedTime}
+                                                    Hora seleccionada: {selectedTime}
                                                 </p>
                                             )}
                                             <p className="text-gray-400 text-xs mt-2">
@@ -392,13 +383,13 @@ export default function ScheduleAppointmentPage() {
                 <div className="flex items-center justify-between mt-6">
                     <button type="button" onClick={handleBack} disabled={step === 0}
                             className="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-30 transition-colors">
-                        ← Anterior
+                        Anterior
                     </button>
                     {step < 3 ? (
                         <button type="button" onClick={handleNext} disabled={!canNext()}
                                 className="bg-blue-600 text-white rounded-xl px-6 py-2.5 text-sm font-semibold
                 hover:bg-blue-700 transition-colors disabled:opacity-40">
-                            Siguiente →
+                            Siguiente
                         </button>
                     ) : (
                         <button type="button" onClick={handleConfirm} disabled={submitting}

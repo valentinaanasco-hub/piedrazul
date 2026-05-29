@@ -94,7 +94,6 @@ export default function MyAppointmentsPage() {
                         <div className="text-center py-12 text-gray-400 text-sm">Cargando tus citas...</div>
                     ) : appointments.length === 0 ? (
                         <div className="text-center py-12">
-                            <p className="text-3xl mb-3">📅</p>
                             <p className="text-gray-400 text-sm">No tienes citas registradas</p>
                             <Link to="/patient/schedule"
                                   className="inline-block mt-4 bg-blue-600 text-white rounded-xl

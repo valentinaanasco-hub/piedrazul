@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout'
-import { appointmentApi, medicalApi } from '../../api'
+import { medicalApi } from '../../api'
+import configurationService from '../../api/configurationService'
 
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
@@ -53,7 +54,7 @@ function ConfigMenu({ onSelect }) {
           <button onClick={() => onSelect('global')}
                   className="mt-6 w-full bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold
             hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
-            Configurar →
+            Configurar
           </button>
         </div>
 
@@ -69,7 +70,7 @@ function ConfigMenu({ onSelect }) {
           <button onClick={() => onSelect('professional')}
                   className="mt-6 w-full bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold
             hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
-            Configurar →
+            Configurar
           </button>
         </div>
       </div>
@@ -85,10 +86,9 @@ function GlobalConfig({ onBack }) {
   const [error, setError]     = useState('')
 
   useEffect(() => {
-    appointmentApi.getParameters()
+    configurationService.getGlobalConfiguration()
         .then(res => {
-          const param = res.data?.find(p => p.key === 'ventana_semanas')
-          if (param) setWeeks(param.value)
+          setWeeks(res.appointmentWindowWeeks)
         })
         .catch(() => {})
         .finally(() => setLoading(false))
@@ -101,7 +101,7 @@ function GlobalConfig({ onBack }) {
     }
     setSaving(true)
     try {
-      await appointmentApi.updateParameter('ventana_semanas', weeks)
+      await configurationService.updateAppointmentWindow(parseInt(weeks))
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
       setError('')
@@ -148,7 +148,7 @@ function GlobalConfig({ onBack }) {
                             ? 'bg-green-500 text-white'
                             : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50'
                         }`}>
-                  {saving ? 'Guardando...' : saved ? '✓ Guardado' : 'Guardar configuración'}
+                  {saving ? 'Guardando...' : saved ? 'Guardado' : 'Guardar configuración'}
                 </button>
               </div>
             </div>
@@ -170,8 +170,8 @@ function ProfessionalConfig({ onBack }) {
   const [error, setError]           = useState('')
 
   useEffect(() => {
-    medicalApi.listDoctors()
-        .then(res => setDoctors(res.data))
+    configurationService.listAllDoctors()
+        .then(res => setDoctors(res))
         .catch(() => {})
   }, [])
 
@@ -195,12 +195,26 @@ function ProfessionalConfig({ onBack }) {
     if (err) { setError(err); return }
     setSaving(true)
     try {
-      await medicalApi.updateSchedule(doctorId, { selectedDays, startTime, endTime, interval })
+      // Convertir días seleccionados a números (1=Lunes, 2=Martes, etc.)
+      const dayMap = {
+        'Lunes': 1, 'Martes': 2, 'Miércoles': 3, 
+        'Jueves': 4, 'Viernes': 5, 'Sábado': 6, 'Domingo': 7
+      }
+      
+      const schedules = selectedDays.map(day => ({
+        dayOfWeek: dayMap[day],
+        startTime: startTime,
+        endTime: endTime,
+        intervalMinutes: parseInt(interval)
+      }))
+      
+      await configurationService.updateDoctorSchedule(doctorId, schedules)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
       setError('')
-    } catch {
-      setError('Error al guardar. Intenta de nuevo.')
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al guardar. Intenta de nuevo.')
+      console.error(err)
     } finally {
       setSaving(false)
     }
@@ -300,7 +314,7 @@ function ProfessionalConfig({ onBack }) {
                       ? 'bg-green-500 text-white'
                       : 'bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50'
                   }`}>
-            {saving ? 'Guardando...' : saved ? '✓ Guardado' : 'Guardar disponibilidad'}
+            {saving ? 'Guardando...' : saved ? 'Guardado' : 'Guardar disponibilidad'}
           </button>
         </div>
       </div>

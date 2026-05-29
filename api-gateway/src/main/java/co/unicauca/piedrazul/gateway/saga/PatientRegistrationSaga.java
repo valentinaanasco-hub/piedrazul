@@ -1,10 +1,14 @@
 package co.unicauca.piedrazul.gateway.saga;
 
-import co.unicauca.piedrazul.gateway.presentation.client.ServiceClients;
-import co.unicauca.piedrazul.gateway.presentation.dto.GatewayDTOs.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+
+import co.unicauca.piedrazul.gateway.presentation.client.ServiceClients;
+import co.unicauca.piedrazul.gateway.presentation.dto.GatewayDTOs.IdentityRegisterRequest;
+import co.unicauca.piedrazul.gateway.presentation.dto.GatewayDTOs.PatientRegisterRequest;
+import co.unicauca.piedrazul.gateway.presentation.dto.GatewayDTOs.PatientServiceRequest;
+import co.unicauca.piedrazul.gateway.presentation.dto.GatewayDTOs.RegisterResponse;
 
 /**
  * Implementación del patrón Saga para el registro completo de paciente (RF3).

@@ -2,8 +2,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../api/AuthContext'
 
 const NAV_ITEMS = [
-    { path: '/patient/schedule', label: 'Agendar Cita', icon: '📅' },
-    { path: '/patient/appointments', label: 'Mis Citas',    icon: '☰' },
+    { path: '/patient/schedule',     label: 'Agendar Cita', icon: '📅' },
+    { path: '/patient/appointments', label: 'Mis Citas',    icon: '☰'  },
     { path: '/patient/profile',      label: 'Mi Perfil',    icon: '👤' },
 ]
 
@@ -27,7 +27,9 @@ export default function PatientLayout({ children }) {
                 {/* Logo */}
                 <div className="px-5 py-5 flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                        <span className="text-white text-lg">♥</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="none">
+                            <path d="M12 21C12 21 3 13.5 3 8a5 5 0 0110 0 5 5 0 0110 0c0 5.5-9 13-9 13z"/>
+                        </svg>
                     </div>
                     <div>
                         <p className="font-bold text-gray-800 text-sm leading-tight">Piedrazul</p>
@@ -54,7 +56,7 @@ export default function PatientLayout({ children }) {
                                       : 'text-gray-600 hover:bg-gray-50'
                                   }`}>
                 <span className={`text-base ${active ? 'text-blue-600' : 'text-gray-400'}`}>
-                  {item.icon}
+                    {item.icon}
                 </span>
                                 {item.label}
                             </Link>
@@ -78,8 +80,13 @@ export default function PatientLayout({ children }) {
               </span>
                         </div>
                         <button onClick={handleLogout} title="Cerrar sesión"
-                                className="text-gray-400 hover:text-gray-600 text-xl transition-colors shrink-0">
-                            ⇥
+                                className="text-gray-400 hover:text-gray-600 transition-colors shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                 fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
                         </button>
                     </div>
                 </div>

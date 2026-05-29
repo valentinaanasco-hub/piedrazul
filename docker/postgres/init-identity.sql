@@ -40,3 +40,133 @@ INSERT INTO roles (role_name) SELECT 'ADMIN'     WHERE NOT EXISTS (SELECT 1 FROM
 INSERT INTO roles (role_name) SELECT 'DOCTOR'    WHERE NOT EXISTS (SELECT 1 FROM roles WHERE role_name = 'DOCTOR');
 INSERT INTO roles (role_name) SELECT 'PACIENTE'  WHERE NOT EXISTS (SELECT 1 FROM roles WHERE role_name = 'PACIENTE');
 INSERT INTO roles (role_name) SELECT 'AGENDADOR' WHERE NOT EXISTS (SELECT 1 FROM roles WHERE role_name = 'AGENDADOR');
+
+-- ============================================================
+-- DATOS DE PRUEBA
+-- Contraseñas en texto plano (el servicio tiene compatibilidad)
+-- ============================================================
+
+-- Usuario ADMIN (password: admin123)
+INSERT INTO users (user_id, user_username, user_password, user_first_name, user_first_surname, user_state, user_type_id)
+VALUES (1000000001, 'admin@piedrazul.com', 'admin123', 'Admin', 'Sistema', 'ACTIVO', 'CC')
+ON CONFLICT (user_id) DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000001, role_id FROM roles WHERE role_name = 'ADMIN'
+ON CONFLICT DO NOTHING;
+
+-- Usuario DOCTOR (password: doctor123)
+INSERT INTO users (user_id, user_username, user_password, user_first_name, user_first_surname, user_state, user_type_id)
+VALUES (1000000002, 'doctor@piedrazul.com', 'doctor123', 'Juan', 'Pérez', 'ACTIVO', 'CC')
+ON CONFLICT (user_id) DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000002, role_id FROM roles WHERE role_name = 'DOCTOR'
+ON CONFLICT DO NOTHING;
+
+-- Usuario AGENDADOR (password: agendador123)
+INSERT INTO users (user_id, user_username, user_password, user_first_name, user_first_surname, user_state, user_type_id)
+VALUES (1000000003, 'agendador@piedrazul.com', 'agendador123', 'María', 'González', 'ACTIVO', 'CC')
+ON CONFLICT (user_id) DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000003, role_id FROM roles WHERE role_name = 'AGENDADOR'
+ON CONFLICT DO NOTHING;
+
+-- Usuario PACIENTE (password: paciente123)
+INSERT INTO users (user_id, user_username, user_password, user_first_name, user_first_surname, user_state, user_type_id)
+VALUES (1000000004, 'paciente@piedrazul.com', 'paciente123', 'Carlos', 'Rodríguez', 'ACTIVO', 'CC')
+ON CONFLICT (user_id) DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000004, role_id FROM roles WHERE role_name = 'PACIENTE'
+ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- DATOS DE PRUEBA ADICIONALES
+-- ============================================================
+
+-- Doctores adicionales
+INSERT INTO users (user_id, user_username, user_password, user_first_name, user_middle_name, user_first_surname, user_last_name, user_state, user_type_id)
+VALUES 
+    (1000000005, 'ana.martinez@piedrazul.com', 'doctor123', 'Ana', 'María', 'Martínez', 'López', 'ACTIVO', 'CC'),
+    (1000000006, 'pedro.gomez@piedrazul.com', 'doctor123', 'Pedro', 'Luis', 'Gómez', 'Ramírez', 'ACTIVO', 'CC'),
+    (1000000007, 'laura.torres@piedrazul.com', 'doctor123', 'Laura', 'Isabel', 'Torres', 'Sánchez', 'ACTIVO', 'CC'),
+    (1000000008, 'miguel.castro@piedrazul.com', 'doctor123', 'Miguel', 'Ángel', 'Castro', 'Vargas', 'ACTIVO', 'CC')
+ON CONFLICT (user_id) DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000005, role_id FROM roles WHERE role_name = 'DOCTOR'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000006, role_id FROM roles WHERE role_name = 'DOCTOR'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000007, role_id FROM roles WHERE role_name = 'DOCTOR'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000008, role_id FROM roles WHERE role_name = 'DOCTOR'
+ON CONFLICT DO NOTHING;
+
+-- Pacientes adicionales
+INSERT INTO users (user_id, user_username, user_password, user_first_name, user_middle_name, user_first_surname, user_last_name, user_state, user_type_id)
+VALUES 
+    (1000000010, 'maria.lopez@ejemplo.com', 'paciente123', 'María', 'Elena', 'López', 'García', 'ACTIVO', 'CC'),
+    (1000000011, 'jose.hernandez@ejemplo.com', 'paciente123', 'José', 'Antonio', 'Hernández', 'Díaz', 'ACTIVO', 'CC'),
+    (1000000012, 'sofia.ramirez@ejemplo.com', 'paciente123', 'Sofía', 'Carolina', 'Ramírez', 'Moreno', 'ACTIVO', 'CC'),
+    (1000000013, 'andres.silva@ejemplo.com', 'paciente123', 'Andrés', 'Felipe', 'Silva', 'Rojas', 'ACTIVO', 'TI'),
+    (1000000014, 'camila.ortiz@ejemplo.com', 'paciente123', 'Camila', 'Andrea', 'Ortiz', 'Mendoza', 'ACTIVO', 'CC'),
+    (1000000015, 'diego.morales@ejemplo.com', 'paciente123', 'Diego', 'Alejandro', 'Morales', 'Cruz', 'ACTIVO', 'CC'),
+    (1000000016, 'valentina.ruiz@ejemplo.com', 'paciente123', 'Valentina', 'Isabel', 'Ruiz', 'Jiménez', 'ACTIVO', 'CC'),
+    (1000000017, 'santiago.pena@ejemplo.com', 'paciente123', 'Santiago', 'David', 'Peña', 'Vega', 'ACTIVO', 'TI')
+ON CONFLICT (user_id) DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000010, role_id FROM roles WHERE role_name = 'PACIENTE'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000011, role_id FROM roles WHERE role_name = 'PACIENTE'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000012, role_id FROM roles WHERE role_name = 'PACIENTE'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000013, role_id FROM roles WHERE role_name = 'PACIENTE'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000014, role_id FROM roles WHERE role_name = 'PACIENTE'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000015, role_id FROM roles WHERE role_name = 'PACIENTE'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000016, role_id FROM roles WHERE role_name = 'PACIENTE'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000017, role_id FROM roles WHERE role_name = 'PACIENTE'
+ON CONFLICT DO NOTHING;
+
+-- Agendadores adicionales
+INSERT INTO users (user_id, user_username, user_password, user_first_name, user_first_surname, user_state, user_type_id)
+VALUES 
+    (1000000020, 'lucia.fernandez@piedrazul.com', 'agendador123', 'Lucía', 'Fernández', 'ACTIVO', 'CC'),
+    (1000000021, 'roberto.mendez@piedrazul.com', 'agendador123', 'Roberto', 'Méndez', 'ACTIVO', 'CC')
+ON CONFLICT (user_id) DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000020, role_id FROM roles WHERE role_name = 'AGENDADOR'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO users_roles (ur_user_id, ur_role_id)
+SELECT 1000000021, role_id FROM roles WHERE role_name = 'AGENDADOR'
+ON CONFLICT DO NOTHING;

@@ -1,14 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '../api/AuthContext'
-import LoginPage               from '../pages/Login/LoginPage'
-import RegisterPage            from '../pages/Register/RegisterPage'
-import DashboardPage           from '../pages/Dashboard/DashboardPage'
-import AppointmentsPage        from '../pages/Appointments/AppointmentsPage'
-import CreateAppointmentPage   from '../pages/Appointments/CreateAppointmentPage'
-import AdminPage               from '../pages/Admin/AdminPage'
-import ScheduleAppointmentPage from '../pages/Patient/ScheduleAppointmentPage'
-import MyAppointmentsPage      from '../pages/Patient/MyAppointmentsPage'
-import PatientProfilePage      from '../pages/Patient/PatientProfilePage'
+import LoginPage                      from '../pages/Login/LoginPage'
+import RegisterPage                   from '../pages/Register/RegisterPage'
+import DashboardPage                  from '../pages/Dashboard/DashboardPage'
+import AppointmentsPage               from '../pages/Appointments/AppointmentsPage'
+import CreateAppointmentPage          from '../pages/Appointments/CreateAppointmentPage'
+import DoctorAppointmentsPage         from '../pages/Appointments/DoctorAppointmentsPage'
+import ExportAppointmentsPage         from '../pages/Appointments/ExportAppointmentsPage'
+import AdminPage                      from '../pages/Admin/AdminPage'
+import ConfigurationPage              from '../pages/Admin/ConfigurationPage'
+import GlobalConfigurationPage        from '../pages/Admin/GlobalConfigurationPage'
+import ProfessionalConfigurationPage  from '../pages/Admin/ProfessionalConfigurationPage'
+import ScheduleAppointmentPage        from '../pages/Patient/ScheduleAppointmentPage'
+import MyAppointmentsPage             from '../pages/Patient/MyAppointmentsPage'
+import PatientProfilePage             from '../pages/Patient/PatientProfilePage'
 
 function PrivateRoute({ children, requiredRole }) {
   const { isAuthenticated, hasRole } = useAuth()
@@ -36,8 +41,23 @@ export default function AppRouter() {
           <Route path="/appointments/new" element={
             <PrivateRoute><CreateAppointmentPage /></PrivateRoute>
           } />
+          <Route path="/doctor/appointments" element={
+            <PrivateRoute requiredRole="DOCTOR"><DoctorAppointmentsPage /></PrivateRoute>
+          } />
+          <Route path="/appointments/export" element={
+            <PrivateRoute><ExportAppointmentsPage /></PrivateRoute>
+          } />
           <Route path="/admin" element={
             <PrivateRoute requiredRole="ADMIN"><AdminPage /></PrivateRoute>
+          } />
+          <Route path="/admin/configuration" element={
+            <PrivateRoute requiredRole="ADMIN"><ConfigurationPage /></PrivateRoute>
+          } />
+          <Route path="/admin/configuration/global" element={
+            <PrivateRoute requiredRole="ADMIN"><GlobalConfigurationPage /></PrivateRoute>
+          } />
+          <Route path="/admin/configuration/professional" element={
+            <PrivateRoute requiredRole="ADMIN"><ProfessionalConfigurationPage /></PrivateRoute>
           } />
 
           {/* --- Paciente --- */}
