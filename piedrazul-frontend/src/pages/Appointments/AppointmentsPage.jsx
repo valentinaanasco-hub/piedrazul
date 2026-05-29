@@ -40,32 +40,24 @@ export default function AppointmentsPage() {
   }, [])
 
   const handleSearch = async () => {
+    if (!selectedDate) return
+
     setLoading(true)
     setSearched(true)
     try {
       let apts = []
 
-      if (selectedDate) {
+      if (selectedDoctor) {
+        // Endpoint optimizado cuando hay doctor y fecha
         const res = await appointmentApi.listByDoctorAndDate(selectedDoctor, selectedDate)
         apts = res.data || []
       } else {
+        // Sin doctor: traer todas y filtrar por fecha en el cliente
         const res = await appointmentApi.listAll()
-        apts = res.data || []
-
-        if (selectedDoctor) {
-          apts = apts.filter(apt => apt.doctorId === parseInt(selectedDoctor))
-        }
-
-        // Si no hay filtro de estado, mostrar solo activas por defecto
-        if (selectedStatus) {
-          apts = apts.filter(apt => apt.status === selectedStatus)
-        } else {
-          apts = apts.filter(apt => apt.status === 'AGENDADA' || apt.status === 'REAGENDADA')
-        }
+        apts = (res.data || []).filter(apt => apt.date === selectedDate)
       }
 
-      // Filtro de estado cuando hay fecha seleccionada
-      if (selectedDate && selectedStatus) {
+      if (selectedStatus) {
         apts = apts.filter(apt => apt.status === selectedStatus)
       }
 
@@ -152,12 +144,17 @@ export default function AppointmentsPage() {
                 </select>
               </div>
             </div>
-            <div className="flex justify-end">
-              <button onClick={handleSearch} disabled={loading}
-                      className="bg-blue-600 text-white rounded-xl px-6 py-2.5
-                text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40">
-                Buscar
-              </button>
+            <div className="flex items-center justify-between">
+              {!selectedDate && (
+                <p className="text-xs text-orange-500">Selecciona una fecha para buscar</p>
+              )}
+              <div className="ml-auto">
+                <button onClick={handleSearch} disabled={loading || !selectedDate}
+                        className="bg-blue-600 text-white rounded-xl px-6 py-2.5
+                  text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40">
+                  Buscar
+                </button>
+              </div>
             </div>
           </div>
 
@@ -237,8 +234,8 @@ export default function AppointmentsPage() {
 
           {!searched && (
               <div className="text-center py-16 text-gray-400">
-                <p className="text-sm">Presiona Buscar para ver todas las citas agendadas</p>
-                <p className="text-xs mt-2">O selecciona una fecha para filtrar por día específico</p>
+                <p className="text-sm">Selecciona una fecha y presiona Buscar</p>
+                <p className="text-xs mt-2">Puedes combinar con profesional y estado para filtrar los resultados</p>
               </div>
           )}
         </div>
