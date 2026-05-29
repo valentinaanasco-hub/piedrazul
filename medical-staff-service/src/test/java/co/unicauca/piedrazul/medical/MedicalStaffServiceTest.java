@@ -3,11 +3,11 @@ package co.unicauca.piedrazul.medical;
 import co.unicauca.piedrazul.medical.domain.entities.Doctor;
 import co.unicauca.piedrazul.medical.domain.entities.DoctorSchedule;
 import co.unicauca.piedrazul.medical.domain.entities.OccupiedSlotCache;
+import co.unicauca.piedrazul.medical.domain.factory.AvailabilityGeneratorFactory;
 import co.unicauca.piedrazul.medical.domain.factory.StandardGeneratorFactory;
 import co.unicauca.piedrazul.medical.domain.repository.DoctorRepository;
 import co.unicauca.piedrazul.medical.domain.repository.DoctorScheduleRepository;
 import co.unicauca.piedrazul.medical.domain.repository.OccupiedSlotCacheRepository;
-import co.unicauca.piedrazul.medical.domain.repository.SpecialtyRepository;
 import co.unicauca.piedrazul.medical.domain.service.MedicalStaffService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,6 @@ class MedicalStaffServiceTest {
 
     @Mock private DoctorRepository            doctorRepository;
     @Mock private DoctorScheduleRepository    scheduleRepository;
-    @Mock private SpecialtyRepository         specialtyRepository;
     @Mock private OccupiedSlotCacheRepository occupiedSlotCacheRepository;
 
     private MedicalStaffService service;
@@ -46,10 +45,10 @@ class MedicalStaffServiceTest {
     @BeforeEach
     void setUp() {
         // StandardGeneratorFactory es el Concrete Creator del patrón Factory Method
-        StandardGeneratorFactory factory = new StandardGeneratorFactory();
+        AvailabilityGeneratorFactory factory = new StandardGeneratorFactory();
 
         service = new MedicalStaffService(
-                doctorRepository, scheduleRepository, specialtyRepository,
+                doctorRepository, scheduleRepository,
                 factory, occupiedSlotCacheRepository
         );
 

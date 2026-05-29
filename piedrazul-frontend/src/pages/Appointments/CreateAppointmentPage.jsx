@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout'
 import { medicalApi, appointmentApi, patientApi, identityApi } from '../../api'
 import { useAuth } from '../../api/AuthContext'
+import { isHoliday } from '../../utils/colombianHolidays'
 
 const DAYS   = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
@@ -17,16 +18,17 @@ function addMinutes(timeStr, minutes) {
 export default function CreateAppointmentPage() {
   const navigate    = useNavigate()
   const { hasRole } = useAuth()
-  const isDoctor    = hasRole('DOCTOR')
 
   const [allDoctors,   setAllDoctors]   = useState([])
   const [specialties,  setSpecialties]  = useState([])
   const [doctors,      setDoctors]      = useState([])
-  const [availability, setAvailability] = useState([])
-  const [loadingSlots, setLoadingSlots] = useState(false)
+  const [availability,   setAvailability]   = useState([])
+  const [scheduleDays,   setScheduleDays]   = useState(null) // Set de días ISO (1=Lun…7=Dom) del médico seleccionado
+  const [loadingSlots,   setLoadingSlots]   = useState(false)
   const [loading,      setLoading]      = useState(false)
   const [success,      setSuccess]      = useState(false)
   const [intervalMinutes, setIntervalMinutes] = useState(30)
+  const [patientAppointments, setPatientAppointments] = useState([]) // Historial del paciente
 
   // Búsqueda de paciente
   const [documentId,       setDocumentId]       = useState('')
@@ -40,6 +42,7 @@ export default function CreateAppointmentPage() {
   const [selectedDoctor,    setSelectedDoctor]    = useState('')
   const [selectedDate,      setSelectedDate]      = useState('')
   const [selectedTime,      setSelectedTime]      = useState('')
+  const [refreshKey,        setRefreshKey]        = useState(0) // Para forzar recarga
 
   // Formulario
   const [form, setForm]     = useState({ reason: '', notes: '' })
@@ -71,21 +74,30 @@ export default function CreateAppointmentPage() {
     setAvailability([])
   }, [selectedSpecialty, allDoctors])
 
-  // --- Cargar disponibilidad ---
+  // --- Cargar horario del médico al seleccionarlo (para bloquear días en el calendario) ---
+  useEffect(() => {
+    if (!selectedDoctor) { setScheduleDays(null); return }
+    medicalApi.getDoctorSchedule(selectedDoctor).then(res => {
+      const s = res.data || []
+      // dayOfWeek del backend: 1=Lun … 7=Dom (ISO 8601)
+      // getDay() de JS:        0=Dom, 1=Lun … 6=Sáb
+      // Conversión: ISO → JS: ISO%7 da 0 para 7(Dom), resto igual
+      const jsdays = new Set(s.map(d => d.dayOfWeek % 7))
+      setScheduleDays(jsdays)
+      if (s.length > 0) setIntervalMinutes(s[0].intervalMinutes || 30)
+    }).catch(() => setScheduleDays(null))
+  }, [selectedDoctor])
+
+  // --- Cargar slots disponibles para la fecha elegida ---
   useEffect(() => {
     if (!selectedDoctor || !selectedDate) { setAvailability([]); setSelectedTime(''); return }
     setLoadingSlots(true)
     setSelectedTime('')
-    Promise.all([
-      medicalApi.getAvailability(selectedDoctor, selectedDate),
-      medicalApi.getDoctorSchedule(selectedDoctor),
-    ]).then(([availRes, schedRes]) => {
-      setAvailability(availRes.data || [])
-      const s = schedRes.data || []
-      if (s.length > 0) setIntervalMinutes(s[0].intervalMinutes || 30)
-    }).catch(() => setAvailability([]))
-        .finally(() => setLoadingSlots(false))
-  }, [selectedDoctor, selectedDate])
+    medicalApi.getAvailability(selectedDoctor, selectedDate)
+      .then(res => setAvailability(res.data || []))
+      .catch(() => setAvailability([]))
+      .finally(() => setLoadingSlots(false))
+  }, [selectedDoctor, selectedDate, refreshKey])
 
   // --- Buscar paciente ---
   const handleSearchPatient = async () => {
@@ -94,6 +106,7 @@ export default function CreateAppointmentPage() {
     setPatient(null)
     setPatientName('')
     setPatientError('')
+    setPatientAppointments([])
     try {
       const [patRes, idRes] = await Promise.all([
         patientApi.getById(documentId.trim()).catch(() => null),
@@ -102,6 +115,14 @@ export default function CreateAppointmentPage() {
       if (!patRes && !idRes) throw new Error('No encontrado')
       setPatient(patRes?.data || null)
       setPatientName(idRes?.data?.fullName || `Paciente ${documentId}`)
+      
+      // Cargar historial de citas del paciente
+      try {
+        const appointmentsRes = await appointmentApi.listByPatient(documentId.trim())
+        setPatientAppointments(appointmentsRes.data || [])
+      } catch {
+        setPatientAppointments([])
+      }
     } catch {
       setPatientError('Paciente no encontrado. Verifique el número de documento.')
     } finally {
@@ -122,7 +143,45 @@ export default function CreateAppointmentPage() {
     if (!day) return false
     const d = new Date(calYear, calMonth, day)
     const t = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    return d >= t
+
+    if (d < t) return false
+    if (isHoliday(d)) return false
+
+    // Si hay médico seleccionado, solo habilitar los días en que trabaja
+    if (scheduleDays !== null && !scheduleDays.has(d.getDay())) return false
+
+    return true
+  }
+
+  // Verificar si el paciente tiene cita con Medicina General
+  const hasMedicinaGeneral = () => {
+    for (const apt of patientAppointments) {
+      const doctor = allDoctors.find(d => d.id === apt.doctorId)
+      if (doctor && doctor.specialties && doctor.specialties.includes('Medicina General')) {
+        return true
+      }
+    }
+    return false
+  }
+
+  // Filtrar especialidades según regla de negocio
+  const getAvailableSpecialties = () => {
+    if (patientAppointments.length === 0 || !hasMedicinaGeneral()) {
+      // Si no tiene citas o no ha pasado por Medicina General, solo mostrar Medicina General
+      return specialties.filter(s => s === 'Medicina General')
+    }
+    // Si ya pasó por Medicina General, mostrar todas
+    return specialties
+  }
+
+  // Verificar si el paciente tiene una cita activa (AGENDADA)
+  const hasActiveAppointment = () => {
+    for (const apt of patientAppointments) {
+      if (apt.status === 'AGENDADA') {
+        return true
+      }
+    }
+    return false
   }
 
   const formatDate = (day) =>
@@ -142,6 +201,12 @@ export default function CreateAppointmentPage() {
     if (!selectedDate)      e.date      = 'Selecciona una fecha'
     if (!selectedTime)      e.startTime = 'Selecciona una hora'
     if (!form.reason)       e.reason    = 'Obligatorio'
+    
+    // Validar que no tenga cita activa
+    if (hasActiveAppointment()) {
+      e.general = 'Este paciente ya tiene una cita agendada. Debe esperar a que sea atendida o cancelada antes de agendar otra'
+    }
+    
     return e
   }
 
@@ -176,7 +241,7 @@ export default function CreateAppointmentPage() {
           <div className="flex items-center justify-center h-full">
             <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center max-w-sm">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-green-500 text-3xl">✓</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               </div>
               <h2 className="text-xl font-bold text-gray-800">¡Cita Registrada!</h2>
               <p className="text-gray-500 text-sm mt-2">Redirigiendo...</p>
@@ -220,7 +285,7 @@ export default function CreateAppointmentPage() {
                     <button type="button" onClick={handleSearchPatient} disabled={searchingPatient}
                             className="bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm font-semibold
                       hover:bg-blue-700 transition-colors disabled:opacity-50 shrink-0">
-                      {searchingPatient ? 'Buscando...' : '🔍 Buscar'}
+                      {searchingPatient ? 'Buscando...' : 'Buscar'}
                     </button>
                   </div>
                   {patientError && <p className="text-red-500 text-xs mt-2">{patientError}</p>}
@@ -228,7 +293,7 @@ export default function CreateAppointmentPage() {
 
                   {patientName && patient && (
                       <div className="mt-4 bg-blue-50 rounded-xl p-4 border border-blue-100">
-                        <p className="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-2">Paciente encontrado ✓</p>
+                        <p className="text-xs text-blue-500 font-semibold uppercase tracking-wider mb-2">Paciente encontrado</p>
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div><span className="text-gray-400 text-xs">Nombre</span><p className="font-semibold text-gray-800">{patientName}</p></div>
                           <div><span className="text-gray-400 text-xs">Teléfono</span><p className="font-semibold text-gray-800">{patient.phone || '—'}</p></div>
@@ -249,32 +314,58 @@ export default function CreateAppointmentPage() {
                     </label>
                     <select value={selectedSpecialty}
                             onChange={e => { setSelectedSpecialty(e.target.value); setErrors({...errors, specialty: ''}) }}
+                            disabled={!patientName}
                             className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors
+                      disabled:bg-gray-50 disabled:text-gray-400
                       ${errors.specialty ? 'border-red-400' : 'border-gray-200 focus:border-blue-500'}`}>
-                      <option value="">Seleccionar especialidad...</option>
-                      {specialties.map(s => <option key={s} value={s}>{s}</option>)}
+                      <option value="">
+                        {patientName ? 'Seleccionar especialidad...' : 'Primero busca un paciente'}
+                      </option>
+                      {getAvailableSpecialties().map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                     {errors.specialty && <p className="text-red-500 text-xs mt-1">{errors.specialty}</p>}
+                    {patientName && patientAppointments.length === 0 && (
+                      <p className="text-blue-600 text-xs mt-1">
+                        ℹ️ Como paciente nuevo, debes agendar primero con Medicina General
+                      </p>
+                    )}
+                    {patientName && patientAppointments.length > 0 && !hasMedicinaGeneral() && (
+                      <p className="text-orange-600 text-xs mt-1">
+                        ℹ️ Debes tener al menos una cita con Medicina General antes de acceder a especialidades
+                      </p>
+                    )}
                   </div>
 
                   <div>
                     <label className="block text-sm text-gray-500 mb-1">
                       Profesional <span className="text-red-500">*</span>
                     </label>
-                    <select value={selectedDoctor} disabled={!selectedSpecialty}
-                            onChange={e => { setSelectedDoctor(e.target.value); setSelectedDate(''); setSelectedTime(''); setErrors({...errors, doctorId: ''}) }}
-                            className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors
-                      disabled:bg-gray-50 disabled:text-gray-400
-                      ${errors.doctorId ? 'border-red-400' : 'border-gray-200 focus:border-blue-500'}`}>
-                      <option value="">
-                        {selectedSpecialty ? 'Seleccionar profesional...' : 'Primero selecciona una especialidad'}
-                      </option>
-                      {doctors.map(d => (
-                          <option key={d.id} value={d.id}>
-                            {d.fullName || `Profesional ${d.id}`}
-                          </option>
-                      ))}
-                    </select>
+                    <div className="flex gap-2">
+                      <select value={selectedDoctor} disabled={!selectedSpecialty}
+                              onChange={e => { setSelectedDoctor(e.target.value); setSelectedDate(''); setSelectedTime(''); setErrors({...errors, doctorId: ''}) }}
+                              className={`flex-1 border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors
+                        disabled:bg-gray-50 disabled:text-gray-400
+                        ${errors.doctorId ? 'border-red-400' : 'border-gray-200 focus:border-blue-500'}`}>
+                        <option value="">
+                          {selectedSpecialty ? 'Seleccionar profesional...' : 'Primero selecciona una especialidad'}
+                        </option>
+                        {doctors.map(d => (
+                            <option key={d.id} value={d.id}>
+                              {d.fullName || `Profesional ${d.id}`}
+                            </option>
+                        ))}
+                      </select>
+                      {selectedDoctor && (
+                          <button type="button" 
+                                  onClick={() => setRefreshKey(prev => prev + 1)}
+                                  disabled={loadingSlots}
+                                  className="bg-gray-100 text-gray-600 rounded-xl px-4 py-2.5 text-sm font-semibold
+                                    hover:bg-gray-200 transition-colors disabled:opacity-50 shrink-0"
+                                  title="Actualizar horarios">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+                          </button>
+                      )}
+                    </div>
                     {errors.doctorId && <p className="text-red-500 text-xs mt-1">{errors.doctorId}</p>}
                   </div>
                 </div>
@@ -347,6 +438,9 @@ export default function CreateAppointmentPage() {
                         const dateStr    = day ? formatDate(day) : ''
                         const isSelected = dateStr === selectedDate
                         const available  = isDateAvailable(day)
+                        const dateObj    = day ? new Date(calYear, calMonth, day) : null
+                        const isHol      = dateObj && isHoliday(dateObj)
+                        
                         return (
                             <button key={idx} type="button" disabled={!available}
                                     onClick={() => {
@@ -356,12 +450,14 @@ export default function CreateAppointmentPage() {
                                         setErrors({...errors, date: ''})
                                       }
                                     }}
+                                    title={isHol ? 'Festivo - No disponible' : ''}
                                     className={`h-8 w-8 mx-auto rounded-full text-xs flex items-center
                             justify-center transition-colors
                             ${!day ? 'invisible' : ''}
                             ${isSelected ? 'bg-blue-600 text-white font-semibold' : ''}
                             ${available && !isSelected ? 'hover:bg-blue-50 text-gray-700 cursor-pointer' : ''}
-                            ${!available && day ? 'text-gray-300 cursor-not-allowed' : ''}
+                            ${!available && day && isHol ? 'text-red-300 cursor-not-allowed line-through' : ''}
+                            ${!available && day && !isHol ? 'text-gray-300 cursor-not-allowed' : ''}
                           `}>
                               {day}
                             </button>

@@ -1,30 +1,23 @@
 package co.unicauca.piedrazul.gateway.config;
 
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
 
 /**
- * Configuración central del API Gateway.
+ * Configuración central del API Gateway
  *
  * @author Santiago Solarte
  */
 @Configuration
 public class GatewayConfig {
-
-    // --- RestTemplate para llamadas síncronas de la Saga ---
-    // Se ejecuta en un hilo separado via @Async, compatible con Netty
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
-    }
 
     // --- CORS global para el frontend React ---
     @Bean

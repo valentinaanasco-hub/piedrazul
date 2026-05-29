@@ -29,10 +29,9 @@ export default function RegisterPage() {
   })
 
   const [errors, setErrors]           = useState({})
+  const [submitted, setSubmitted]     = useState(false)
   const [loading, setLoading]         = useState(false)
   const [success, setSuccess]         = useState(false)
-  const [showPass, setShowPass]       = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -82,10 +81,8 @@ export default function RegisterPage() {
 
     if (!form.password)
       e.password = 'La contraseña es obligatoria'
-    else if (form.password.length < 8)
-      e.password = 'Mínimo 8 caracteres'
-    else if (!/\d/.test(form.password))
-      e.password = 'Debe contener al menos un número'
+    else if (form.password.length < 6)
+      e.password = 'Mínimo 6 letras y dígitos'
 
     if (!form.confirmPassword)
       e.confirmPassword = 'Confirma tu contraseña'
@@ -110,6 +107,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (ev) => {
     ev.preventDefault()
+    setSubmitted(true)
     const newErrors = validate()
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
 
@@ -159,7 +157,7 @@ export default function RegisterPage() {
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 text-center max-w-sm w-full mx-4">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-green-500 text-3xl">✓</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </div>
             <h2 className="text-xl font-bold text-gray-800">¡Cuenta Creada Exitosamente!</h2>
             <p className="text-gray-500 text-sm mt-2">Redirigiendo al login...</p>
@@ -175,7 +173,9 @@ export default function RegisterPage() {
           {/* --- Header --- */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-white text-2xl">♥</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none">
+                <path d="M12 21C12 21 3 13.5 3 8a5 5 0 0110 0 5 5 0 0110 0c0 5.5-9 13-9 13z"/>
+              </svg>
             </div>
             <h1 className="text-2xl font-bold text-gray-800">Crear cuenta</h1>
             <p className="text-gray-500 text-sm mt-1">
@@ -187,28 +187,38 @@ export default function RegisterPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             <form onSubmit={handleSubmit} className="space-y-4">
 
+              {/* Leyenda campos obligatorios */}
+              <p className="text-xs text-gray-400"><span className="text-red-500">*</span> Campos obligatorios</p>
+
               {/* --- Fila 1: Primer nombre | Segundo nombre --- */}
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Primer nombre" name="firstName" required
+                       placeholder="Ej: Juan"
                        value={form.firstName} onChange={handleChange} error={errors.firstName} />
                 <Field label="Segundo nombre" name="middleName"
+                       placeholder="Ej: Carlos"
                        value={form.middleName} onChange={handleChange} error={errors.middleName} />
               </div>
 
               {/* --- Fila 2: Primer apellido | Segundo apellido --- */}
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Primer apellido" name="firstSurname" required
+                       placeholder="Ej: Pérez"
                        value={form.firstSurname} onChange={handleChange} error={errors.firstSurname} />
                 <Field label="Segundo apellido" name="lastName"
+                       placeholder="Ej: García"
                        value={form.lastName} onChange={handleChange} error={errors.lastName} />
               </div>
 
-              {/* --- Fila 3: Correo | Teléfono --- */}
+              {/* --- Fila 3: Correo | Celular --- */}
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Correo electrónico" name="email" required type="email"
+                       placeholder="Ej: juan@ejemplo.com"
                        value={form.email} onChange={handleChange} error={errors.email} />
-                <Field label="Teléfono" name="phone" required
-                       value={form.phone} onChange={handleChange} error={errors.phone} />
+                <Field label="Celular" name="phone" required
+                       placeholder="Ej: 3001234567"
+                       value={form.phone} onChange={handleChange} error={errors.phone}
+                       hint="10 dígitos, sin espacios ni guiones" submitted={submitted} />
               </div>
 
               {/* --- Fila 4: Fecha de nacimiento | Género --- */}
@@ -223,6 +233,7 @@ export default function RegisterPage() {
                       value={form.birthDate}
                       onChange={handleChange}
                       max={new Date().toISOString().split('T')[0]}
+                      placeholder="Ej: 15/03/1990"
                       className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors
                     ${errors.birthDate ? 'border-red-400' : 'border-gray-200 focus:border-blue-500'}`}
                   />
@@ -262,7 +273,9 @@ export default function RegisterPage() {
                   {errors.userTypeId && <p className="text-red-500 text-xs mt-1">{errors.userTypeId}</p>}
                 </div>
                 <Field label="Número de documento" name="documentId" required
-                       value={form.documentId} onChange={handleChange} error={errors.documentId} />
+                       placeholder="Ej: 1077156530"
+                       value={form.documentId} onChange={handleChange} error={errors.documentId}
+                       hint="Solo números, entre 6 y 12 dígitos" submitted={submitted} />
               </div>
 
               {/* --- Fila 6: Contraseña | Confirmar contraseña --- */}
@@ -271,13 +284,12 @@ export default function RegisterPage() {
                     label="Contraseña" name="password" required
                     value={form.password} onChange={handleChange}
                     error={errors.password}
-                    show={showPass} onToggle={() => setShowPass(!showPass)}
+                    showChecklist
                 />
                 <PasswordField
                     label="Confirmar contraseña" name="confirmPassword" required
                     value={form.confirmPassword} onChange={handleChange}
                     error={errors.confirmPassword}
-                    show={showConfirm} onToggle={() => setShowConfirm(!showConfirm)}
                 />
               </div>
 
@@ -307,41 +319,59 @@ export default function RegisterPage() {
 }
 
 // --- Campo de texto estándar ---
-function Field({ label, name, value, onChange, error, required, type = 'text' }) {
+function Field({ label, name, value, onChange, error, required, type = 'text', placeholder = '', hint, submitted }) {
+  const showHint = hint && !(submitted && error)
   return (
       <div>
         <label className="block text-sm text-gray-500 mb-1">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
         <input type={type} name={name} value={value} onChange={onChange}
+               placeholder={placeholder}
                className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors
           ${error ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-blue-500'}`} />
-        {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+        {submitted && error
+          ? <p className="text-red-500 text-xs mt-1">{error}</p>
+          : showHint && <p className="text-gray-400 text-xs mt-1">{hint}</p>
+        }
       </div>
   )
 }
 
+const PASSWORD_RULES = [
+  { label: 'Mínimo 8 caracteres',   test: (v) => v.length >= 8 },
+  { label: 'Al menos una mayúscula', test: (v) => /[A-Z]/.test(v) },
+  { label: 'Al menos un número',     test: (v) => /\d/.test(v) },
+]
+
 // --- Campo de contraseña con toggle ---
-function PasswordField({ label, name, value, onChange, error, required, show, onToggle }) {
+function PasswordField({ label, name, value, onChange, error, required, showChecklist }) {
   return (
       <div>
         <label className="block text-sm text-gray-500 mb-1">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
-        <div className="relative">
-          <input
-              type={show ? 'text' : 'password'}
-              name={name} value={value} onChange={onChange}
-              className={`w-full border rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none transition-colors
-            ${error ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-blue-500'}`}
-          />
-          <button type="button" onClick={onToggle}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400
-            hover:text-gray-600 transition-colors text-base select-none">
-            {show ? '🙈' : '👁'}
-          </button>
-        </div>
+        <input
+            type="text"
+            name={name} value={value} onChange={onChange}
+            className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors
+          ${error ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-blue-500'}`}
+        />
         {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+        {showChecklist && value.length > 0 && (
+          <ul className="mt-2 space-y-0.5">
+            {PASSWORD_RULES.map(rule => {
+              const ok = rule.test(value)
+              return (
+                <li key={rule.label} className={`flex items-center gap-1.5 text-xs transition-colors
+                  ${ok ? 'text-green-600' : 'text-gray-400'}`}>
+                  <span className="text-xs font-bold">{ok ? '✓' : '·'}</span>
+                  {rule.label}
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
   )
 }

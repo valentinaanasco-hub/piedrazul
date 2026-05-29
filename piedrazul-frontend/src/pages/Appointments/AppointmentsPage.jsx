@@ -28,29 +28,41 @@ export default function AppointmentsPage() {
   }, [])
 
   const handleSearch = async () => {
-    if (!selectedDate) return
     setLoading(true)
     setSearched(true)
     try {
-      const res  = await appointmentApi.listByDoctorAndDate(selectedDoctor, selectedDate)
-      const apts = res.data || []
+      let apts = []
+
+      if (selectedDate) {
+        const res = await appointmentApi.listByDoctorAndDate(selectedDoctor, selectedDate)
+        apts = res.data || []
+      } else {
+        const res = await appointmentApi.listAll()
+        apts = res.data || []
+
+        if (selectedDoctor) {
+          apts = apts.filter(apt => apt.doctorId === parseInt(selectedDoctor))
+        }
+
+        apts = apts.filter(apt => apt.status === 'AGENDADA' || apt.status === 'REAGENDADA')
+      }
+
       setAppointments(apts)
 
-      // Cargar nombre y teléfono de pacientes únicos
+      // Nombre (identity-service) + teléfono (patient-service) en paralelo
       const uniqueIds = [...new Set(apts.map(a => a.patientId).filter(Boolean))]
       const cache     = { ...patientCache }
 
       await Promise.all(uniqueIds.map(async id => {
         if (cache[id]) return
         try {
-          // Nombre del identity-service, teléfono del patient-service
           const [idRes, patRes] = await Promise.all([
             identityApi.getUserById(id).catch(() => null),
             patientApi.getById(id).catch(() => null),
           ])
           cache[id] = {
-            name:  idRes?.data?.fullName  || `Paciente ${id}`,
-            phone: patRes?.data?.phone    || '—',
+            name:  idRes?.data?.fullName || `Paciente ${id}`,
+            phone: patRes?.data?.phone   || '—',
           }
         } catch {
           cache[id] = { name: `Paciente ${id}`, phone: '—' }
@@ -66,6 +78,12 @@ export default function AppointmentsPage() {
   }
 
   const formatTime = (t) => typeof t === 'string' ? t.substring(0, 5) : t
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '—'
+    const [y, m, d] = dateStr.split('-')
+    return `${d}/${m}/${y}`
+  }
 
   return (
       <Layout>
@@ -100,10 +118,11 @@ export default function AppointmentsPage() {
                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm
                   focus:outline-none focus:border-blue-500 transition-colors" />
               </div>
-              <button onClick={handleSearch} disabled={!selectedDate || loading}
+
+              <button onClick={handleSearch} disabled={loading}
                       className="flex items-center gap-2 bg-blue-600 text-white rounded-xl px-6 py-2.5
                 text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40">
-                🔍 Buscar
+                Buscar
               </button>
             </div>
           </div>
@@ -114,7 +133,7 @@ export default function AppointmentsPage() {
                 <table className="w-full text-sm">
                   <thead>
                   <tr className="border-b border-gray-50">
-                    {['Hora', 'Nombre del paciente', 'Teléfono', 'Tipo de cita', 'Estado'].map(h => (
+                    {['Fecha', 'Hora', 'Nombre del paciente', 'Médico', 'Teléfono de contacto', 'Tipo de cita', 'Estado'].map(h => (
                         <th key={h} className="text-left px-6 py-4 text-gray-400 font-medium
                       text-xs uppercase tracking-wider">{h}</th>
                     ))}
@@ -123,28 +142,33 @@ export default function AppointmentsPage() {
                   <tbody className="divide-y divide-gray-50">
                   {loading ? (
                       <tr>
-                        <td colSpan={5} className="text-center py-12 text-gray-400 text-sm">
+                        <td colSpan={7} className="text-center py-12 text-gray-400 text-sm">
                           Buscando citas...
                         </td>
                       </tr>
                   ) : appointments.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="text-center py-12">
-                          <p className="text-3xl mb-2">📅</p>
+                        <td colSpan={7} className="text-center py-12">
                           <p className="text-gray-400 text-sm">No hay citas para los filtros seleccionados</p>
                         </td>
                       </tr>
                   ) : (
                       appointments.map(apt => {
-                        const info = patientCache[apt.patientId] || {}
+                        const info   = patientCache[apt.patientId] || {}
+                        const doctor = doctors.find(d => d.id === apt.doctorId)
                         return (
-                            <tr key={apt.appointmentId || apt.id}
-                                className="hover:bg-gray-50 transition-colors">
+                            <tr key={apt.appointmentId || apt.id} className="hover:bg-gray-50 transition-colors">
+                              <td className="px-6 py-4 text-gray-700">
+                                {formatDate(apt.date)}
+                              </td>
                               <td className="px-6 py-4 font-semibold text-gray-800">
                                 {formatTime(apt.startTime)}
                               </td>
                               <td className="px-6 py-4 text-gray-700">
                                 {info.name || `Paciente ${apt.patientId}`}
+                              </td>
+                              <td className="px-6 py-4 text-gray-700">
+                                {doctor?.fullName || `Médico ${apt.doctorId}`}
                               </td>
                               <td className="px-6 py-4 text-gray-500">
                                 {info.phone || '—'}
@@ -163,7 +187,7 @@ export default function AppointmentsPage() {
                   </tbody>
                 </table>
 
-                {!loading && (
+                {!loading && searched && appointments.length > 0 && (
                     <div className="px-6 py-4 border-t border-gray-50 flex items-center justify-between">
                       <p className="text-sm text-gray-400">
                         Total: <span className="font-semibold text-gray-700">{appointments.length}</span> cita(s)
@@ -179,8 +203,8 @@ export default function AppointmentsPage() {
 
           {!searched && (
               <div className="text-center py-16 text-gray-400">
-                <p className="text-4xl mb-3">🔍</p>
-                <p className="text-sm">Selecciona una fecha y presiona Buscar</p>
+                <p className="text-sm">Presiona Buscar para ver todas las citas agendadas</p>
+                <p className="text-xs mt-2">O selecciona una fecha para filtrar por día específico</p>
               </div>
           )}
         </div>

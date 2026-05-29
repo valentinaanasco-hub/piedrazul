@@ -68,6 +68,23 @@ services:
     networks:
       - piedrazul-network
 
+  # ── Base de datos — Configuration Service ─────────────────
+  postgres-configuration:
+    image: postgres:16-alpine
+    container_name: postgres-configuration
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: configuration_db
+      POSTGRES_USER: configuration_user
+      POSTGRES_PASSWORD: configuration_pass
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_configuration_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-configuration.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - piedrazul-network
+
   # ── Redis — caché de usuarios para appointment-service ────
   redis:
     image: redis:7-alpine
@@ -141,7 +158,9 @@ services:
 
   # ── Patient Service ───────────────────────────────────────
   patient-service:
-    build: ./patient-service
+    build:
+      context: .
+      dockerfile: patient-service/Dockerfile
     container_name: patient-service
     restart: unless-stopped
     environment:
@@ -184,9 +203,33 @@ services:
     networks:
       - piedrazul-network
 
+  # ── Configuration Service ─────────────────────────────────
+  configuration-service:
+    build:
+      context: .
+      dockerfile: configuration-service/Dockerfile
+    container_name: configuration-service
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-configuration:5432/configuration_db
+      SPRING_DATASOURCE_USERNAME: configuration_user
+      SPRING_DATASOURCE_PASSWORD: configuration_pass
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: piedrazul
+      SPRING_RABBITMQ_PASSWORD: piedrazul_pass
+    ports:
+      - "8085:8085"
+    depends_on:
+      - postgres-configuration
+      - rabbitmq
+    networks:
+      - piedrazul-network
+
   # ── API Gateway ───────────────────────────────────────────
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
     container_name: api-gateway
     restart: unless-stopped
     ports:
@@ -196,7 +239,22 @@ services:
       - medical-staff-service
       - patient-service
       - appointment-service
+      - configuration-service
       - rabbitmq
+    networks:
+      - piedrazul-network
+
+  # ── Frontend (React/Vite + Nginx) ─────────────────────────
+  frontend:
+    build:
+      context: ./piedrazul-frontend
+      dockerfile: Dockerfile
+    container_name: piedrazul-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api-gateway
     networks:
       - piedrazul-network
 
@@ -205,6 +263,7 @@ volumes:
   postgres_patient_data:
   postgres_medical_data:
   postgres_appointment_data:
+  postgres_configuration_data:
 
 networks:
   piedrazul-network:
