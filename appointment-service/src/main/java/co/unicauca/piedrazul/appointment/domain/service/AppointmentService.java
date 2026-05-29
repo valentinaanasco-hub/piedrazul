@@ -84,6 +84,16 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
+    @Transactional
+    public Appointment markAsNoShow(int appointmentId) {
+        Appointment appointment = findById(appointmentId);
+        appointment.setStatus(AppointmentStatus.NO_ASISTIDO);
+        Appointment saved = appointmentRepository.save(appointment);
+        eventPublisher.publishAppointmentCreated(appointment);
+        return saved;
+    }
+
+    @Override
     public Appointment findById(int appointmentId) {
         return appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new IllegalArgumentException(

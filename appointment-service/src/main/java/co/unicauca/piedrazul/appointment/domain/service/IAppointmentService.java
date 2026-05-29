@@ -22,6 +22,8 @@ public interface IAppointmentService {
 
     Appointment markAsAttended(int appointmentId);
 
+    Appointment markAsNoShow(int appointmentId);
+
     Appointment findById(int appointmentId);
 
     List<Appointment> listAll();

@@ -7,5 +7,6 @@ public enum AppointmentStatus {
     AGENDADA,
     REAGENDADA,
     CANCELADA,
-    ATENDIDA
+    ATENDIDA,
+    NO_ASISTIDO
 }

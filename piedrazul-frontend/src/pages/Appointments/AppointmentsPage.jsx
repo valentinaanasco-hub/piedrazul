@@ -4,12 +4,13 @@ import Layout from '../../components/Layout'
 import { medicalApi, appointmentApi, patientApi, identityApi } from '../../api'
 
 const STATUS_STYLES = {
-  AGENDADA:   'bg-green-100 text-green-700',
-  CONFIRMADA: 'bg-green-100 text-green-700',
-  PENDIENTE:  'bg-yellow-100 text-yellow-700',
-  CANCELADA:  'bg-red-100 text-red-700',
-  ATENDIDA:   'bg-gray-100 text-gray-600',
-  REAGENDADA: 'bg-blue-100 text-blue-700',
+  AGENDADA:    'bg-green-100 text-green-700',
+  CONFIRMADA:  'bg-green-100 text-green-700',
+  PENDIENTE:   'bg-yellow-100 text-yellow-700',
+  CANCELADA:   'bg-red-100 text-red-700',
+  ATENDIDA:    'bg-gray-100 text-gray-600',
+  REAGENDADA:  'bg-blue-100 text-blue-700',
+  NO_ASISTIDO: 'bg-orange-100 text-orange-700',
 }
 
 export default function AppointmentsPage() {
@@ -22,7 +23,7 @@ export default function AppointmentsPage() {
   const [loading,        setLoading]        = useState(false)
   const [searched,       setSearched]       = useState(false)
 
-  const STATUSES = ['AGENDADA', 'REAGENDADA', 'ATENDIDA', 'CANCELADA']
+  const STATUSES = ['AGENDADA', 'REAGENDADA', 'ATENDIDA', 'CANCELADA', 'NO_ASISTIDO']
 
   useEffect(() => {
     medicalApi.listDoctors()

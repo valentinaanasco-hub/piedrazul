@@ -52,6 +52,8 @@ export const appointmentApi = {
       api.patch(`/api/v1/appointments/${id}/attend`),
   reschedule:          (id, data)       =>
       api.patch(`/api/v1/appointments/${id}/reschedule`, data),
+  markAsNoShow:        (id)             =>
+      api.patch(`/api/v1/appointments/${id}/no-show`),
 }
 
 export default api

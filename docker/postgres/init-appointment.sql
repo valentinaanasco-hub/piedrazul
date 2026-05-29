@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS appointments (
     appt_reason VARCHAR(255) NOT NULL DEFAULT 'Sin especificar',
     appt_notes VARCHAR(500),
     CONSTRAINT pk_appointments PRIMARY KEY (appt_id),
-    CONSTRAINT ck_appt_status_valid CHECK (appt_status IN ('AGENDADA', 'REAGENDADA', 'CANCELADA', 'ATENDIDA'))
+    CONSTRAINT ck_appt_status_valid CHECK (appt_status IN ('AGENDADA', 'REAGENDADA', 'CANCELADA', 'ATENDIDA', 'NO_ASISTIDO'))
 );
 
 -- Índice único parcial para evitar citas duplicadas en el mismo slot

@@ -110,6 +110,18 @@ public class AppointmentController {
         }
     }
 
+    @PatchMapping("/{id}/no-show")
+    @Operation(summary = "Marcar cita como no asistida")
+    public ResponseEntity<?> markAsNoShow(@PathVariable int id) {
+        try {
+            Appointment noShow = appointmentService.markAsNoShow(id);
+            return ResponseEntity.ok(appointmentMapper.toResponse(noShow));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new MessageResponse(e.getMessage()));
+        }
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Buscar cita por ID")
     public ResponseEntity<?> findById(@PathVariable int id) {
