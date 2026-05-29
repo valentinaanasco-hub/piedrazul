@@ -10,7 +10,15 @@ const STATUS_STYLES = {
   CANCELADA:   'bg-red-100 text-red-700',
   ATENDIDA:    'bg-gray-100 text-gray-600',
   REAGENDADA:  'bg-blue-100 text-blue-700',
-  NO ASISTIO: 'bg-orange-100 text-orange-700',
+  NO_ASISTIO:  'bg-orange-100 text-orange-700',
+}
+
+const STATUS_LABELS = {
+  AGENDADA:   'Agendada',
+  REAGENDADA: 'Reagendada',
+  ATENDIDA:   'Atendida',
+  CANCELADA:  'Cancelada',
+  NO_ASISTIO: 'No Asistio',
 }
 
 export default function AppointmentsPage() {
@@ -23,7 +31,7 @@ export default function AppointmentsPage() {
   const [loading,        setLoading]        = useState(false)
   const [searched,       setSearched]       = useState(false)
 
-  const STATUSES = ['AGENDADA', 'REAGENDADA', 'ATENDIDA', 'CANCELADA', 'NO ASISTIO']
+  const STATUSES = ['AGENDADA', 'REAGENDADA', 'ATENDIDA', 'CANCELADA', 'NO_ASISTIO']
 
   useEffect(() => {
     medicalApi.listDoctors()
@@ -139,7 +147,7 @@ export default function AppointmentsPage() {
                   focus:outline-none focus:border-blue-500 transition-colors">
                   <option value="">Todos los estados</option>
                   {STATUSES.map(s => (
-                      <option key={s} value={s}>{s}</option>
+                      <option key={s} value={s}>{STATUS_LABELS[s] || s}</option>
                   ))}
                 </select>
               </div>
@@ -203,7 +211,7 @@ export default function AppointmentsPage() {
                               <td className="px-6 py-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold
                             ${STATUS_STYLES[apt.status] || 'bg-gray-100 text-gray-600'}`}>
-                            {apt.status}
+                            {STATUS_LABELS[apt.status] || apt.status}
                           </span>
                               </td>
                             </tr>
