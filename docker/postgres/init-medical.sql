@@ -50,52 +50,48 @@ CREATE TABLE IF NOT EXISTS system_parameters (
 -- DATOS DE PRUEBA
 -- ============================================================
 
--- Especialidades
-INSERT INTO specialties (spec_name) VALUES ('Medicina General') ON CONFLICT (spec_name) DO NOTHING;
-INSERT INTO specialties (spec_name) VALUES ('Pediatría') ON CONFLICT (spec_name) DO NOTHING;
-INSERT INTO specialties (spec_name) VALUES ('Cardiología') ON CONFLICT (spec_name) DO NOTHING;
-INSERT INTO specialties (spec_name) VALUES ('Dermatología') ON CONFLICT (spec_name) DO NOTHING;
-INSERT INTO specialties (spec_name) VALUES ('Ginecología') ON CONFLICT (spec_name) DO NOTHING;
-INSERT INTO specialties (spec_name) VALUES ('Ortopedia') ON CONFLICT (spec_name) DO NOTHING;
-INSERT INTO specialties (spec_name) VALUES ('Psiquiatría') ON CONFLICT (spec_name) DO NOTHING;
+-- Servicios que ofrece el centro médico
+INSERT INTO specialties (spec_name) VALUES ('Consulta General') ON CONFLICT (spec_name) DO NOTHING;
+INSERT INTO specialties (spec_name) VALUES ('Terapia Neural')   ON CONFLICT (spec_name) DO NOTHING;
+INSERT INTO specialties (spec_name) VALUES ('Quiropraxia')      ON CONFLICT (spec_name) DO NOTHING;
 
--- Doctor de prueba (debe coincidir con el usuario DOCTOR de identity-service)
+-- ------------------------------------------------------------
+-- Médicos (deben coincidir con los usuarios DOCTOR de identity)
+-- ------------------------------------------------------------
 INSERT INTO doctors (doct_user_id, doct_professional_id, doct_first_name, doct_first_surname)
 VALUES (1000000002, 'MED-001', 'Juan', 'Pérez')
 ON CONFLICT (doct_user_id) DO NOTHING;
 
--- Asignar especialidad al doctor
-INSERT INTO doctor_specialties (ds_doct_id, ds_spec_id)
-SELECT 1000000002, spec_id FROM specialties WHERE spec_name = 'Medicina General'
-ON CONFLICT DO NOTHING;
-
--- ============================================================
--- DOCTORES ADICIONALES
--- ============================================================
-
 INSERT INTO doctors (doct_user_id, doct_professional_id, doct_first_name, doct_first_surname)
-VALUES 
+VALUES
     (1000000005, 'MED-002', 'Ana', 'Martínez'),
     (1000000006, 'MED-003', 'Pedro', 'Gómez'),
     (1000000007, 'MED-004', 'Laura', 'Torres'),
     (1000000008, 'MED-005', 'Miguel', 'Castro')
 ON CONFLICT (doct_user_id) DO NOTHING;
 
--- Asignar especialidades a los doctores
+-- ------------------------------------------------------------
+-- Asignación de servicios
+--   Regla: TODOS los médicos atienden Consulta General y Terapia Neural.
+--   La Quiropraxia solo la ofrecen los especialistas asignados
+--   (que además atienden los otros dos servicios).
+-- ------------------------------------------------------------
+
+-- Todos los médicos → Consulta General + Terapia Neural
 INSERT INTO doctor_specialties (ds_doct_id, ds_spec_id)
-SELECT 1000000005, spec_id FROM specialties WHERE spec_name = 'Pediatría'
+SELECT d.doct_user_id, s.spec_id
+FROM doctors d
+CROSS JOIN specialties s
+WHERE s.spec_name IN ('Consulta General', 'Terapia Neural')
 ON CONFLICT DO NOTHING;
 
+-- Especialistas en Quiropraxia (Pedro Gómez y Miguel Castro)
 INSERT INTO doctor_specialties (ds_doct_id, ds_spec_id)
-SELECT 1000000006, spec_id FROM specialties WHERE spec_name = 'Cardiología'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO doctor_specialties (ds_doct_id, ds_spec_id)
-SELECT 1000000007, spec_id FROM specialties WHERE spec_name = 'Dermatología'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO doctor_specialties (ds_doct_id, ds_spec_id)
-SELECT 1000000008, spec_id FROM specialties WHERE spec_name = 'Medicina General'
+SELECT d.doct_user_id, s.spec_id
+FROM doctors d
+CROSS JOIN specialties s
+WHERE s.spec_name = 'Quiropraxia'
+  AND d.doct_user_id IN (1000000006, 1000000008)
 ON CONFLICT DO NOTHING;
 
 -- ============================================================

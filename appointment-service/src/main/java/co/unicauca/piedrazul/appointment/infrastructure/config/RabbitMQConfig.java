@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String APPOINTMENT_EXCHANGE            = "appointment.exchange";
+    public static final String APPOINTMENT_EXCHANGE            = "piedrazul.exchange";
     public static final String ROUTING_KEY_APPOINTMENT_CREATED = "appointment.created";
     public static final String QUEUE_USER_REGISTERED           = "appointment.user.registered";
 

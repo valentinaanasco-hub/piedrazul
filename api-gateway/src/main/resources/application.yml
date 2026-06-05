@@ -8,6 +8,18 @@ spring:
   application:
     name: api-gateway
 
+  # --- Keycloak como OAuth2 Resource Server ---
+  # issuer-uri  → DEBE coincidir con el claim "iss" del token (URL pública con la que
+  #               el frontend/Postman piden el token: localhost:8180). Solo se usa para validar.
+  # jwk-set-uri → desde dónde el gateway descarga las llaves públicas. En Docker se sobrescribe
+  #               con http://keycloak:8080 (red interna); en local usa localhost:8180.
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri:  ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/piedrazul}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/piedrazul/protocol/openid-connect/certs}
+
   cloud:
     gateway:
       # --- Configuración global de CORS ---
@@ -28,35 +40,37 @@ spring:
             allowCredentials: true
 
       # --- Rutas hacia cada microservicio ---
+      # Cada URI usa una variable de entorno con default a localhost, para que el
+      # gateway funcione tanto corriendo localmente como dentro de Docker.
       routes:
 
         # Identity Service
         - id: identity-service
-          uri: http://identity-service:8081
+          uri: ${IDENTITY_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/v1/identity/**
 
         # Patient Service
         - id: patient-service
-          uri: http://patient-service:8083
+          uri: ${PATIENT_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/v1/patients/**
 
         # Medical Staff Service
         - id: medical-staff-service
-          uri: http://medical-staff-service:8082
+          uri: ${MEDICAL_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/v1/medical/**
 
-        # Configuration Service (part of Medical Staff Service)
+        # Configuration Service
         - id: configuration-service
-          uri: http://configuration-service:8085
+          uri: ${CONFIGURATION_SERVICE_URL:http://localhost:8085}
           predicates:
             - Path=/api/v1/configuration/**
 
         # Appointment Service
         - id: appointment-service
-          uri: http://appointment-service:8084
+          uri: ${APPOINTMENT_SERVICE_URL:http://localhost:8084}
           predicates:
             - Path=/api/v1/appointments/**
 
@@ -71,11 +85,10 @@ springdoc:
 # --- URLs internas de los servicios (usadas por el Saga) ---
 services:
   identity:
-    url: http://identity-service:8081
+    url: ${IDENTITY_SERVICE_URL:http://localhost:8081}
   patient:
-    url: http://patient-service:8083
+    url: ${PATIENT_SERVICE_URL:http://localhost:8083}
   medical-staff:
-    url: http://medical-staff-service:8082
+    url: ${MEDICAL_SERVICE_URL:http://localhost:8082}
   appointment:
-    url: http://appointment-service:8084
-
+    url: ${APPOINTMENT_SERVICE_URL:http://localhost:8084}

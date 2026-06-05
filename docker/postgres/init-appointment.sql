@@ -125,3 +125,19 @@ VALUES
     (1000000005, 1000000013, '2026-06-16', '08:00', '08:20', 'AGENDADA', 'Control pediátrico', NULL),
     (1000000006, 1000000011, '2026-06-18', '10:00', '10:45', 'AGENDADA', 'Electrocardiograma', NULL),
     (1000000007, 1000000014, '2026-06-19', '09:00', '09:30', 'AGENDADA', 'Dermatitis', NULL);
+
+-- ============================================================
+-- CITAS DE HOY (CURRENT_DATE) — para probar REAGENDAR
+-- Doctor Juan Pérez (1000000002) = usuario doctor@piedrazul.com
+-- Estado AGENDADA → reagendables. Se crean siempre en la fecha actual.
+-- ============================================================
+INSERT INTO appointments (appt_doct_id, appt_pat_id, appt_date, appt_start_time, appt_end_time, appt_status, appt_reason, appt_notes)
+VALUES
+    (1000000002, 1000000004, CURRENT_DATE, '08:00', '08:30', 'AGENDADA', 'Consulta general', 'Cita de hoy para pruebas de reagendamiento'),
+    (1000000002, 1000000010, CURRENT_DATE, '08:30', '09:00', 'AGENDADA', 'Control',           'Cita de hoy para pruebas de reagendamiento'),
+    (1000000002, 1000000015, CURRENT_DATE, '09:00', '09:30', 'AGENDADA', 'Dolor de cabeza',   'Cita de hoy para pruebas de reagendamiento'),
+    (1000000002, 1000000016, CURRENT_DATE, '09:30', '10:00', 'AGENDADA', 'Chequeo general',   'Cita de hoy para pruebas de reagendamiento'),
+    (1000000002, 1000000012, CURRENT_DATE, '10:00', '10:30', 'AGENDADA', 'Seguimiento',       'Cita de hoy para pruebas de reagendamiento')
+ON CONFLICT (appt_doct_id, appt_date, appt_start_time)
+WHERE appt_status IN ('AGENDADA', 'REAGENDADA', 'ATENDIDA')
+DO NOTHING;

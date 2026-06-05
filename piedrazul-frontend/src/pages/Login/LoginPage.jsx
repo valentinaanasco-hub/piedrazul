@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../api/AuthContext'
-import { identityApi } from '../../api'
+import { keycloakApi } from '../../api'
 
 export default function LoginPage() {
   const navigate    = useNavigate()
@@ -31,22 +31,34 @@ export default function LoginPage() {
 
     setLoading(true)
     try {
-      const response = await identityApi.login({
-        username: form.username.trim(),
-        password: form.password,
-      })
-      const userData = response.data
-      login(userData)
+      const response = await keycloakApi.login(
+        form.username.trim(),
+        form.password
+      )
+      const { access_token, refresh_token } = response.data
+      login(access_token, refresh_token)
 
-      // Redirige según rol
-      const roles = userData.roles?.map(r => r.toUpperCase()) || []
-      if (roles.includes('PACIENTE')) {
+      // Redirige según rol (extraído del JWT en AuthContext)
+      const allRoles = (() => {
+        try {
+          const payload = JSON.parse(atob(access_token.split('.')[1]))
+          const realmRoles = payload.realm_access?.roles ?? payload.roles ?? []
+          return realmRoles.map(r => r.toUpperCase())
+        } catch { return [] }
+      })()
+
+      if (allRoles.includes('PACIENTE')) {
         navigate('/patient/schedule')
       } else {
         navigate('/dashboard')
       }
     } catch (err) {
-      setErrors({ general: err.response?.data?.message || 'Credenciales incorrectas' })
+      const status = err.response?.status
+      if (status === 401) {
+        setErrors({ general: 'Credenciales incorrectas' })
+      } else {
+        setErrors({ general: err.response?.data?.error_description || 'Error al iniciar sesión' })
+      }
     } finally {
       setLoading(false)
     }

@@ -1,4 +1,4 @@
-package co.unicauca.piedrazul.appointment.domain.port.in;
+package co.unicauca.piedrazul.appointment.domain.service;
 
 import co.unicauca.piedrazul.appointment.domain.model.Appointment;
 
@@ -7,14 +7,15 @@ import java.time.LocalTime;
 import java.util.List;
 
 /**
- * Puerto de entrada: define los casos de uso disponibles para el dominio de citas.
- * Los adaptadores de entrada (REST) dependen de esta interfaz, no del servicio directamente.
+ * Contrato del servicio de citas médicas
  */
-public interface AppointmentUseCase {
+public interface IAppointmentService {
 
     Appointment scheduleAppointment(Appointment appointment);
 
-    Appointment rescheduleAppointment(int appointmentId, Integer newDoctorId, LocalDate newDate,
+    List<Appointment> listByDoctorAndDate(int doctorId, LocalDate date);
+
+    Appointment rescheduleAppointment(int appointmentId, LocalDate newDate,
                                       LocalTime newStartTime, LocalTime newEndTime);
 
     Appointment cancelAppointment(int appointmentId);
@@ -22,8 +23,6 @@ public interface AppointmentUseCase {
     Appointment markAsAttended(int appointmentId);
 
     Appointment findById(int appointmentId);
-
-    List<Appointment> listByDoctorAndDate(int doctorId, LocalDate date);
 
     List<Appointment> listAll();
 

@@ -45,9 +45,12 @@ public class AppointmentService implements AppointmentUseCase {
 
     @Override
     @Transactional
-    public Appointment rescheduleAppointment(int appointmentId, LocalDate newDate,
+    public Appointment rescheduleAppointment(int appointmentId, Integer newDoctorId, LocalDate newDate,
                                               LocalTime newStartTime, LocalTime newEndTime) {
         Appointment appointment = findById(appointmentId);
+        if (newDoctorId != null && newDoctorId > 0) {
+            appointment.setDoctorId(newDoctorId);   // permite cambiar de profesional/servicio
+        }
         appointment.setDate(newDate);
         appointment.setStartTime(newStartTime);
         appointment.setEndTime(newEndTime);

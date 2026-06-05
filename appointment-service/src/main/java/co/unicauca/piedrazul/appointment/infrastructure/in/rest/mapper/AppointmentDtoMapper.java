@@ -8,16 +8,16 @@ import co.unicauca.piedrazul.appointment.infrastructure.in.rest.dto.AppointmentD
 import org.springframework.stereotype.Component;
 
 /**
- * Mapper entre DTOs de infraestructura y el modelo de dominio.
- * Usa el patrón Builder (Director + Builder) para construir la entidad de dominio.
+ * Mapper entre DTOs de infraestructura y el modelo de dominio
+ * Usa el patrón Builder (Director + Builder) para construir la entidad de dominio
  */
 @Component
-public class AppointmentMapper {
+public class AppointmentDtoMapper {
 
     private final AppointmentDirector  director;
     private final IAppointmentBuilder  builder;
 
-    public AppointmentMapper(AppointmentDirector director, IAppointmentBuilder builder) {
+    public AppointmentDtoMapper(AppointmentDirector director, IAppointmentBuilder builder) {
         this.director = director;
         this.builder  = builder;
     }

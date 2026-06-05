@@ -258,12 +258,28 @@ export default function CreateAppointmentPage() {
 
   // --- Filtrar médicos por especialidad ---
   useEffect(() => {
-    if (!selectedSpecialty) { setDoctors([]); setSelectedDoctor(''); return }
-    setDoctors(allDoctors.filter(d => d.specialties?.includes(selectedSpecialty)))
     setSelectedDoctor('')
     setSelectedDate('')
     setSelectedTime('')
     setAvailability([])
+
+    if (!selectedSpecialty) { setDoctors([]); return }
+
+    const matching = allDoctors.filter(d => d.specialties?.includes(selectedSpecialty))
+
+    // Quiropraxia: solo médicos disponibles (activos) y CON horario definido
+    if (selectedSpecialty === 'Quiropraxia') {
+      let cancelled = false
+      Promise.all(matching.map(async d => {
+        try {
+          const res = await medicalApi.getDoctorSchedule(d.id)
+          return (res.data && res.data.length > 0) ? d : null
+        } catch { return null }
+      })).then(list => { if (!cancelled) setDoctors(list.filter(Boolean)) })
+      return () => { cancelled = true }
+    }
+
+    setDoctors(matching)
   }, [selectedSpecialty, allDoctors])
 
   // --- Cargar horario del médico ---
@@ -336,17 +352,17 @@ export default function CreateAppointmentPage() {
     return true
   }
 
-  const hasMedicinaGeneral = () => {
+  const hasConsultaGeneral = () => {
     for (const apt of patientAppointments) {
       const doctor = allDoctors.find(d => d.id === apt.doctorId)
-      if (doctor?.specialties?.includes('Medicina General')) return true
+      if (doctor?.specialties?.includes('Consulta General')) return true
     }
     return false
   }
 
   const getAvailableSpecialties = () => {
-    if (patientAppointments.length === 0 || !hasMedicinaGeneral()) {
-      return specialties.filter(s => s === 'Medicina General')
+    if (patientAppointments.length === 0 || !hasConsultaGeneral()) {
+      return specialties.filter(s => s === 'Consulta General')
     }
     return specialties
   }
@@ -456,17 +472,24 @@ export default function CreateAppointmentPage() {
                     </button>
                   </div>
 
-                  {/* Error de paciente + botón de registro */}
-                  {patientError && (
-                      <div className="mt-2 flex items-center justify-between gap-3">
-                        <p className="text-red-500 text-xs">{patientError}</p>
+                  {/* Mensajes de error de búsqueda */}
+                  {patientError && <p className="text-red-500 text-xs mt-2">{patientError}</p>}
+                  {errors.patient && !patientError && <p className="text-red-500 text-xs mt-2">{errors.patient}</p>}
+
+                  {/* Registrar nuevo paciente — siempre visible hasta encontrar uno */}
+                  {!patient && (
+                      <div className="mt-4 flex items-center justify-between gap-3 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">¿El paciente no está registrado?</p>
+                          <p className="text-xs text-gray-500">Créalo aquí mismo para poder agendar su cita.</p>
+                        </div>
                         <button type="button" onClick={() => setShowRegisterModal(true)}
-                                className="text-xs text-blue-600 hover:underline font-medium shrink-0 whitespace-nowrap">
-                          + Registrar como paciente nuevo
+                                className="bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-semibold
+                          hover:bg-blue-700 transition-colors shrink-0 whitespace-nowrap">
+                          + Registrar paciente nuevo
                         </button>
                       </div>
                   )}
-                  {errors.patient && !patientError && <p className="text-red-500 text-xs mt-2">{errors.patient}</p>}
 
                   {patientName && patient && (
                       <div className="mt-4 bg-blue-50 rounded-xl p-4 border border-blue-100">
@@ -503,12 +526,12 @@ export default function CreateAppointmentPage() {
                     {errors.specialty && <p className="text-red-500 text-xs mt-1">{errors.specialty}</p>}
                     {patientName && patientAppointments.length === 0 && (
                         <p className="text-blue-600 text-xs mt-1">
-                          ℹ️ Como paciente nuevo, debes agendar primero con Medicina General
+                          ℹ️ Como paciente nuevo, debes agendar primero con Consulta General
                         </p>
                     )}
-                    {patientName && patientAppointments.length > 0 && !hasMedicinaGeneral() && (
+                    {patientName && patientAppointments.length > 0 && !hasConsultaGeneral() && (
                         <p className="text-orange-600 text-xs mt-1">
-                          ℹ️ Debes tener al menos una cita con Medicina General antes de acceder a especialidades
+                          ℹ️ Debes tener al menos una cita con Consulta General antes de acceder a otros servicios
                         </p>
                     )}
                   </div>
@@ -543,6 +566,11 @@ export default function CreateAppointmentPage() {
                           </button>
                       )}
                     </div>
+                    {selectedSpecialty === 'Quiropraxia' && doctors.length === 0 && (
+                        <p className="text-orange-600 text-xs mt-1">
+                          ⚠️ No hay especialistas en Quiropraxia disponibles (activos y con horario definido).
+                        </p>
+                    )}
                     {errors.doctorId && <p className="text-red-500 text-xs mt-1">{errors.doctorId}</p>}
                   </div>
                 </div>

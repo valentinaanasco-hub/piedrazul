@@ -34,6 +34,8 @@ public class AppointmentDTOs {
     ) {}
 
     public record RescheduleAppointmentRequest(
+            Integer newDoctorId,   // opcional: nuevo profesional/servicio (si se cambia)
+
             @NotNull(message = "La nueva fecha es obligatoria")
             LocalDate newDate,
 

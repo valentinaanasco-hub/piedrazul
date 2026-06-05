@@ -31,7 +31,7 @@ docker-compose up -d
 docker-compose up postgres -d
 ```
 =======
-# 💙 Piedrazul — Red de Servicios Médicos
+#  Piedrazul — Red de Servicios Médicos
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white)
 ![JavaFX](https://img.shields.io/badge/JavaFX-blue?style=for-the-badge&logo=java&logoColor=white)
@@ -41,7 +41,7 @@ docker-compose up postgres -d
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+##  Arquitectura del Sistema
 
 El proyecto implementa una **Arquitectura por Capas (N-Tier Architecture)** para garantizar la separación de responsabilidades y facilitar el mantenimiento:
 
@@ -52,7 +52,7 @@ El proyecto implementa una **Arquitectura por Capas (N-Tier Architecture)** para
 
 ---
 
-## ✨ Características Principales
+##  Características Principales
 
 * **Autenticación Multirrol:** Sistema de inicio de sesión seguro con carga dinámica de perfiles (Médico, Agendador, Paciente).
 * **Gestión Integral de Citas:** Registro, visualización y reprogramación de citas médicas con validación de disponibilidad.
@@ -62,7 +62,7 @@ El proyecto implementa una **Arquitectura por Capas (N-Tier Architecture)** para
 
 ---
 
-## 🛠️ Stack Tecnológico
+##  Stack Tecnológico
 
 * **Lenguaje:** Java 17+
 * **Interfaz Gráfica:** JavaFX (CSS Personalizado)
@@ -71,7 +71,7 @@ El proyecto implementa una **Arquitectura por Capas (N-Tier Architecture)** para
 
 ---
 
-## 🚀 Instalación y Ejecución
+##  Instalación y Ejecución
 
 ### Requisitos
 * JDK 17 o superior.
@@ -88,18 +88,17 @@ El proyecto implementa una **Arquitectura por Capas (N-Tier Architecture)** para
 
 ---
 
-## 👥 Equipo de Desarrollo
+##  Equipo de Desarrollo
 
 Este proyecto fue desarrollado por estudiantes de **Ingeniería de Sistemas de la Universidad del Cauca**:
 
 * **Valentina Añasco**
 * **Camila Dorado**
 * **Felipe Gutierrez**
-* **Ginner Ortega**
 * **Santiago Solarte**
+* * **Ginner Ortega**
 
 ---
 
-> [!NOTE]
-> Este software fue desarrollado como parte del curso de Ingeniería de Software II (Sexto Semestre).
+> !NOTA: Este software fue desarrollado como parte del curso de Ingeniería de Software II (Sexto Semestre).
 

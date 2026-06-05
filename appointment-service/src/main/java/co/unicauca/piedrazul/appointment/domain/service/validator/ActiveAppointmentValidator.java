@@ -22,19 +22,19 @@ public class ActiveAppointmentValidator implements AppointmentValidator {
 
     @Override
     public void validate(Appointment appointment, List<Appointment> existingOnDate) {
-        if (appointment.getAppointmentId() != 0
-                && appointment.getStatus() != AppointmentStatus.AGENDADA) {
+        // La regla "máximo 1 cita activa" solo aplica al CREAR una cita nueva
+        // (appointmentId == 0). Al reagendar/modificar una cita existente no se
+        // agrega otra cita activa, por lo que no debe bloquearse.
+        if (appointment.getAppointmentId() != 0) {
             return;
         }
 
         List<Appointment> activeAppointments = repositoryPort
                 .findByPatientIdAndStatus(appointment.getPatientId(), AppointmentStatus.AGENDADA);
 
-        for (Appointment active : activeAppointments) {
-            if (active.getAppointmentId() != appointment.getAppointmentId()) {
-                throw new IllegalArgumentException(
-                        "Ya tienes una cita agendada. Debes esperar a que sea atendida o cancelada antes de agendar otra");
-            }
+        if (!activeAppointments.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Ya tienes una cita agendada. Debes esperar a que sea atendida o cancelada antes de agendar otra");
         }
     }
 }

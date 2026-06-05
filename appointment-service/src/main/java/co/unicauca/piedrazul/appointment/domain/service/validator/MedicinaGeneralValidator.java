@@ -8,8 +8,10 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Valida que un paciente haya pasado por Medicina General antes de acceder a especialidades.
- * Regla de negocio: todo paciente debe tener al menos una cita con Medicina General.
+ * Valida que un paciente haya pasado por Consulta General antes de acceder a otros servicios.
+ * Regla de negocio: todo paciente debe tener al menos una cita de Consulta General.
+ * (Como todos los médicos ofrecen Consulta General, el requisito se cumple con cualquier
+ *  médico; la guía de "primera cita = Consulta General" se refuerza en el frontend.)
  */
 @Component
 public class MedicinaGeneralValidator implements AppointmentValidator {
@@ -27,28 +29,28 @@ public class MedicinaGeneralValidator implements AppointmentValidator {
     public void validate(Appointment appointment, List<Appointment> existingOnDate) {
         String specialty = doctorSpecialtyPort.getSpecialtyByDoctorId(appointment.getDoctorId());
 
-        if ("Medicina General".equalsIgnoreCase(specialty)) {
+        if ("Consulta General".equalsIgnoreCase(specialty)) {
             return;
         }
 
         List<Appointment> patientAppointments =
                 repositoryPort.findByPatientIdOrderByDateDesc(appointment.getPatientId());
 
-        boolean hasMedicinaGeneral = false;
+        boolean hasConsultaGeneral = false;
         for (Appointment past : patientAppointments) {
             if (past.getAppointmentId() == appointment.getAppointmentId()) {
                 continue;
             }
             String pastSpecialty = doctorSpecialtyPort.getSpecialtyByDoctorId(past.getDoctorId());
-            if ("Medicina General".equalsIgnoreCase(pastSpecialty)) {
-                hasMedicinaGeneral = true;
+            if ("Consulta General".equalsIgnoreCase(pastSpecialty)) {
+                hasConsultaGeneral = true;
                 break;
             }
         }
 
-        if (!hasMedicinaGeneral) {
+        if (!hasConsultaGeneral) {
             throw new IllegalArgumentException(
-                    "Debes tener al menos una cita con Medicina General antes de acceder a especialidades");
+                    "Debes tener al menos una cita con Consulta General antes de acceder a otros servicios");
         }
     }
 }

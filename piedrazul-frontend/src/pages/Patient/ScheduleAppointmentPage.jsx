@@ -75,7 +75,7 @@ export default function ScheduleAppointmentPage() {
             docs.forEach(d => d.specialties?.forEach(s => specSet.add(s)))
             let allSpecs = [...specSet].map(name => ({ name }))
             if (firstAppointment) {
-                allSpecs = allSpecs.filter(s => s.name.toLowerCase() === 'medicina general')
+                allSpecs = allSpecs.filter(s => s.name.toLowerCase() === 'consulta general')
             }
             setSpecialties(allSpecs)
         }).catch(() => { setAllDoctors([]); setSpecialties([]) })
@@ -84,7 +84,21 @@ export default function ScheduleAppointmentPage() {
 
     useEffect(() => {
         if (!selectedSpecialty) return
-        setDoctors(allDoctors.filter(d => d.specialties?.includes(selectedSpecialty.name)))
+        const matching = allDoctors.filter(d => d.specialties?.includes(selectedSpecialty.name))
+
+        // Quiropraxia: solo médicos disponibles (activos) y CON horario definido
+        if (selectedSpecialty.name === 'Quiropraxia') {
+            let cancelled = false
+            Promise.all(matching.map(async d => {
+                try {
+                    const res = await medicalApi.getDoctorSchedule(d.id)
+                    return (res.data && res.data.length > 0) ? d : null
+                } catch { return null }
+            })).then(list => { if (!cancelled) setDoctors(list.filter(Boolean)) })
+            return () => { cancelled = true }
+        }
+
+        setDoctors(matching)
     }, [selectedSpecialty, allDoctors])
 
     useEffect(() => {
@@ -220,7 +234,7 @@ export default function ScheduleAppointmentPage() {
                     <div className="mb-4 bg-blue-50 border border-blue-100 rounded-2xl px-5 py-3 flex items-start gap-3">
                         <span className="text-blue-500 text-lg mt-0.5">ℹ️</span>
                         <p className="text-sm text-blue-700">
-                            Para tu primera cita debes consultar con <strong>Medicina General</strong>.
+                            Para tu primera cita debes consultar con <strong>Consulta General</strong>.
                             Una vez atendido, podrás acceder a las demás especialidades.
                         </p>
                     </div>

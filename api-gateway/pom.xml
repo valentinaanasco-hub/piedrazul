@@ -59,6 +59,18 @@
             <version>2.6.0</version>
         </dependency>
 
+        <!-- OAuth2 Resource Server — validación de JWT de Keycloak -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- Spring Security (WebFlux) — necesario para SecurityWebFilterChain -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

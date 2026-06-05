@@ -1,5 +1,46 @@
 services:
 
+  # ── Base de datos — Keycloak ───────────────────────────────
+  postgres-keycloak:
+    image: postgres:16-alpine
+    container_name: postgres-keycloak
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak_db
+      POSTGRES_USER: keycloak_user
+      POSTGRES_PASSWORD: keycloak_pass
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres_keycloak_data:/var/lib/postgresql/data
+    networks:
+      - piedrazul-network
+
+  # ── Keycloak — servidor de autenticación OAuth2/OIDC ──────
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    restart: unless-stopped
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak_db
+      KC_DB_USERNAME: keycloak_user
+      KC_DB_PASSWORD: keycloak_pass
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+    command: start-dev --import-realm
+    volumes:
+      - ./docker/keycloak:/opt/keycloak/data/import
+    ports:
+      - "8180:8080"
+    depends_on:
+      - postgres-keycloak
+    networks:
+      - piedrazul-network
+
   # ── Base de datos — Identity Service ──────────────────────
   postgres-identity:
     image: postgres:16-alpine
@@ -194,6 +235,8 @@ services:
       SPRING_RABBITMQ_PASSWORD: piedrazul_pass
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      MEDICAL_STAFF_SERVICE_URL: http://medical-staff-service:8082/api/v1/medical
+      IDENTITY_SERVICE_URL: http://identity-service:8081/api/v1/identity
     ports:
       - "8084:8084"
     depends_on:
@@ -232,10 +275,22 @@ services:
       dockerfile: api-gateway/Dockerfile
     container_name: api-gateway
     restart: unless-stopped
+    environment:
+      # Keycloak: issuer público (coincide con el "iss" del token), JWKS por red interna
+      KEYCLOAK_ISSUER_URI:  http://localhost:8180/realms/piedrazul
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/piedrazul/protocol/openid-connect/certs
+      # URLs internas de los microservicios (red de Docker)
+      IDENTITY_SERVICE_URL:      http://identity-service:8081
+      PATIENT_SERVICE_URL:       http://patient-service:8083
+      MEDICAL_SERVICE_URL:       http://medical-staff-service:8082
+      CONFIGURATION_SERVICE_URL: http://configuration-service:8085
+      APPOINTMENT_SERVICE_URL:   http://appointment-service:8084
     ports:
       - "8090:8090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      - identity-service
+      - keycloak
       - medical-staff-service
       - patient-service
       - appointment-service
@@ -259,6 +314,7 @@ services:
       - piedrazul-network
 
 volumes:
+  postgres_keycloak_data:
   postgres_identity_data:
   postgres_patient_data:
   postgres_medical_data:

@@ -76,42 +76,85 @@ function StatusModal({ appointment, onClose, onConfirm, updating }) {
 }
 
 // ── Modal de reagendamiento ───────────────────────────────────────────────────
-function RescheduleModal({ appointment, doctorId, onClose, onSuccess }) {
-  const [newDate,          setNewDate]          = useState('')
-  const [slots,            setSlots]            = useState([])
-  const [selectedTime,     setSelectedTime]     = useState('')   // "HH:MM"
-  const [intervalMinutes,  setIntervalMinutes]  = useState(30)
-  const [loading,          setLoading]          = useState(false)
-  const [saving,           setSaving]           = useState(false)
-  const [error,            setError]            = useState('')
+function RescheduleModal({ appointment, onClose, onSuccess }) {
+  const [allDoctors,      setAllDoctors]      = useState([])
+  const [specialties,     setSpecialties]     = useState([])
+  const [doctors,         setDoctors]         = useState([])
+  const [specialty,       setSpecialty]       = useState('')
+  const [doctorId,        setDoctorId]        = useState(appointment.doctorId)
+  const [newDate,         setNewDate]         = useState('')
+  const [slots,           setSlots]           = useState([])
+  const [selectedTime,    setSelectedTime]    = useState('')   // "HH:MM"
+  const [intervalMinutes, setIntervalMinutes] = useState(30)
+  const [loading,         setLoading]         = useState(false)
+  const [saving,          setSaving]          = useState(false)
+  const [error,           setError]           = useState('')
 
   // Fecha mínima: mañana
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   const minDate = tomorrow.toISOString().split('T')[0]
 
+  // Cargar profesionales y servicios; preseleccionar el servicio del doctor actual
   useEffect(() => {
-    if (!newDate) { setSlots([]); setSelectedTime(''); return }
+    medicalApi.listDoctors().then(res => {
+      const docs = res.data || []
+      setAllDoctors(docs)
+      const set = new Set()
+      docs.forEach(d => d.specialties?.forEach(s => set.add(s)))
+      setSpecialties([...set])
+      const current = docs.find(d => d.id === appointment.doctorId)
+      if (current?.specialties?.length) setSpecialty(current.specialties[0])
+    }).catch(() => {})
+  }, [appointment.doctorId])
+
+  // Filtrar profesionales por servicio (Quiropraxia → solo con horario definido)
+  useEffect(() => {
+    if (!specialty) { setDoctors([]); return }
+    const matching = allDoctors.filter(d => d.specialties?.includes(specialty))
+    if (specialty === 'Quiropraxia') {
+      let cancelled = false
+      Promise.all(matching.map(async d => {
+        try {
+          const r = await medicalApi.getDoctorSchedule(d.id)
+          return (r.data && r.data.length > 0) ? d : null
+        } catch { return null }
+      })).then(list => {
+        if (cancelled) return
+        const avail = list.filter(Boolean)
+        setDoctors(avail)
+        if (!avail.some(d => d.id === Number(doctorId))) setDoctorId(avail[0]?.id || '')
+      })
+      return () => { cancelled = true }
+    }
+    setDoctors(matching)
+    if (!matching.some(d => d.id === Number(doctorId))) setDoctorId(matching[0]?.id || '')
+  }, [specialty, allDoctors])
+
+  // Cargar horarios del profesional seleccionado para la fecha
+  useEffect(() => {
+    if (!doctorId || !newDate) { setSlots([]); setSelectedTime(''); return }
     setLoading(true)
     setSelectedTime('')
     Promise.all([
       medicalApi.getAvailability(doctorId, newDate),
       medicalApi.getDoctorSchedule(doctorId),
     ]).then(([availRes, schedRes]) => {
-      // Solo los slots disponibles
-      setSlots((availRes.data || []).filter(s => s.available))
+      setSlots(availRes.data || [])
       const scheds = schedRes.data || []
       if (scheds.length > 0) setIntervalMinutes(scheds[0].intervalMinutes || 30)
     }).catch(() => setSlots([]))
       .finally(() => setLoading(false))
-  }, [newDate, doctorId])
+  }, [doctorId, newDate])
 
   const handleConfirm = async () => {
+    if (!doctorId)                 { setError('Selecciona un profesional'); return }
     if (!newDate || !selectedTime) { setError('Selecciona una fecha y un horario'); return }
     setSaving(true)
     setError('')
     try {
       await appointmentApi.reschedule(appointment.appointmentId, {
+        newDoctorId:  parseInt(doctorId),
         newDate,
         newStartTime: selectedTime,
         newEndTime:   addMinutes(selectedTime, intervalMinutes),
@@ -158,13 +201,13 @@ function RescheduleModal({ appointment, doctorId, onClose, onSuccess }) {
               <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
                 {slots.map((s, i) => (
                   <button key={i}
-                          onClick={() => setSelectedTime(s.time?.substring(0,5))}
+                          onClick={() => setSelectedTime(s.substring(0,5))}
                           className={`py-2 rounded-xl text-sm font-medium border transition-colors
-                            ${selectedTime === s.time?.substring(0,5)
+                            ${selectedTime === s.substring(0,5)
                               ? 'bg-blue-600 text-white border-blue-600'
                               : 'border-gray-200 text-gray-700 hover:border-blue-400 hover:bg-blue-50'
                             }`}>
-                    {s.time?.substring(0,5)}
+                    {s.substring(0,5)}
                   </button>
                 ))}
               </div>

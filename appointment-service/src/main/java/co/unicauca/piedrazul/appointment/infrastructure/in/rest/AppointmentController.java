@@ -6,7 +6,7 @@ import co.unicauca.piedrazul.appointment.infrastructure.in.rest.dto.AppointmentD
 import co.unicauca.piedrazul.appointment.infrastructure.in.rest.dto.AppointmentDTOs.CreateAppointmentRequest;
 import co.unicauca.piedrazul.appointment.infrastructure.in.rest.dto.AppointmentDTOs.MessageResponse;
 import co.unicauca.piedrazul.appointment.infrastructure.in.rest.dto.AppointmentDTOs.RescheduleAppointmentRequest;
-import co.unicauca.piedrazul.appointment.infrastructure.in.rest.mapper.AppointmentMapper;
+import co.unicauca.piedrazul.appointment.infrastructure.in.rest.mapper.AppointmentDtoMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,10 +34,10 @@ import java.util.List;
 public class AppointmentController {
 
     private final AppointmentUseCase  appointmentUseCase;
-    private final AppointmentMapper   appointmentMapper;
+    private final AppointmentDtoMapper   appointmentMapper;
 
     public AppointmentController(AppointmentUseCase appointmentUseCase,
-                                  AppointmentMapper appointmentMapper) {
+                                  AppointmentDtoMapper appointmentMapper) {
         this.appointmentUseCase = appointmentUseCase;
         this.appointmentMapper  = appointmentMapper;
     }
@@ -71,7 +71,7 @@ public class AppointmentController {
                                          @Valid @RequestBody RescheduleAppointmentRequest request) {
         try {
             Appointment updated = appointmentUseCase.rescheduleAppointment(
-                    id, request.newDate(), request.newStartTime(), request.newEndTime());
+                    id, request.newDoctorId(), request.newDate(), request.newStartTime(), request.newEndTime());
             return ResponseEntity.ok(appointmentMapper.toResponse(updated));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse(e.getMessage()));

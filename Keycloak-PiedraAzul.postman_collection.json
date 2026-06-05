@@ -1,0 +1,512 @@
+{
+  "info": {
+    "name": "Keycloak - PiedraAzul",
+    "description": "Colección completa para probar Keycloak con autorización por roles",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login ADMIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('admin_token', jsonData.access_token);",
+                  "    pm.environment.set('admin_refresh', jsonData.refresh_token);",
+                  "    console.log('Admin token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                },
+                {
+                  "key": "client_id",
+                  "value": "piedrazul-frontend"
+                },
+                {
+                  "key": "username",
+                  "value": "admin@piedrazul.com"
+                },
+                {
+                  "key": "password",
+                  "value": "admin123"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8180/realms/piedrazul/protocol/openid-connect/token",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8180",
+              "path": ["realms", "piedrazul", "protocol", "openid-connect", "token"]
+            }
+          }
+        },
+        {
+          "name": "Login DOCTOR",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('doctor_token', jsonData.access_token);",
+                  "    pm.environment.set('doctor_refresh', jsonData.refresh_token);",
+                  "    console.log('Doctor token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                },
+                {
+                  "key": "client_id",
+                  "value": "piedrazul-frontend"
+                },
+                {
+                  "key": "username",
+                  "value": "doctor@piedrazul.com"
+                },
+                {
+                  "key": "password",
+                  "value": "doctor123"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8180/realms/piedrazul/protocol/openid-connect/token",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8180",
+              "path": ["realms", "piedrazul", "protocol", "openid-connect", "token"]
+            }
+          }
+        },
+        {
+          "name": "Login AGENDADOR",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('agendador_token', jsonData.access_token);",
+                  "    pm.environment.set('agendador_refresh', jsonData.refresh_token);",
+                  "    console.log('Agendador token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                },
+                {
+                  "key": "client_id",
+                  "value": "piedrazul-frontend"
+                },
+                {
+                  "key": "username",
+                  "value": "agendador@piedrazul.com"
+                },
+                {
+                  "key": "password",
+                  "value": "agendador123"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8180/realms/piedrazul/protocol/openid-connect/token",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8180",
+              "path": ["realms", "piedrazul", "protocol", "openid-connect", "token"]
+            }
+          }
+        },
+        {
+          "name": "Login PACIENTE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('paciente_token', jsonData.access_token);",
+                  "    pm.environment.set('paciente_refresh', jsonData.refresh_token);",
+                  "    console.log('Paciente token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                },
+                {
+                  "key": "client_id",
+                  "value": "piedrazul-frontend"
+                },
+                {
+                  "key": "username",
+                  "value": "paciente@piedrazul.com"
+                },
+                {
+                  "key": "password",
+                  "value": "paciente123"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8180/realms/piedrazul/protocol/openid-connect/token",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8180",
+              "path": ["realms", "piedrazul", "protocol", "openid-connect", "token"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token (ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "grant_type",
+                  "value": "refresh_token"
+                },
+                {
+                  "key": "client_id",
+                  "value": "piedrazul-frontend"
+                },
+                {
+                  "key": "refresh_token",
+                  "value": "{{admin_refresh}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8180/realms/piedrazul/protocol/openid-connect/token",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8180",
+              "path": ["realms", "piedrazul", "protocol", "openid-connect", "token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Configuration (Admin Only)",
+      "item": [
+        {
+          "name": "✅ ADMIN - Get Global Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/v1/configuration/global",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8090",
+              "path": ["api", "v1", "configuration", "global"]
+            }
+          }
+        },
+        {
+          "name": "❌ DOCTOR - Get Global Config (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/v1/configuration/global",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8090",
+              "path": ["api", "v1", "configuration", "global"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Doctors",
+      "item": [
+        {
+          "name": "✅ ALL - List Doctors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paciente_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/v1/medical/doctors",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8090",
+              "path": ["api", "v1", "medical", "doctors"]
+            }
+          }
+        },
+        {
+          "name": "✅ ALL - Get Doctor Availability",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paciente_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/v1/medical/availability?doctorId=1000000002&date=2026-06-10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8090",
+              "path": ["api", "v1", "medical", "availability"],
+              "query": [
+                {
+                  "key": "doctorId",
+                  "value": "1000000002"
+                },
+                {
+                  "key": "date",
+                  "value": "2026-06-10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Appointments",
+      "item": [
+        {
+          "name": "✅ PACIENTE - Create Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paciente_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": 1000000002,\n  \"patientId\": 1000000004,\n  \"date\": \"2026-06-10\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"10:30\",\n  \"reason\": \"Consulta de seguimiento desde Postman\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8090/api/v1/appointments",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8090",
+              "path": ["api", "v1", "appointments"]
+            }
+          }
+        },
+        {
+          "name": "✅ DOCTOR - List Appointments by Date",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/v1/appointments/doctor/1000000002/date/2026-06-10",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8090",
+              "path": ["api", "v1", "appointments", "doctor", "1000000002", "date", "2026-06-10"]
+            }
+          }
+        },
+        {
+          "name": "✅ PACIENTE - List My Appointments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paciente_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/v1/appointments/patient/1000000004",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8090",
+              "path": ["api", "v1", "appointments", "patient", "1000000004"]
+            }
+          }
+        },
+        {
+          "name": "✅ DOCTOR - Mark as Attended",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{doctor_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/v1/appointments/1/attend",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8090",
+              "path": ["api", "v1", "appointments", "1", "attend"]
+            }
+          }
+        },
+        {
+          "name": "❌ PACIENTE - Mark as Attended (403)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paciente_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/v1/appointments/1/attend",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8090",
+              "path": ["api", "v1", "appointments", "1", "attend"]
+            }
+          }
+        },
+        {
+          "name": "✅ PACIENTE - Cancel Appointment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{paciente_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8090/api/v1/appointments/1/cancel",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8090",
+              "path": ["api", "v1", "appointments", "1", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Keycloak Admin",
+      "item": [
+        {
+          "name": "Get Realm Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8180/realms/piedrazul",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8180",
+              "path": ["realms", "piedrazul"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
