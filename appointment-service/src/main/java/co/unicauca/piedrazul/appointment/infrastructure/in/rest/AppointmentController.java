@@ -59,7 +59,7 @@ public class AppointmentController {
 
     @PostMapping
     @Operation(summary = "Crear cita manual")
-    @PreAuthorize("hasAnyRole('AGENDADOR', 'PACIENTE')")
+    @PreAuthorize("hasAnyRole('AGENDADOR', 'PACIENTE', 'DOCTOR')")
     public ResponseEntity<AppointmentResponse> createAppointment(
             @Valid @RequestBody CreateAppointmentRequest request) {
         Appointment appointment = appointmentMapper.toEntity(request);
@@ -136,7 +136,7 @@ public class AppointmentController {
 
     @GetMapping("/patient/{patientId}")
     @Operation(summary = "Listar citas de un paciente")
-    @PreAuthorize("hasAnyRole('ADMIN', 'AGENDADOR', 'PACIENTE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENDADOR', 'PACIENTE', 'DOCTOR')")
     public ResponseEntity<List<AppointmentResponse>> listByPatient(@PathVariable long patientId) {
         return ResponseEntity.ok(
                 appointmentUseCase.listByPatient(patientId)

@@ -390,8 +390,11 @@ export default function DoctorAppointmentsPage() {
   const [updating,        setUpdating]        = useState(false)
   const [statusModal,     setStatusModal]     = useState(null)
   const [statusError,     setStatusError]     = useState('')
+  const [statusSuccess,   setStatusSuccess]   = useState('')
   const [rescheduleModal, setRescheduleModal] = useState(null)
   const [currentPage,     setCurrentPage]     = useState(1)
+
+  const today = new Date().toISOString().split('T')[0]
 
   const doctorId = user?.id
 
@@ -455,6 +458,9 @@ export default function DoctorAppointmentsPage() {
         await appointmentApi.cancel(appointmentId)
       }
       setStatusModal(null)
+      const label = newStatus === 'ATENDIDA' ? 'marcada como atendida' : 'cancelada'
+      setStatusSuccess(`Cita ${label} correctamente.`)
+      setTimeout(() => setStatusSuccess(''), 3500)
       await loadAppointments()
     } catch (err) {
       setStatusError(err.response?.data?.message || err.message || 'Error al actualizar el estado')
@@ -482,6 +488,17 @@ export default function DoctorAppointmentsPage() {
             Visualiza y actualiza el estado de tus citas médicas
           </p>
         </div>
+
+        {/* Toast de éxito */}
+        {statusSuccess && (
+          <div className="mb-4 flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <p className="text-sm font-medium text-green-700">{statusSuccess}</p>
+          </div>
+        )}
 
         {/* Selector de fecha */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-6 flex items-end gap-4">
@@ -555,12 +572,14 @@ export default function DoctorAppointmentsPage() {
                             text-sm font-medium hover:bg-gray-100 transition-colors">
                           Cambiar estado
                         </button>
-                        <button
-                          onClick={() => setRescheduleModal(apt)}
-                          className="border border-blue-200 text-blue-600 rounded-xl px-4 py-2
-                            text-sm font-medium hover:bg-blue-50 transition-colors">
-                          Reagendar
-                        </button>
+                        {apt.date === today && (
+                          <button
+                            onClick={() => setRescheduleModal(apt)}
+                            className="border border-blue-200 text-blue-600 rounded-xl px-4 py-2
+                              text-sm font-medium hover:bg-blue-50 transition-colors">
+                            Reagendar
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>

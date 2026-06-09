@@ -62,6 +62,10 @@ public class AppointmentService implements AppointmentUseCase {
                                               ServiceType serviceType, LocalDate newDate,
                                               LocalTime newStartTime, LocalTime newEndTime) {
         Appointment appointment = findById(appointmentId);
+        if (!appointment.getDate().equals(LocalDate.now())) {
+            throw new co.unicauca.piedrazul.appointment.domain.exception.AppointmentConflictException(
+                    "Solo se puede reagendar una cita el mismo día en que está programada");
+        }
         if (newDoctorId != null && newDoctorId > 0) {
             appointment.setDoctorId(newDoctorId);
         }

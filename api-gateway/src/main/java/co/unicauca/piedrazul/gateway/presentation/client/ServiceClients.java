@@ -35,7 +35,7 @@ public class ServiceClients {
     public ResponseEntity<Object> registerUser(IdentityRegisterRequest request) {
         try {
             return restTemplate.postForEntity(
-                    identityUrl + "/api/v1/identity/register",
+                    identityUrl + "/api/v1/identity/register/patient",
                     request,
                     Object.class
             );

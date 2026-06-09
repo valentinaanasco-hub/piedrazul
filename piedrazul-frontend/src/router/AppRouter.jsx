@@ -15,9 +15,10 @@ import ScheduleAppointmentPage        from '../pages/Patient/ScheduleAppointment
 import MyAppointmentsPage             from '../pages/Patient/MyAppointmentsPage'
 import PatientProfilePage             from '../pages/Patient/PatientProfilePage'
 
-function PrivateRoute({ children, requiredRole }) {
+function PrivateRoute({ children, requiredRole, requiredRoles }) {
   const { isAuthenticated, hasRole } = useAuth()
   if (!isAuthenticated()) return <Navigate to="/login" replace />
+  if (requiredRoles && !requiredRoles.some(r => hasRole(r))) return <Navigate to="/home" replace />
   if (requiredRole && !hasRole(requiredRole)) return <Navigate to="/home" replace />
   return children
 }
@@ -39,7 +40,7 @@ export default function AppRouter() {
             <PrivateRoute><AppointmentsPage /></PrivateRoute>
           } />
           <Route path="/appointments/new" element={
-            <PrivateRoute requiredRole="AGENDADOR"><CreateAppointmentPage /></PrivateRoute>
+            <PrivateRoute requiredRoles={['AGENDADOR', 'DOCTOR']}><CreateAppointmentPage /></PrivateRoute>
           } />
           <Route path="/doctor/appointments" element={
             <PrivateRoute requiredRole="DOCTOR"><DoctorAppointmentsPage /></PrivateRoute>

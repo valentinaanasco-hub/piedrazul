@@ -74,7 +74,7 @@ const NavIcon = ({ name }) => {
 const NAV_ITEMS = [
   { path: '/dashboard',           label: 'Panel de Citas', icon: 'dashboard', roles: ['AGENDADOR', 'ADMIN'] },
   { path: '/appointments',        label: 'Listar Citas',   icon: 'list',      roles: ['AGENDADOR', 'ADMIN', 'DOCTOR'] },
-  { path: '/appointments/new',    label: 'Registrar Cita', icon: 'plus',      roles: ['AGENDADOR'] },
+  { path: '/appointments/new',    label: 'Registrar Cita', icon: 'plus',      roles: ['AGENDADOR', 'DOCTOR'] },
   { path: '/doctor/appointments', label: 'Mis Citas',      icon: 'calendar',  roles: ['DOCTOR'] },
   { path: '/appointments/export', label: 'Exportar Citas', icon: 'download',  roles: ['AGENDADOR', 'ADMIN', 'DOCTOR'] },
   { path: '/admin',               label: 'Configuración',  icon: 'settings',  roles: ['ADMIN'] },

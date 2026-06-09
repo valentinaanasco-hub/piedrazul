@@ -42,6 +42,7 @@ public class Appointment {
 
     /**
      * Marca la cita como reagendada.
+     * Solo se puede reagendar el mismo día en que está programada la cita.
      */
     public void markRescheduled() {
         this.status = AppointmentStatus.REAGENDADA;
@@ -63,7 +64,7 @@ public class Appointment {
 
     /**
      * Marca la cita como atendida.
-     * Invariante: solo se puede atender si está agendada o reagendada.
+     * Invariante: solo se puede atender si está agendada o reagendada, y es el día de la cita.
      */
     public void markAsAttended() {
         if (this.status == AppointmentStatus.CANCELADA) {
@@ -71,6 +72,10 @@ public class Appointment {
         }
         if (this.status == AppointmentStatus.ATENDIDA) {
             throw new AppointmentConflictException("La cita ya fue atendida");
+        }
+        if (!this.date.equals(LocalDate.now())) {
+            throw new AppointmentConflictException(
+                "Solo se puede marcar como atendida el mismo día de la cita");
         }
         this.status = AppointmentStatus.ATENDIDA;
     }
