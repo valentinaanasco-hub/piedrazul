@@ -122,6 +122,7 @@ export const identityApi = {
 export const patientApi = {
   registerWeb: (data) => api.post('/api/v1/patients/register/web', data),
   getById:     (id)   => api.get(`/api/v1/patients/${id}`),
+  getMe:       ()     => api.get('/api/v1/patients/me'),
   listAll:     ()     => api.get('/api/v1/patients'),
 }
 
@@ -146,14 +147,18 @@ export const appointmentApi = {
   listAll:             ()               => api.get('/api/v1/appointments'),
   listByDoctorAndDate: (doctorId, date) =>
     api.get(`/api/v1/appointments/doctor/${doctorId}/date/${date}`),
+  listByDoctor:        (doctorId)       =>
+    api.get(`/api/v1/appointments/doctor/${doctorId}/all`),
   listByPatient:       (patientId)      =>
     api.get(`/api/v1/appointments/patient/${patientId}`),
   cancel:              (id)             =>
     api.patch(`/api/v1/appointments/${id}/cancel`),
-  markAsAttended:      (id)             =>
-    api.patch(`/api/v1/appointments/${id}/attend`),
+  markAsAttended:      (id, data)       =>
+    api.patch(`/api/v1/appointments/${id}/attend`, data ?? null),
   reschedule:          (id, data)       =>
     api.patch(`/api/v1/appointments/${id}/reschedule`, data),
+  getPatientAuthorization: (patientId)  =>
+    api.get(`/api/v1/appointments/patient/${patientId}/authorization`),
 }
 
 export default api

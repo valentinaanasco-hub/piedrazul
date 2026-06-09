@@ -1,5 +1,6 @@
 package co.unicauca.piedrazul.appointment.domain.service.validator;
 
+import co.unicauca.piedrazul.appointment.domain.exception.AppointmentConflictException;
 import co.unicauca.piedrazul.appointment.domain.model.Appointment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,8 +56,8 @@ class ConflictAppointmentValidatorTest {
         Appointment existing       = buildAppointment(1, LocalTime.of(9, 0));
         Appointment newAppointment = buildAppointment(0, LocalTime.of(9, 0));
 
-        IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
+        AppointmentConflictException ex = assertThrows(
+                AppointmentConflictException.class,
                 () -> validator.validate(newAppointment, List.of(existing))
         );
         assertEquals("Ya existe una cita para ese médico en esa fecha y hora", ex.getMessage());

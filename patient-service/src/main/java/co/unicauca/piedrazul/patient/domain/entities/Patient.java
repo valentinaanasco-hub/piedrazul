@@ -17,7 +17,7 @@ public class Patient {
     // --- Clave primaria: es el mismo user_id ---
     @Id
     @Column(name = "pat_user_id")
-    private int id;
+    private long id;
 
     @Column(name = "pat_phone", nullable = false, length = 20)
     private String phone;
@@ -66,8 +66,8 @@ public class Patient {
     public Patient() {}
 
     // --- Getters y Setters ---
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public long getId() { return id; }
+    public void setId(long id) { this.id = id; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public String getGender() { return gender; }

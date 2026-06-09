@@ -1,5 +1,6 @@
 package co.unicauca.piedrazul.patient.presentation.mapper;
 
+import co.unicauca.piedrazul.patient.presentation.dto.PatientDTOs;
 import org.springframework.stereotype.Component;
 
 import co.unicauca.piedrazul.patient.domain.entities.Patient;
@@ -57,6 +58,20 @@ public class PatientMapper {
         return patient;
     }
 
+    // Entidad -> request
+    public PatientDTOs.PatientRegisterRequest toRegister(Patient patient){
+        return new PatientDTOs.PatientRegisterRequest(
+                patient.getFirstName(),
+                patient.getMiddleName(),
+                patient.getFirstSurname(),
+                patient.getLastName(),
+                patient.getUsername(),
+                patient.getPassword(),
+                patient.getUserTypeId(),
+                patient.getId(),
+                "PACIENTE"
+        );
+    }
     // --- Entidad → response ---
     public PatientResponse toResponse(Patient patient) {
         String birthDate = buildBirthDate(patient);

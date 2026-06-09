@@ -27,6 +27,10 @@ public class Doctor {
     )
     private List<Specialty> specialties;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "doct_type_id")
+    private Type type;
+
     @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DoctorSchedule> schedules;
 
@@ -43,6 +47,8 @@ public class Doctor {
     public void setLicenseNumber(String licenseNumber) { this.licenseNumber = licenseNumber; }
     public List<Specialty> getSpecialties() { return specialties; }
     public void setSpecialties(List<Specialty> specialties) { this.specialties = specialties; }
+    public Type getType() { return type; }
+    public void setType(Type type) { this.type = type; }
     public List<DoctorSchedule> getSchedules() { return schedules; }
     public void setSchedules(List<DoctorSchedule> schedules) { this.schedules = schedules; }
     public String getFirstName() { return firstName; }

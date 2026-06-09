@@ -2,25 +2,48 @@ package co.unicauca.piedrazul.identity.application;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import org.keycloak.admin.client.Keycloak;
+import org.keycloak.admin.client.KeycloakBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-/**
- * Configuración de beans de la aplicación.
- *
- * @author Santiago Solarte
- */
 @Configuration
 public class AppConfig {
 
-    // --- BCrypt para encriptar contraseñas ---
+    @Value("${keycloak.admin.server-url:http://localhost:8180}")
+    private String keycloakServerUrl;
+
+    @Value("${keycloak.admin.realm:piedrazul}")
+    private String keycloakRealm;
+
+    @Value("${keycloak.admin.username:admin}")
+    private String keycloakAdminUsername;
+
+    @Value("${keycloak.admin.password:admin}")
+    private String keycloakAdminPassword;
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // --- Documentación Swagger ---
+    /**
+     * Cliente admin de Keycloak autenticado con las credenciales del realm master.
+     * Usado por KeycloakAdminAdapter para crear/deshabilitar usuarios.
+     */
+    @Bean
+    public Keycloak keycloakAdmin() {
+        return KeycloakBuilder.builder()
+                .serverUrl(keycloakServerUrl)
+                .realm("master")
+                .clientId("admin-cli")
+                .username(keycloakAdminUsername)
+                .password(keycloakAdminPassword)
+                .build();
+    }
+
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()

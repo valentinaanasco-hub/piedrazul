@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout'
 import { patientApi, medicalApi, appointmentApi } from '../../api'
+import { useAuth } from '../../api/AuthContext'
 
 export default function DashboardPage() {
+  const { user, hasRole } = useAuth()
+  const navigate    = useNavigate()
+
   const [stats, setStats] = useState({
     totalPatients:     null,
     appointmentsToday: null,
@@ -12,22 +16,33 @@ export default function DashboardPage() {
   })
 
   useEffect(() => {
-    // Cargamos estadísticas en paralelo — si algún servicio no está listo retorna null
+    // Esperar a que el usuario esté cargado antes de actuar
+    if (!user) return
+
+    // Redirigir antes de hacer cualquier llamada si el rol no corresponde
+    if (hasRole('DOCTOR'))   { navigate('/doctor/appointments', { replace: true }); return }
+    if (hasRole('PACIENTE')) { navigate('/patient/schedule',    { replace: true }); return }
+
+    // Solo llega aquí ADMIN / AGENDADOR
+    const today = new Date().toISOString().split('T')[0]
     Promise.allSettled([
       patientApi.listAll(),
       medicalApi.listDoctors(),
-      appointmentApi.listByDoctorAndDate('', new Date().toISOString().split('T')[0]),
+      appointmentApi.listAll(),
     ]).then(([patients, doctors, appts]) => {
+      const todayApts = appts.status === 'fulfilled'
+          ? (appts.value.data || []).filter(a => a.date === today)
+          : []
       setStats({
-        totalPatients:     patients.status  === 'fulfilled' ? patients.value.data.length  : '—',
-        professionals:     doctors.status   === 'fulfilled' ? doctors.value.data.length    : '—',
-        appointmentsToday: appts.status     === 'fulfilled' ? appts.value.data.length      : '—',
-        pendingAppts:      appts.status     === 'fulfilled'
-            ? appts.value.data.filter(a => a.status === 'AGENDADA').length
+        totalPatients:     patients.status === 'fulfilled' ? patients.value.data.length : '—',
+        professionals:     doctors.status  === 'fulfilled' ? doctors.value.data.length  : '—',
+        appointmentsToday: appts.status    === 'fulfilled' ? todayApts.length           : '—',
+        pendingAppts:      appts.status    === 'fulfilled'
+            ? todayApts.filter(a => a.status === 'AGENDADA').length
             : '—',
       })
     })
-  }, [])
+  }, [user])
 
   const statCards = [
     { label: 'Total Pacientes',   value: stats.totalPatients,     icon: '👥', color: 'text-blue-600',   bg: 'bg-blue-50'   },
@@ -48,11 +63,6 @@ export default function DashboardPage() {
                 Bienvenido al sistema de gestión médica. Aquí tienes un resumen de hoy.
               </p>
             </div>
-            <Link to="/admin"
-                  className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium
-              text-gray-700 hover:bg-gray-50 transition-colors">
-              Configuración del sistema
-            </Link>
           </div>
 
           {/* --- Tarjetas de estadísticas --- */}
@@ -97,12 +107,21 @@ export default function DashboardPage() {
                 <p className="font-semibold text-sm text-gray-800">Listar Citas</p>
                 <p className="text-gray-400 text-xs mt-1">Ver citas del día</p>
               </Link>
-              <Link to="/admin"
-                    className="bg-white border border-gray-100 rounded-2xl p-5 hover:shadow-md transition-shadow group">
-                <span className="text-2xl block mb-2">⚙</span>
-                <p className="font-semibold text-sm text-gray-800">Configuración</p>
-                <p className="text-gray-400 text-xs mt-1">Parámetros del sistema</p>
-              </Link>
+              {hasRole('ADMIN') ? (
+                <Link to="/admin"
+                      className="bg-white border border-gray-100 rounded-2xl p-5 hover:shadow-md transition-shadow group">
+                  <span className="text-2xl block mb-2">⚙</span>
+                  <p className="font-semibold text-sm text-gray-800">Configuración</p>
+                  <p className="text-gray-400 text-xs mt-1">Parámetros del sistema</p>
+                </Link>
+              ) : (
+                <Link to="/appointments/export"
+                      className="bg-white border border-gray-100 rounded-2xl p-5 hover:shadow-md transition-shadow group">
+                  <span className="text-2xl block mb-2">⬇</span>
+                  <p className="font-semibold text-sm text-gray-800">Exportar Citas</p>
+                  <p className="text-gray-400 text-xs mt-1">Descargar reporte</p>
+                </Link>
+              )}
             </div>
           </div>
         </div>

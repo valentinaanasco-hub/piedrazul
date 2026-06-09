@@ -1,7 +1,5 @@
 package co.unicauca.piedrazul.appointment.domain.service;
 
-import org.springframework.stereotype.Service;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.Month;
@@ -11,8 +9,8 @@ import java.util.Set;
 /**
  * Servicio de dominio para calcular festivos en Colombia.
  * Incluye festivos fijos y festivos móviles según la Ley Emiliani.
+ * Clase pura de dominio — sin dependencias de frameworks.
  */
-@Service
 public class ColombianHolidaysService {
 
     public boolean isHoliday(LocalDate date) {

@@ -1,12 +1,22 @@
 import { useState, useEffect } from 'react'
 import Layout from '../../components/Layout'
 import { medicalApi, appointmentApi, patientApi, identityApi } from '../../api'
+import { useAuth } from '../../api/AuthContext'
 
 const STATUSES = ['AGENDADA', 'ATENDIDA', 'CANCELADA', 'REAGENDADA']
 
+const SERVICE_TYPE_LABELS = {
+  CONSULTA_GENERAL: 'Consulta General',
+  FISIOTERAPIA:     'Fisioterapia',
+  QUIROPRAXIA:      'Quiropraxia',
+  TERAPIA_NEURAL:   'Terapia Neural',
+}
+
 export default function ExportAppointmentsPage() {
+  const { user, hasRole } = useAuth()
+  const isDoctor = hasRole('DOCTOR')
+
   const [doctors,       setDoctors]       = useState([])
-  const [specialties,   setSpecialties]   = useState([])
   const [appointments,  setAppointments]  = useState([])
   const [patientInfo,   setPatientInfo]   = useState({}) // {id: {name, phone}}
   const [loading,       setLoading]       = useState(false)
@@ -20,20 +30,17 @@ export default function ExportAppointmentsPage() {
     doctorId:  '',
   })
 
-  // Cargar médicos y especialidades al montar
+  const [currentPage, setCurrentPage] = useState(1)
+  const PAGE_SIZE = 10
+
+  // Cargar médicos al montar
   useEffect(() => {
     medicalApi.listDoctors().then(res => {
-      const docs = res.data || []
-      setDoctors(docs)
-      const specSet = new Set()
-      docs.forEach(d => d.specialties?.forEach(s => specSet.add(s)))
-      setSpecialties([...specSet].sort())
+      setDoctors(res.data || [])
     }).catch(() => {})
   }, [])
 
-  const doctorsBySpecialty = filters.specialty
-    ? doctors.filter(d => d.specialties?.includes(filters.specialty))
-    : doctors
+  const doctorsBySpecialty = doctors
 
   const handleFilter = (field, value) => {
     setFilters(prev => ({
@@ -48,23 +55,22 @@ export default function ExportAppointmentsPage() {
   const handleSearch = async () => {
     setLoading(true)
     try {
-      const res = await appointmentApi.listAll()
+      // Doctor: solo sus citas via endpoint propio; Admin/Agendador: todas
+      const res = isDoctor
+          ? await appointmentApi.listByDoctor(user?.id)
+          : await appointmentApi.listAll()
       let apts  = res.data || []
 
       if (filters.from)     apts = apts.filter(a => a.date >= filters.from)
       if (filters.to)       apts = apts.filter(a => a.date <= filters.to)
       if (filters.status)   apts = apts.filter(a => a.status === filters.status)
-      if (filters.doctorId) apts = apts.filter(a => a.doctorId === parseInt(filters.doctorId))
-      if (filters.specialty) {
-        const ids = new Set(
-          doctors.filter(d => d.specialties?.includes(filters.specialty)).map(d => d.id)
-        )
-        apts = apts.filter(a => ids.has(a.doctorId))
-      }
+      if (!isDoctor && filters.doctorId) apts = apts.filter(a => a.doctorId === parseInt(filters.doctorId))
+      if (filters.specialty) apts = apts.filter(a => a.serviceType === filters.specialty)
 
       // Ordenar por fecha y hora
       apts.sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
       setAppointments(apts)
+      setCurrentPage(1)
 
       // Resolver info de pacientes únicos
       // Nombre: identity-service (los nombres son @Transient en patient-service)
@@ -107,7 +113,7 @@ export default function ExportAppointmentsPage() {
         `"${getPatientName(a.patientId).replace(/"/g, '""')}"`,
         getPatientPhone(a.patientId),
         `"${getDoctorName(a.doctorId).replace(/"/g, '""')}"`,
-        `"${(doc?.specialties?.[0] || '').replace(/"/g, '""')}"`,
+        `"${(SERVICE_TYPE_LABELS[a.serviceType] || a.serviceType || '').replace(/"/g, '""')}"`,
         a.date,
         formatTime(a.startTime),
         formatTime(a.endTime),
@@ -189,26 +195,30 @@ export default function ExportAppointmentsPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Especialidad</label>
+              <label className="block text-xs text-gray-500 mb-1">Tipo de servicio</label>
               <select value={filters.specialty} onChange={e => handleFilter('specialty', e.target.value)}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm
                                  focus:outline-none focus:border-blue-500 transition-colors">
-                <option value="">Todas</option>
-                {specialties.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-
-            <div className="col-span-2 md:col-span-4">
-              <label className="block text-xs text-gray-500 mb-1">Profesional</label>
-              <select value={filters.doctorId} onChange={e => handleFilter('doctorId', e.target.value)}
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm
-                                 focus:outline-none focus:border-blue-500 transition-colors">
-                <option value="">Todos los profesionales</option>
-                {doctorsBySpecialty.map(d => (
-                  <option key={d.id} value={d.id}>{d.fullName || `Profesional ${d.id}`}</option>
+                <option value="">Todos</option>
+                {Object.entries(SERVICE_TYPE_LABELS).map(([val, label]) => (
+                  <option key={val} value={val}>{label}</option>
                 ))}
               </select>
             </div>
+
+            {!isDoctor && (
+              <div className="col-span-2 md:col-span-4">
+                <label className="block text-xs text-gray-500 mb-1">Profesional</label>
+                <select value={filters.doctorId} onChange={e => handleFilter('doctorId', e.target.value)}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm
+                                   focus:outline-none focus:border-blue-500 transition-colors">
+                  <option value="">Todos los profesionales</option>
+                  {doctorsBySpecialty.map(d => (
+                    <option key={d.id} value={d.id}>{d.fullName || `Profesional ${d.id}`}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="mt-4 flex justify-end">
@@ -221,63 +231,117 @@ export default function ExportAppointmentsPage() {
         </div>
 
         {/* Vista previa */}
-        {appointments.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-5">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                Vista previa
+        {appointments.length > 0 && (() => {
+          const totalPages  = Math.ceil(appointments.length / PAGE_SIZE)
+          const paginated   = appointments.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+          return (
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden mb-5">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                  Vista previa
+                </div>
+                <p className="text-xs text-gray-400">
+                  Se exportarán <span className="font-semibold text-gray-700">{appointments.length}</span> registros
+                </p>
               </div>
-              <p className="text-xs text-gray-400">
-                Se exportarán <span className="font-semibold text-gray-700">{appointments.length}</span> registros
-              </p>
-            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-50">
-                    {['ID', 'Cédula', 'Paciente', 'Profesional', 'Fecha', 'Hora', 'Estado'].map(h => (
-                      <th key={h} className="text-left px-6 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {appointments.map(apt => (
-                    <tr key={apt.appointmentId} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-3 text-gray-400 text-xs font-mono">
-                        CIT-{apt.appointmentId}
-                      </td>
-                      <td className="px-6 py-3 text-gray-500 text-xs font-mono">
-                        {apt.patientId}
-                      </td>
-                      <td className="px-6 py-3 text-gray-800 font-medium">
-                        {getPatientName(apt.patientId)}
-                      </td>
-                      <td className="px-6 py-3 text-gray-600">
-                        {getDoctorName(apt.doctorId)}
-                      </td>
-                      <td className="px-6 py-3 text-gray-600">
-                        {apt.date?.split('-').reverse().join('/')}
-                      </td>
-                      <td className="px-6 py-3 text-gray-600 font-semibold">
-                        {formatTime(apt.startTime)}
-                      </td>
-                      <td className="px-6 py-3">
-                        <StatusBadge status={apt.status} />
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-50">
+                      {['ID', 'Cédula', 'Paciente', 'Profesional', 'Fecha', 'Hora', 'Estado'].map(h => (
+                        <th key={h} className="text-left px-6 py-3 text-gray-400 font-medium text-xs uppercase tracking-wider">
+                          {h}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {paginated.map(apt => (
+                      <tr key={apt.appointmentId} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-3 text-gray-400 text-xs font-mono">
+                          CIT-{apt.appointmentId}
+                        </td>
+                        <td className="px-6 py-3 text-gray-500 text-xs font-mono">
+                          {apt.patientId}
+                        </td>
+                        <td className="px-6 py-3 text-gray-800 font-medium">
+                          {getPatientName(apt.patientId)}
+                        </td>
+                        <td className="px-6 py-3 text-gray-600">
+                          {getDoctorName(apt.doctorId)}
+                        </td>
+                        <td className="px-6 py-3 text-gray-600">
+                          {apt.date?.split('-').reverse().join('/')}
+                        </td>
+                        <td className="px-6 py-3 text-gray-600 font-semibold">
+                          {formatTime(apt.startTime)}
+                        </td>
+                        <td className="px-6 py-3">
+                          <StatusBadge status={apt.status} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-            <div className="px-6 py-3 border-t border-gray-50 text-xs text-gray-400">
-              Total: <span className="font-semibold text-gray-700">{appointments.length}</span> cita(s)
+              {/* Footer: total + paginación */}
+              <div className="px-6 py-3 border-t border-gray-50 flex items-center justify-between">
+                <p className="text-xs text-gray-400">
+                  Total: <span className="font-semibold text-gray-700">{appointments.length}</span> cita(s)
+                  &nbsp;·&nbsp;
+                  Página <span className="font-semibold text-gray-700">{currentPage}</span> de <span className="font-semibold text-gray-700">{totalPages}</span>
+                </p>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="px-2 py-1 rounded-lg text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >«</button>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-2 py-1 rounded-lg text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >‹</button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                    .reduce((acc, p, idx, arr) => {
+                      if (idx > 0 && p - arr[idx - 1] > 1) acc.push('...')
+                      acc.push(p)
+                      return acc
+                    }, [])
+                    .map((p, idx) =>
+                      p === '...'
+                        ? <span key={`ellipsis-${idx}`} className="px-2 py-1 text-xs text-gray-400">…</span>
+                        : <button
+                            key={p}
+                            onClick={() => setCurrentPage(p)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors
+                              ${currentPage === p
+                                ? 'bg-blue-600 text-white'
+                                : 'text-gray-500 hover:bg-gray-100'}`}
+                          >{p}</button>
+                    )}
+
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-2 py-1 rounded-lg text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >›</button>
+                  <button
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="px-2 py-1 rounded-lg text-xs text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >»</button>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* Botón exportar */}
         <div className="flex justify-start">

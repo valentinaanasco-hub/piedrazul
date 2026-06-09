@@ -16,9 +16,9 @@ import java.time.LocalTime;
  * @param status        Estado de la cita: AGENDADA, REAGENDADA, CANCELADA, ATENDIDA
  */
 public record AppointmentCreatedEvent (
-    int appointmentId, 
-    int doctorId, 
-    int patientId,
+    int appointmentId,
+    int doctorId,
+    long patientId,
     LocalDate date, 
     LocalTime startTime, 
     LocalTime endTime,

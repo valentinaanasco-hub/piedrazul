@@ -14,7 +14,7 @@ public class PatientDTOs {
     // --- Request: Registro web (RF3) — todos los campos obligatorios ---
     public record WebRegisterRequest(
             @Positive(message = "El número de documento debe ser positivo")
-            int documentId,
+            long documentId,
 
             @NotBlank(message = "El tipo de documento es obligatorio")
             String userTypeId,
@@ -29,11 +29,9 @@ public class PatientDTOs {
 
             String lastName,
 
-            @NotBlank(message = "El correo es obligatorio")
-            String email,
+            String email,     // opcional — si se provee, se crea cuenta Keycloak
 
-            @NotBlank(message = "La contraseña es obligatoria")
-            String password,
+            String password,  // opcional — obligatorio solo si hay correo
 
             @NotBlank(message = "El teléfono es obligatorio")
             String phone,
@@ -46,10 +44,37 @@ public class PatientDTOs {
             String birthYear
     ) {}
 
+    // --- Request: Registro de usuario ---
+    public record PatientRegisterRequest(
+            @NotBlank(message = "El primer nombre es obligatorio")
+            String firstName,
+
+            String middleName,
+
+            @NotBlank(message = "El apellido es obligatorio")
+            String firstSurname,
+
+            String lastName,
+
+            @NotBlank(message = "El correo es obligatorio")
+            String username,
+
+            @NotBlank(message = "La contraseña es obligatoria")
+            String password,
+
+            @NotBlank(message = "El tipo de documento es obligatorio")
+            String userTypeId,
+
+            long userId,
+
+            @NotBlank(message = "El rol es obligatorio")
+            String roleName
+    ) {}
+
     // --- Request: Registro por agendador (RF2) — fecha y correo opcionales ---
     public record AgendadorRegisterRequest(
             @Positive(message = "El número de documento debe ser positivo")
-            int documentId,
+            long documentId,
 
             @NotBlank(message = "El tipo de documento es obligatorio")
             String userTypeId,
@@ -79,7 +104,7 @@ public class PatientDTOs {
 
     // --- Response: Datos del paciente ---
     public record PatientResponse(
-            int id,
+            long id,
             String fullName,
             String email,
             String phone,

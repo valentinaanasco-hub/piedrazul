@@ -235,7 +235,7 @@ const ProfessionalConfigurationPage = () => {
                 <option value="">Seleccione un profesional...</option>
                 {doctors.map((doctor) => (
                   <option key={doctor.id} value={doctor.id}>
-                    {doctor.firstName} {doctor.firstSurname} - {doctor.licenseNumber}
+                    {doctor.fullName} - {doctor.licenseNumber}
                   </option>
                 ))}
               </select>

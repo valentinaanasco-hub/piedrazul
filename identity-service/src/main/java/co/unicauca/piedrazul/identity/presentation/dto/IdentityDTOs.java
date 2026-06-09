@@ -40,7 +40,7 @@ public class IdentityDTOs {
             @NotBlank(message = "El tipo de documento es obligatorio")
             String userTypeId,
 
-            int userId,
+            long userId,
 
             @NotBlank(message = "El rol es obligatorio")
             String roleName
@@ -48,7 +48,7 @@ public class IdentityDTOs {
 
     // --- Response: Usuario autenticado ---
     public record UserResponse(
-            int id,
+            long id,
             String username,
             String fullName,
             String state,

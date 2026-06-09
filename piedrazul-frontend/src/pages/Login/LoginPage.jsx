@@ -49,6 +49,8 @@ export default function LoginPage() {
 
       if (allRoles.includes('PACIENTE')) {
         navigate('/patient/schedule')
+      } else if (allRoles.includes('DOCTOR')) {
+        navigate('/doctor/appointments')
       } else {
         navigate('/dashboard')
       }

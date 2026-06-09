@@ -6,18 +6,13 @@ import co.unicauca.piedrazul.identity.domain.entities.User;
 import co.unicauca.piedrazul.identity.domain.enums.UserState;
 import co.unicauca.piedrazul.identity.domain.repository.RoleRepository;
 import co.unicauca.piedrazul.identity.domain.repository.UserRepository;
+import co.unicauca.piedrazul.identity.infrastructure.keycloak.KeycloakAdminAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * Servicio de dominio para gestión de identidad.
- * Maneja autenticación, registro y consulta de usuarios.
- *
- * @author Santiago Solarte
- */
 @Service
 public class IdentityService {
 
@@ -25,27 +20,25 @@ public class IdentityService {
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserEventPublisher eventPublisher;
+    private final KeycloakAdminAdapter keycloakAdmin;
 
     public IdentityService(UserRepository userRepository,
                            RoleRepository roleRepository,
                            BCryptPasswordEncoder passwordEncoder,
-                           UserEventPublisher eventPublisher) {
+                           UserEventPublisher eventPublisher,
+                           KeycloakAdminAdapter keycloakAdmin) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.eventPublisher = eventPublisher;
+        this.keycloakAdmin = keycloakAdmin;
     }
 
-    /**
-     * Autentica a un usuario verificando sus credenciales.
-     * Acepta correo electrónico o nombre de usuario.
-     */
     public User login(String username, String password) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            // Compatibilidad con contraseñas en texto plano del monolito
             if (!password.equals(user.getPassword())) {
                 throw new IllegalArgumentException("Contraseña incorrecta");
             }
@@ -58,60 +51,49 @@ public class IdentityService {
         return user;
     }
 
-    /**
-     * Registra un nuevo usuario en el sistema.
-     * Encripta la contraseña con BCrypt antes de guardar.
-     */
     @Transactional
     public User register(User user, String roleName) {
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new IllegalArgumentException("El correo ya está registrado en el sistema");
         }
 
-        // Encriptar contraseña
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Capturar contraseña en texto plano antes de encriptar (Keycloak la necesita)
+        String plainPassword = user.getPassword();
+        user.setPassword(passwordEncoder.encode(plainPassword));
 
-        // Asignar rol
         Role role = roleRepository.findByRoleName(roleName)
                 .orElseThrow(() -> new IllegalArgumentException("Rol no encontrado: " + roleName));
         user.setRoles(List.of(role));
 
         User saved = userRepository.save(user);
+
+        // Crear usuario en Keycloak para que pueda autenticarse con OAuth2
+        keycloakAdmin.createUser(saved, plainPassword, roleName);
+
         eventPublisher.publishUserRegistered(saved);
         return saved;
     }
 
-    /**
-     * Busca un usuario por su ID.
-     */
-    public User findById(int id) {
+    public User findById(long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
     }
 
-    /**
-     * Busca un usuario por su username.
-     */
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
     }
 
-    /**
-     * Lista todos los usuarios del sistema.
-     */
     public List<User> listAll() {
         return userRepository.findAll();
     }
 
-    /**
-     * Desactiva un usuario sin eliminarlo.
-     */
     @Transactional
-    public void deactivate(int id) {
+    public void deactivate(long id) {
         User user = findById(id);
         user.setState(UserState.INACTIVO);
         userRepository.save(user);
+        keycloakAdmin.disableUser(user.getUsername());
         eventPublisher.publishUserRegistered(user);
     }
 }

@@ -16,76 +16,108 @@ function addMinutes(timeStr, minutes) {
 }
 
 // ── Modal de registro rápido de paciente nuevo ────────────────────────────────
-function RegisterPatientModal({ documentId, onClose, onSuccess }) {
+function RegisterPatientModal({ documentId: initialDocumentId, onClose, onSuccess }) {
   const [form, setForm] = useState({
-    firstName:    '',
-    middleName:   '',
-    firstSurname: '',
-    lastName:     '',
-    phone:        '',
-    gender:       'Hombre',
-    email:        '',
-    password:     '',
-    birthDay:     '',
-    birthMonth:   '',
-    birthYear:    '',
-    userTypeId:   'CC',
+    documentId:      initialDocumentId || '',
+    userTypeId:      'CC',
+    firstName:       '',
+    middleName:      '',
+    firstSurname:    '',
+    lastName:        '',
+    phone:           '',
+    gender:          '',
+    email:           '',
+    password:        '',
+    confirmPassword: '',
+    birthDay:        '',
+    birthMonth:      '',
+    birthYear:       '',
   })
-  const [saving, setSaving] = useState(false)
-  const [error,  setError]  = useState('')
+  const [fieldErrors, setFieldErrors] = useState({})
+  const [saving,      setSaving]      = useState(false)
+  const [globalError, setGlobalError] = useState('')
+
+  const set = (field, value) => {
+    setForm(prev => ({ ...prev, [field]: value }))
+    setFieldErrors(prev => ({ ...prev, [field]: '' }))
+  }
+
+  const validate = () => {
+    const e = {}
+    if (!form.documentId.trim())   e.documentId   = 'La cédula es obligatoria'
+    if (!form.firstName.trim())    e.firstName    = 'Obligatorio'
+    if (!form.firstSurname.trim()) e.firstSurname = 'Obligatorio'
+    if (!form.phone.trim())        e.phone        = 'Obligatorio'
+    if (!form.gender)              e.gender       = 'Selecciona un género'
+
+    // Validación de fecha de nacimiento
+    if (!form.birthDay || !form.birthMonth || !form.birthYear) {
+      e.birthDate = 'La fecha de nacimiento es obligatoria'
+    } else {
+      const day   = parseInt(form.birthDay)
+      const month = parseInt(form.birthMonth)
+      const year  = parseInt(form.birthYear)
+      const currentYear = new Date().getFullYear()
+      if (year < 1900 || year > currentYear) {
+        e.birthDate = `El año debe estar entre 1900 y ${currentYear}`
+      } else if (month < 1 || month > 12) {
+        e.birthDate = 'El mes debe estar entre 01 y 12'
+      } else if (day < 1 || day > 31) {
+        e.birthDate = 'El día debe estar entre 01 y 31'
+      } else {
+        const fecha = new Date(year, month - 1, day)
+        if (fecha > new Date()) {
+          e.birthDate = 'La fecha de nacimiento no puede ser en el futuro'
+        } else if (fecha.getDate() !== day || fecha.getMonth() !== month - 1) {
+          e.birthDate = 'Fecha inválida (verifica día y mes)'
+        }
+      }
+    }
+
+    // Contraseña: si se ingresa, debe confirmarse y coincidir
+    const hasPassword = !!form.password
+    if (hasPassword && !form.confirmPassword)
+      e.confirmPassword = 'Confirma la contraseña'
+    if (hasPassword && form.confirmPassword && form.password !== form.confirmPassword)
+      e.confirmPassword = 'Las contraseñas no coinciden'
+    return e
+  }
+
+  // Clase base para inputs — rojo si hay error en ese campo
+  const cls = (field) =>
+    `w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors
+     ${fieldErrors[field] ? 'border-red-400 bg-red-50' : 'border-gray-200'}`
 
   const handleSubmit = async () => {
-    // Validaciones obligatorias
-    if (!form.firstName || !form.firstSurname) {
-      setError('Primer nombre y primer apellido son obligatorios'); return
-    }
-    if (!form.phone) {
-      setError('El teléfono es obligatorio'); return
-    }
-    if (!form.email) {
-      setError('El correo es obligatorio'); return
-    }
-    if (!form.password) {
-      setError('La contraseña es obligatoria'); return
-    }
-    if (!form.birthDay || !form.birthMonth || !form.birthYear) {
-      setError('La fecha de nacimiento es obligatoria'); return
-    }
+    const e = validate()
+    setFieldErrors(e)
+    if (Object.keys(e).length > 0) return
 
     setSaving(true)
-    setError('')
+    setGlobalError('')
     try {
-      await identityApi.register({
-        userId:       parseInt(documentId),
-        username:     form.email,
-        password:     form.password,
-        firstName:    form.firstName,
-        middleName:   form.middleName,
-        firstSurname: form.firstSurname,
-        lastName:     form.lastName,
-        userTypeId:   form.userTypeId,
-        roleName:     'PACIENTE',
-      })
+      const emailFinal    = form.email.trim()    || `${form.documentId}@piedrazul.com`
+      const passwordFinal = form.password        || form.documentId
+
       await patientApi.registerWeb({
-        documentId:   parseInt(documentId),
+        documentId:   parseInt(form.documentId),
         userTypeId:   form.userTypeId,
-        firstName:    form.firstName,
-        middleName:   form.middleName,
-        firstSurname: form.firstSurname,
-        lastName:     form.lastName,
-        email:        form.email,
-        password:     form.password,
-        phone:        form.phone,
+        firstName:    form.firstName.trim(),
+        middleName:   form.middleName.trim()   || null,
+        firstSurname: form.firstSurname.trim(),
+        lastName:     form.lastName.trim()     || null,
+        email:        emailFinal,
+        password:     passwordFinal,
+        phone:        form.phone.trim(),
         gender:       form.gender,
         birthDay:     form.birthDay,
         birthMonth:   form.birthMonth,
         birthYear:    form.birthYear,
       })
-      // Guardar tipo de documento para mostrarlo en el perfil
-      localStorage.setItem(`piedrazul_typeId_${documentId}`, form.userTypeId)
-      onSuccess()
+      localStorage.setItem(`piedrazul_typeId_${form.documentId}`, form.userTypeId)
+      onSuccess(form.documentId)
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al registrar el paciente.')
+      setGlobalError(err.response?.data?.message || 'Error al registrar el paciente.')
     } finally {
       setSaving(false)
     }
@@ -97,70 +129,107 @@ function RegisterPatientModal({ documentId, onClose, onSuccess }) {
           <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
             <div>
               <h3 className="font-bold text-gray-800">Registrar nuevo paciente</h3>
-              <p className="text-sm text-gray-400 mt-0.5">Documento: {documentId}</p>
+              <p className="text-sm text-gray-400 mt-0.5">Completa los datos del paciente</p>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
           </div>
+
           <div className="px-6 py-5 space-y-3 max-h-[70vh] overflow-y-auto">
             <div className="grid grid-cols-2 gap-3">
 
-              {/* Tipo y género */}
+              {/* Tipo de documento + Cédula */}
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Tipo de documento <span className="text-red-500">*</span></label>
-                <select value={form.userTypeId} onChange={e => setForm({...form, userTypeId: e.target.value})}
+                <select value={form.userTypeId} onChange={e => set('userTypeId', e.target.value)}
                         className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
                   {['CC','TI','CE','PA','RC'].map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
               <div>
+                <label className="block text-xs text-gray-500 mb-1">Número de documento <span className="text-red-500">*</span></label>
+                <input value={form.documentId}
+                       onChange={e => set('documentId', e.target.value.replace(/\D/g, ''))}
+                       placeholder="Ej: 1077156530"
+                       className={cls('documentId')} />
+                {fieldErrors.documentId
+                  ? <p className="text-red-500 text-xs mt-1">{fieldErrors.documentId}</p>
+                  : <p className="text-gray-400 text-xs mt-1">Solo números, sin puntos ni espacios</p>}
+              </div>
+
+              {/* Género */}
+              <div className="col-span-2">
                 <label className="block text-xs text-gray-500 mb-1">Género <span className="text-red-500">*</span></label>
-                <select value={form.gender} onChange={e => setForm({...form, gender: e.target.value})}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                <select value={form.gender} onChange={e => set('gender', e.target.value)}
+                        className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500
+                          ${fieldErrors.gender ? 'border-red-400' : 'border-gray-200'}`}>
+                  <option value="">Seleccione un género</option>
                   {['Hombre','Mujer','Otro'].map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
+                {fieldErrors.gender && <p className="text-red-500 text-xs mt-1">{fieldErrors.gender}</p>}
               </div>
 
               {/* Nombres */}
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Primer nombre <span className="text-red-500">*</span></label>
-                <input value={form.firstName} onChange={e => setForm({...form, firstName: e.target.value})}
-                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+                <input value={form.firstName} onChange={e => set('firstName', e.target.value)}
+                       placeholder="Ej: Juan"
+                       className={cls('firstName')} />
+                {fieldErrors.firstName && <p className="text-red-500 text-xs mt-1">{fieldErrors.firstName}</p>}
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Segundo nombre</label>
-                <input value={form.middleName} onChange={e => setForm({...form, middleName: e.target.value})}
-                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+                <input value={form.middleName} onChange={e => set('middleName', e.target.value)}
+                       placeholder="Ej: Carlos (opcional)"
+                       className={cls('middleName')} />
               </div>
 
               {/* Apellidos */}
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Primer apellido <span className="text-red-500">*</span></label>
-                <input value={form.firstSurname} onChange={e => setForm({...form, firstSurname: e.target.value})}
-                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+                <input value={form.firstSurname} onChange={e => set('firstSurname', e.target.value)}
+                       placeholder="Ej: Pérez"
+                       className={cls('firstSurname')} />
+                {fieldErrors.firstSurname && <p className="text-red-500 text-xs mt-1">{fieldErrors.firstSurname}</p>}
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Segundo apellido</label>
-                <input value={form.lastName} onChange={e => setForm({...form, lastName: e.target.value})}
-                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+                <input value={form.lastName} onChange={e => set('lastName', e.target.value)}
+                       placeholder="Ej: García (opcional)"
+                       className={cls('lastName')} />
               </div>
 
               {/* Contacto */}
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Teléfono <span className="text-red-500">*</span></label>
-                <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})}
-                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+                <input value={form.phone} onChange={e => set('phone', e.target.value)}
+                       placeholder="Ej: 3001234567"
+                       className={cls('phone')} />
+                {fieldErrors.phone
+                  ? <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>
+                  : <p className="text-gray-400 text-xs mt-1">10 dígitos, sin espacios ni guiones</p>}
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Correo <span className="text-red-500">*</span></label>
-                <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})}
-                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+                <label className="block text-xs text-gray-500 mb-1">Correo <span className="text-gray-400">(opcional)</span></label>
+                <input type="email" value={form.email} onChange={e => set('email', e.target.value)}
+                       placeholder="Ej: paciente@correo.com"
+                       className={cls('email')} />
+                {fieldErrors.email && <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>}
               </div>
 
-              {/* Contraseña */}
-              <div className="col-span-2">
-                <label className="block text-xs text-gray-500 mb-1">Contraseña <span className="text-red-500">*</span></label>
-                <input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})}
-                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-blue-500" />
+              {/* Contraseña + confirmación */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Contraseña <span className="text-gray-400">(opcional)</span></label>
+                <input type="password" value={form.password} onChange={e => set('password', e.target.value)}
+                       placeholder="Mín. 8 caracteres"
+                       className={cls('password')} />
+                {fieldErrors.password && <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>}
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Confirmar contraseña <span className="text-gray-400">(opcional)</span></label>
+                <input type="password" value={form.confirmPassword} onChange={e => set('confirmPassword', e.target.value)}
+                       placeholder="Repite la contraseña"
+                       className={cls('confirmPassword')} />
+                {fieldErrors.confirmPassword && <p className="text-red-500 text-xs mt-1">{fieldErrors.confirmPassword}</p>}
               </div>
 
               {/* Fecha de nacimiento */}
@@ -171,25 +240,30 @@ function RegisterPatientModal({ documentId, onClose, onSuccess }) {
                 </label>
                 <div className="flex gap-2">
                   <input placeholder="DD" maxLength={2} value={form.birthDay}
-                         onChange={e => setForm({...form, birthDay: e.target.value.replace(/\D/g,'')})}
-                         className="w-16 border border-gray-200 rounded-xl px-2 py-2 text-sm text-center focus:outline-none focus:border-blue-500" />
+                         onChange={e => set('birthDay', e.target.value.replace(/\D/g,''))}
+                         className={`w-16 border rounded-xl px-2 py-2 text-sm text-center focus:outline-none focus:border-blue-500
+                           ${fieldErrors.birthDate ? 'border-red-400 bg-red-50' : 'border-gray-200'}`} />
                   <input placeholder="MM" maxLength={2} value={form.birthMonth}
-                         onChange={e => setForm({...form, birthMonth: e.target.value.replace(/\D/g,'')})}
-                         className="w-16 border border-gray-200 rounded-xl px-2 py-2 text-sm text-center focus:outline-none focus:border-blue-500" />
+                         onChange={e => set('birthMonth', e.target.value.replace(/\D/g,''))}
+                         className={`w-16 border rounded-xl px-2 py-2 text-sm text-center focus:outline-none focus:border-blue-500
+                           ${fieldErrors.birthDate ? 'border-red-400 bg-red-50' : 'border-gray-200'}`} />
                   <input placeholder="AAAA" maxLength={4} value={form.birthYear}
-                         onChange={e => setForm({...form, birthYear: e.target.value.replace(/\D/g,'')})}
-                         className="flex-1 border border-gray-200 rounded-xl px-2 py-2 text-sm text-center focus:outline-none focus:border-blue-500" />
+                         onChange={e => set('birthYear', e.target.value.replace(/\D/g,''))}
+                         className={`flex-1 border rounded-xl px-2 py-2 text-sm text-center focus:outline-none focus:border-blue-500
+                           ${fieldErrors.birthDate ? 'border-red-400 bg-red-50' : 'border-gray-200'}`} />
                 </div>
+                {fieldErrors.birthDate && <p className="text-red-500 text-xs mt-1">{fieldErrors.birthDate}</p>}
               </div>
 
             </div>
 
-            {error && (
+            {globalError && (
                 <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p className="text-sm text-red-600">{globalError}</p>
                 </div>
             )}
           </div>
+
           <div className="px-6 py-4 border-t border-gray-100 flex gap-3 justify-end">
             <button onClick={onClose}
                     className="text-sm text-gray-500 border border-gray-200 rounded-xl px-5 py-2 hover:bg-gray-50 transition-colors">
@@ -208,12 +282,32 @@ function RegisterPatientModal({ documentId, onClose, onSuccess }) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Tipos de servicio hardcodeados (igual que en ExportAppointmentsPage / DoctorAppointmentsPage)
+const SERVICE_TYPES = ['Consulta General', 'Fisioterapia', 'Quiropraxia', 'Terapia Neural']
+
+const SERVICE_TYPE_TO_ENUM = {
+  'Consulta General': 'CONSULTA_GENERAL',
+  'Fisioterapia':     'FISIOTERAPIA',
+  'Quiropraxia':      'QUIROPRAXIA',
+  'Terapia Neural':   'TERAPIA_NEURAL',
+}
+
+// Quiropraxia / Terapia Neural → doctores con esa especialidad
+// Consulta General → todos los doctores
+// Fisioterapia → doctores sin especialidad asignada
+function filterDoctorsByService(service, allDocs) {
+  if (!service) return []
+  if (service === 'Quiropraxia')      return allDocs.filter(d => d.specialties?.includes('Quiropraxia'))
+  if (service === 'Terapia Neural')   return allDocs.filter(d => d.specialties?.includes('Terapia Neural'))
+  if (service === 'Consulta General') return allDocs
+  return allDocs.filter(d => !d.specialties?.length)
+}
+
 export default function CreateAppointmentPage() {
   const navigate    = useNavigate()
   const { hasRole } = useAuth()
 
   const [allDoctors,          setAllDoctors]          = useState([])
-  const [specialties,         setSpecialties]         = useState([])
   const [doctors,             setDoctors]             = useState([])
   const [availability,        setAvailability]        = useState([])
   const [scheduleDays,        setScheduleDays]        = useState(null)
@@ -221,8 +315,9 @@ export default function CreateAppointmentPage() {
   const [loading,             setLoading]             = useState(false)
   const [success,             setSuccess]             = useState(false)
   const [intervalMinutes,     setIntervalMinutes]     = useState(30)
-  const [patientAppointments, setPatientAppointments] = useState([])
-  const [showRegisterModal,   setShowRegisterModal]   = useState(false)
+  const [patientAppointments,  setPatientAppointments]  = useState([])
+  const [patientAuthorization, setPatientAuthorization] = useState(null) // autorización médica activa del paciente
+  const [showRegisterModal,    setShowRegisterModal]    = useState(false)
 
   // Búsqueda de paciente
   const [documentId,       setDocumentId]       = useState('')
@@ -232,7 +327,7 @@ export default function CreateAppointmentPage() {
   const [patientError,     setPatientError]     = useState('')
 
   // Selecciones
-  const [selectedSpecialty, setSelectedSpecialty] = useState('')
+  const [selectedServiceType, setselectedServiceType] = useState('')
   const [selectedDoctor,    setSelectedDoctor]    = useState('')
   const [selectedDate,      setSelectedDate]      = useState('')
   const [selectedTime,      setSelectedTime]      = useState('')
@@ -245,15 +340,11 @@ export default function CreateAppointmentPage() {
   const [calYear,  setCalYear]  = useState(today.getFullYear())
   const [calMonth, setCalMonth] = useState(today.getMonth())
 
-  // --- Cargar médicos y especialidades ---
+  // --- Cargar médicos ---
   useEffect(() => {
-    medicalApi.listDoctors().then(res => {
-      const docs = res.data || []
-      setAllDoctors(docs)
-      const specSet = new Set()
-      docs.forEach(d => d.specialties?.forEach(s => specSet.add(s)))
-      setSpecialties([...specSet])
-    }).catch(() => {})
+    medicalApi.listDoctors()
+      .then(res => setAllDoctors(res.data || []))
+      .catch(() => {})
   }, [])
 
   // --- Filtrar médicos por especialidad ---
@@ -263,12 +354,11 @@ export default function CreateAppointmentPage() {
     setSelectedTime('')
     setAvailability([])
 
-    if (!selectedSpecialty) { setDoctors([]); return }
+    if (!selectedServiceType) { setDoctors([]); return }
 
-    const matching = allDoctors.filter(d => d.specialties?.includes(selectedSpecialty))
-
-    // Quiropraxia: solo médicos disponibles (activos) y CON horario definido
-    if (selectedSpecialty === 'Quiropraxia') {
+    // Quiropraxia: filtrar además por médicos con horario definido
+    if (selectedServiceType === 'Quiropraxia') {
+      const matching = filterDoctorsByService('Quiropraxia', allDoctors)
       let cancelled = false
       Promise.all(matching.map(async d => {
         try {
@@ -276,11 +366,12 @@ export default function CreateAppointmentPage() {
           return (res.data && res.data.length > 0) ? d : null
         } catch { return null }
       })).then(list => { if (!cancelled) setDoctors(list.filter(Boolean)) })
+         .catch(() => {})
       return () => { cancelled = true }
     }
 
-    setDoctors(matching)
-  }, [selectedSpecialty, allDoctors])
+    setDoctors(filterDoctorsByService(selectedServiceType, allDoctors))
+  }, [selectedServiceType, allDoctors])
 
   // --- Cargar horario del médico ---
   useEffect(() => {
@@ -293,38 +384,59 @@ export default function CreateAppointmentPage() {
     }).catch(() => setScheduleDays(null))
   }, [selectedDoctor])
 
-  // --- Cargar slots disponibles ---
+  // --- Cargar slots disponibles (filtrados por citas ya agendadas) ---
   useEffect(() => {
     if (!selectedDoctor || !selectedDate) { setAvailability([]); setSelectedTime(''); return }
     setLoadingSlots(true)
     setSelectedTime('')
-    medicalApi.getAvailability(selectedDoctor, selectedDate)
-        .then(res => setAvailability(res.data || []))
-        .catch(() => setAvailability([]))
-        .finally(() => setLoadingSlots(false))
+    Promise.all([
+      medicalApi.getAvailability(selectedDoctor, selectedDate),
+      appointmentApi.listByDoctorAndDate(selectedDoctor, selectedDate).catch(() => ({ data: [] })),
+    ])
+    .then(([slotsRes, aptsRes]) => {
+      const allSlots    = slotsRes.data || []
+      // Horarios ya ocupados: citas que no están canceladas
+      const bookedTimes = new Set(
+        (aptsRes.data || [])
+          .filter(a => a.status !== 'CANCELADA')
+          .map(a => (a.startTime || '').substring(0, 5))
+      )
+      setAvailability(allSlots.filter(s => !bookedTimes.has(s.substring(0, 5))))
+    })
+    .catch(() => setAvailability([]))
+    .finally(() => setLoadingSlots(false))
   }, [selectedDoctor, selectedDate, refreshKey])
 
   // --- Buscar paciente ---
-  const handleSearchPatient = async () => {
-    if (!documentId.trim()) { setPatientError('Ingresa el número de documento'); return }
+  const handleSearchPatient = async (overrideId) => {
+    const id = String(overrideId || documentId || '')
+    if (!id.trim()) { setPatientError('Ingresa el número de documento'); return }
+    if (overrideId) setDocumentId(overrideId)
     setSearchingPatient(true)
     setPatient(null)
     setPatientName('')
     setPatientError('')
     setPatientAppointments([])
+    setPatientAuthorization(null)
     try {
       const [patRes, idRes] = await Promise.all([
-        patientApi.getById(documentId.trim()).catch(() => null),
-        identityApi.getUserById(documentId.trim()).catch(() => null),
+        patientApi.getById(id.trim()).catch(() => null),
+        identityApi.getUserById(id.trim()).catch(() => null),
       ])
       if (!patRes && !idRes) throw new Error('No encontrado')
       setPatient(patRes?.data || null)
-      setPatientName(idRes?.data?.fullName || `Paciente ${documentId}`)
+      setPatientName(idRes?.data?.fullName || patRes?.data?.fullName || `Paciente ${id}`)
       try {
-        const appointmentsRes = await appointmentApi.listByPatient(documentId.trim())
+        const appointmentsRes = await appointmentApi.listByPatient(id.trim())
         setPatientAppointments(appointmentsRes.data || [])
       } catch {
         setPatientAppointments([])
+      }
+      try {
+        const authRes = await appointmentApi.getPatientAuthorization(parseInt(id.trim()))
+        setPatientAuthorization(authRes?.status === 200 ? authRes.data : null)
+      } catch {
+        setPatientAuthorization(null)
       }
     } catch {
       setPatientError('Paciente no encontrado. Verifique el número de documento.')
@@ -352,19 +464,19 @@ export default function CreateAppointmentPage() {
     return true
   }
 
-  const hasConsultaGeneral = () => {
-    for (const apt of patientAppointments) {
-      const doctor = allDoctors.find(d => d.id === apt.doctorId)
-      if (doctor?.specialties?.includes('Consulta General')) return true
-    }
-    return false
+  // Sin autorización médica activa → solo Consulta General.
+  // Con autorización → Consulta General + el servicio autorizado.
+  const ENUM_TO_SERVICE_NAME = {
+    FISIOTERAPIA:   'Fisioterapia',
+    QUIROPRAXIA:    'Quiropraxia',
+    TERAPIA_NEURAL: 'Terapia Neural',
   }
-
   const getAvailableSpecialties = () => {
-    if (patientAppointments.length === 0 || !hasConsultaGeneral()) {
-      return specialties.filter(s => s === 'Consulta General')
+    if (patientAuthorization) {
+      const authorizedName = ENUM_TO_SERVICE_NAME[patientAuthorization.serviceType]
+      return authorizedName ? ['Consulta General', authorizedName] : ['Consulta General']
     }
-    return specialties
+    return ['Consulta General']
   }
 
   const hasActiveAppointment = () =>
@@ -382,7 +494,7 @@ export default function CreateAppointmentPage() {
   const validate = () => {
     const e = {}
     if (!patientName)       e.patient   = 'Busca y selecciona un paciente'
-    if (!selectedSpecialty) e.specialty = 'Selecciona una especialidad'
+    if (!selectedServiceType) e.specialty = 'Selecciona un tipo de servicio'
     if (!selectedDoctor)    e.doctorId  = 'Selecciona un profesional'
     if (!selectedDate)      e.date      = 'Selecciona una fecha'
     if (!selectedTime)      e.startTime = 'Selecciona una hora'
@@ -396,12 +508,18 @@ export default function CreateAppointmentPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validate()
-    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
-    setLoading(true)
+    if(Object.keys(newErrors).length > 0){ setErrors((newErrors)); return}
+    const doctor = allDoctors.find(d => d.id === parseInt(selectedDoctor));
+    const doctorName = doctor?.fullName;
+    const serviceType = SERVICE_TYPE_TO_ENUM[selectedServiceType] || selectedServiceType.replace(' ', '_').toUpperCase()
+
+    setLoading(true);
     try {
       await appointmentApi.create({
         patientId: parseInt(documentId),
         doctorId:  parseInt(selectedDoctor),
+        doctorName: doctorName,
+        serviceType: serviceType,
         date:      selectedDate,
         startTime: selectedTime,
         endTime:   addMinutes(selectedTime, intervalMinutes),
@@ -409,7 +527,7 @@ export default function CreateAppointmentPage() {
         notes:     form.notes,
       })
       setSuccess(true)
-      localStorage.setItem(`piedrazul_typeId_${form.documentId}`, form.userTypeId)
+      setRefreshKey(prev => prev + 1)       // refresca disponibilidad en caso de volver
       setTimeout(() => navigate('/appointments'), 2000)
     } catch (err) {
       setErrors({ general: err.response?.data?.message || 'Error al registrar la cita' })
@@ -465,7 +583,7 @@ export default function CreateAppointmentPage() {
                              className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors
                         ${patientError ? 'border-red-400' : 'border-gray-200 focus:border-blue-500'}`} />
                     </div>
-                    <button type="button" onClick={handleSearchPatient} disabled={searchingPatient}
+                    <button type="button" onClick={() => handleSearchPatient()} disabled={searchingPatient}
                             className="bg-blue-600 text-white rounded-xl px-5 py-2.5 text-sm font-semibold
                       hover:bg-blue-700 transition-colors disabled:opacity-50 shrink-0">
                       {searchingPatient ? 'Buscando...' : 'Buscar'}
@@ -504,50 +622,53 @@ export default function CreateAppointmentPage() {
                   )}
                 </div>
 
-                {/* Especialidad y Profesional */}
+                {/* Tipo de servicio */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-6">
+                  <h2 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-4">Tipo de Servicio</h2>
+                  <label className="block text-sm text-gray-500 mb-1">
+                    Tipo de servicio <span className="text-red-500">*</span>
+                  </label>
+                  <select value={selectedServiceType}
+                          onChange={e => { setselectedServiceType(e.target.value); setErrors({...errors, specialty: ''}) }}
+                          disabled={!patientName}
+                          className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors
+                    disabled:bg-gray-50 disabled:text-gray-400
+                    ${errors.specialty ? 'border-red-400' : 'border-gray-200 focus:border-blue-500'}`}>
+                    <option value="">
+                      {patientName ? 'Seleccionar tipo de servicio...' : 'Primero busca un paciente'}
+                    </option>
+                    {getAvailableSpecialties().map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  {errors.specialty && <p className="text-red-500 text-xs mt-1">{errors.specialty}</p>}
+                  {patientName && !patientAuthorization && (
+                      <p className="text-blue-600 text-xs mt-1">
+                        ℹ️ Sin autorización médica activa, solo puede agendar Consulta General
+                      </p>
+                  )}
+                  {patientName && patientAuthorization && (
+                      <p className="text-green-600 text-xs mt-1">
+                        ✅ Autorizado para{' '}
+                        {ENUM_TO_SERVICE_NAME[patientAuthorization.serviceType] || patientAuthorization.serviceType}
+                      </p>
+                  )}
+                </div>
+
+                {/* Profesional */}
                 <div className="bg-white rounded-2xl border border-gray-100 p-6">
                   <h2 className="font-semibold text-sm uppercase tracking-wider text-gray-500 mb-4">Profesional</h2>
-
-                  <div className="mb-4">
-                    <label className="block text-sm text-gray-500 mb-1">
-                      Especialidad <span className="text-red-500">*</span>
-                    </label>
-                    <select value={selectedSpecialty}
-                            onChange={e => { setSelectedSpecialty(e.target.value); setErrors({...errors, specialty: ''}) }}
-                            disabled={!patientName}
-                            className={`w-full border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors
-                      disabled:bg-gray-50 disabled:text-gray-400
-                      ${errors.specialty ? 'border-red-400' : 'border-gray-200 focus:border-blue-500'}`}>
-                      <option value="">
-                        {patientName ? 'Seleccionar especialidad...' : 'Primero busca un paciente'}
-                      </option>
-                      {getAvailableSpecialties().map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    {errors.specialty && <p className="text-red-500 text-xs mt-1">{errors.specialty}</p>}
-                    {patientName && patientAppointments.length === 0 && (
-                        <p className="text-blue-600 text-xs mt-1">
-                          ℹ️ Como paciente nuevo, debes agendar primero con Consulta General
-                        </p>
-                    )}
-                    {patientName && patientAppointments.length > 0 && !hasConsultaGeneral() && (
-                        <p className="text-orange-600 text-xs mt-1">
-                          ℹ️ Debes tener al menos una cita con Consulta General antes de acceder a otros servicios
-                        </p>
-                    )}
-                  </div>
 
                   <div>
                     <label className="block text-sm text-gray-500 mb-1">
                       Profesional <span className="text-red-500">*</span>
                     </label>
                     <div className="flex gap-2">
-                      <select value={selectedDoctor} disabled={!selectedSpecialty}
+                      <select value={selectedDoctor} disabled={!selectedServiceType}
                               onChange={e => { setSelectedDoctor(e.target.value); setSelectedDate(''); setSelectedTime(''); setErrors({...errors, doctorId: ''}) }}
                               className={`flex-1 border rounded-xl px-4 py-2.5 text-sm focus:outline-none transition-colors
                         disabled:bg-gray-50 disabled:text-gray-400
                         ${errors.doctorId ? 'border-red-400' : 'border-gray-200 focus:border-blue-500'}`}>
                         <option value="">
-                          {selectedSpecialty ? 'Seleccionar profesional...' : 'Primero selecciona una especialidad'}
+                          {selectedServiceType ? 'Seleccionar profesional...' : 'Primero selecciona un tipo de servicio'}
                         </option>
                         {doctors.map(d => (
                             <option key={d.id} value={d.id}>
@@ -566,7 +687,7 @@ export default function CreateAppointmentPage() {
                           </button>
                       )}
                     </div>
-                    {selectedSpecialty === 'Quiropraxia' && doctors.length === 0 && (
+                    {selectedServiceType === 'Quiropraxia' && doctors.length === 0 && (
                         <p className="text-orange-600 text-xs mt-1">
                           ⚠️ No hay especialistas en Quiropraxia disponibles (activos y con horario definido).
                         </p>
@@ -732,9 +853,9 @@ export default function CreateAppointmentPage() {
             <RegisterPatientModal
                 documentId={documentId}
                 onClose={() => setShowRegisterModal(false)}
-                onSuccess={() => {
+                onSuccess={(newDocId) => {
                   setShowRegisterModal(false)
-                  handleSearchPatient()
+                  handleSearchPatient(newDocId)
                 }}
             />
         )}

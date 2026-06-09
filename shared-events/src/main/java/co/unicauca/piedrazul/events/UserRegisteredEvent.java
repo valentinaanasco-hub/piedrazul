@@ -10,7 +10,7 @@ package co.unicauca.piedrazul.events;
  * @param state    Estado del usuario: ACTIVO, INACTIVO
  */
 public record UserRegisteredEvent(
-        int userId,
+        long userId,
         String fullName,
         String role,
         String state

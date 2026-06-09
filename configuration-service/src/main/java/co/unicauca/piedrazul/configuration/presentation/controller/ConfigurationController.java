@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public class ConfigurationController {
     // ========== CONFIGURACIÓN GLOBAL ==========
 
     @GetMapping("/global")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENDADOR', 'DOCTOR')")
     @Operation(summary = "Obtener configuración global",
                description = "Retorna la configuración global del sistema (ventana de tiempo para agendar citas)")
     public ResponseEntity<GlobalConfigurationResponse> getGlobalConfiguration() {
@@ -42,6 +44,7 @@ public class ConfigurationController {
     }
 
     @PutMapping("/global/appointment-window")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Actualizar ventana de tiempo para agendar citas",
                description = "Define cuántas semanas hacia adelante se pueden agendar citas. Publica evento asíncrono.")
     public ResponseEntity<?> updateAppointmentWindow(
@@ -59,6 +62,7 @@ public class ConfigurationController {
     // ========== CONFIGURACIÓN POR PROFESIONAL ==========
 
     @GetMapping("/doctor/{doctorId}/schedule")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Obtener horarios de un profesional",
                description = "Retorna la configuración de días, horarios e intervalos de un profesional")
     public ResponseEntity<List<DoctorScheduleResponse>> getDoctorSchedule(@PathVariable int doctorId) {
@@ -70,6 +74,7 @@ public class ConfigurationController {
     }
 
     @PutMapping("/doctor/{doctorId}/schedule")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Actualizar horarios de un profesional",
                description = "Define los días de atención, franja horaria e intervalo entre citas. Publica evento asíncrono.")
     public ResponseEntity<?> updateDoctorSchedule(
@@ -111,6 +116,7 @@ public class ConfigurationController {
     }
 
     @DeleteMapping("/doctor/{doctorId}/schedule")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar horarios de un profesional",
                description = "Elimina toda la configuración de horarios de un profesional. Publica evento asíncrono.")
     public ResponseEntity<?> deleteDoctorSchedule(@PathVariable int doctorId) {

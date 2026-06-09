@@ -21,6 +21,11 @@ public class RabbitMQConfig {
     public static final String ROUTING_KEY_APPOINTMENT_CREATED = "appointment.created";
     public static final String QUEUE_USER_REGISTERED           = "appointment.user.registered";
 
+    // Eventos de configuración global (publicados por configuration-service)
+    public static final String CONFIGURATION_EXCHANGE  = "piedrazul.configuration.exchange";
+    public static final String QUEUE_GLOBAL_CONFIG     = "appointment.global.config.updated";
+    public static final String ROUTING_KEY_GLOBAL_CONFIG = "global.config.updated";
+
     @Bean
     public TopicExchange appointmentExchange() {
         return new TopicExchange(APPOINTMENT_EXCHANGE);
@@ -37,6 +42,25 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(userRegisteredQueue)
                 .to(appointmentExchange)
                 .with("user.registered");
+    }
+
+    // Cola para eventos de configuración global
+    @Bean
+    public TopicExchange configurationExchange() {
+        return new TopicExchange(CONFIGURATION_EXCHANGE);
+    }
+
+    @Bean
+    public Queue globalConfigQueue() {
+        return new Queue(QUEUE_GLOBAL_CONFIG, true);
+    }
+
+    @Bean
+    public Binding globalConfigBinding(Queue globalConfigQueue,
+                                        TopicExchange configurationExchange) {
+        return BindingBuilder.bind(globalConfigQueue)
+                .to(configurationExchange)
+                .with(ROUTING_KEY_GLOBAL_CONFIG);
     }
 
     @Bean

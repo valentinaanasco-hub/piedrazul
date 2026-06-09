@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -25,32 +26,26 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-/**
- * Controlador REST para gestión del personal médico.
- *
- * @author Ginner Ortega
- */
 @RestController
 @RequestMapping("/api/v1/medical")
 @Tag(name = "Medical Staff", description = "Gestión de médicos, horarios y disponibilidad")
 public class MedicalStaffController {
 
     private final MedicalStaffService medicalStaffService;
-    private final MedicalMapper       medicalMapper;
-    private final DoctorFacade        doctorFacade;
+    private final MedicalMapper medicalMapper;
+    private final DoctorFacade doctorFacade;
 
     public MedicalStaffController(MedicalStaffService medicalStaffService,
                                    MedicalMapper medicalMapper,
                                    DoctorFacade doctorFacade) {
         this.medicalStaffService = medicalStaffService;
-        this.medicalMapper       = medicalMapper;
-        this.doctorFacade        = doctorFacade;
+        this.medicalMapper = medicalMapper;
+        this.doctorFacade = doctorFacade;
     }
-
-    // --- Médicos ---
 
     @GetMapping("/doctors")
     @Operation(summary = "Listar todos los médicos")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<DoctorResponse>> listDoctors() {
         return ResponseEntity.ok(
                 medicalStaffService.listAllDoctors().stream()
@@ -61,6 +56,7 @@ public class MedicalStaffController {
 
     @GetMapping("/doctors/{id}")
     @Operation(summary = "Obtener médico por ID")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getDoctorById(@PathVariable int id) {
         try {
             return ResponseEntity.ok(medicalMapper.toResponse(medicalStaffService.findDoctorById(id)));
@@ -71,6 +67,7 @@ public class MedicalStaffController {
 
     @GetMapping("/doctors/specialty/{specialtyId}")
     @Operation(summary = "Listar médicos por especialidad")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<DoctorResponse>> listDoctorsBySpecialty(@PathVariable int specialtyId) {
         return ResponseEntity.ok(
                 medicalStaffService.listDoctorsBySpecialty(specialtyId).stream()
@@ -79,10 +76,9 @@ public class MedicalStaffController {
         );
     }
 
-    // --- Horarios ---
-
     @GetMapping("/doctors/{id}/schedule")
     @Operation(summary = "Obtener horario de un médico")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENDADOR', 'DOCTOR', 'PACIENTE')")
     public ResponseEntity<?> getDoctorSchedule(@PathVariable int id) {
         try {
             return ResponseEntity.ok(
@@ -97,47 +93,35 @@ public class MedicalStaffController {
 
     @PutMapping("/doctors/{id}/schedule")
     @Operation(summary = "Actualizar horario de un médico")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateSchedule(
             @PathVariable int id,
             @Valid @RequestBody ScheduleUpdateRequest request) {
         try {
             List<DoctorSchedule> schedules = medicalMapper.toEntities(request);
-            List<DoctorSchedule> saved     = medicalStaffService.updateSchedule(id, schedules);
-            return ResponseEntity.ok(
-                    saved.stream().map(medicalMapper::toResponse).toList()
-            );
+            List<DoctorSchedule> saved = medicalStaffService.updateSchedule(id, schedules);
+            return ResponseEntity.ok(saved.stream().map(medicalMapper::toResponse).toList());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse(e.getMessage()));
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 
-    // --- Disponibilidad ---
-
     @GetMapping("/availability")
-    @Operation(
-            summary = "Obtener disponibilidad de un médico",
-            description = "Retorna las franjas horarias disponibles para un médico en una fecha dada. Los slots ocupados se consultan automáticamente desde Redis"
-    )
+    @Operation(summary = "Obtener disponibilidad de un médico")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENDADOR', 'PACIENTE', 'DOCTOR')")
     public ResponseEntity<?> getAvailability(
             @RequestParam int doctorId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         try {
-            List<String> slots = medicalStaffService.getAvailability(doctorId, date);
-            return ResponseEntity.ok(slots);
+            return ResponseEntity.ok(medicalStaffService.getAvailability(doctorId, date));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse(e.getMessage()));
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 
-    // --- Facade: información completa del médico en una sola llamada ---
-
     @GetMapping("/doctors/{id}/full-info")
-    @Operation(
-            summary = "Información completa del médico",
-            description = "Retorna en una sola llamada los datos del médico, sus horarios y las franjas disponibles para una fecha. Usa el patrón Facade para simplificar la interfaz del subsistema"
-    )
+    @Operation(summary = "Información completa del médico")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AGENDADOR')")
     public ResponseEntity<?> getDoctorFullInfo(
             @PathVariable int id,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
@@ -145,8 +129,7 @@ public class MedicalStaffController {
             DoctorFullInfoResponse info = doctorFacade.getDoctorFullInfo(id, date);
             return ResponseEntity.ok(info);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse(e.getMessage()));
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 }

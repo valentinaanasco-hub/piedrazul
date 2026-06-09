@@ -1,17 +1,17 @@
 package co.unicauca.piedrazul.appointment.domain.service.validator;
 
+import co.unicauca.piedrazul.appointment.domain.exception.AppointmentConflictException;
 import co.unicauca.piedrazul.appointment.domain.model.Appointment;
 import co.unicauca.piedrazul.appointment.domain.model.AppointmentStatus;
 import co.unicauca.piedrazul.appointment.domain.port.out.AppointmentRepositoryPort;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Valida que un paciente no tenga más de una cita activa (AGENDADA).
  * Regla de negocio: solo se permite 1 cita agendada por paciente a la vez.
+ * Clase pura de dominio — registrada como @Bean en AppConfig.
  */
-@Component
 public class ActiveAppointmentValidator implements AppointmentValidator {
 
     private final AppointmentRepositoryPort repositoryPort;
@@ -22,9 +22,8 @@ public class ActiveAppointmentValidator implements AppointmentValidator {
 
     @Override
     public void validate(Appointment appointment, List<Appointment> existingOnDate) {
-        // La regla "máximo 1 cita activa" solo aplica al CREAR una cita nueva
-        // (appointmentId == 0). Al reagendar/modificar una cita existente no se
-        // agrega otra cita activa, por lo que no debe bloquearse.
+        // La regla solo aplica al CREAR una cita nueva (appointmentId == 0).
+        // Al reagendar no se agrega otra cita activa.
         if (appointment.getAppointmentId() != 0) {
             return;
         }
@@ -33,7 +32,7 @@ public class ActiveAppointmentValidator implements AppointmentValidator {
                 .findByPatientIdAndStatus(appointment.getPatientId(), AppointmentStatus.AGENDADA);
 
         if (!activeAppointments.isEmpty()) {
-            throw new IllegalArgumentException(
+            throw new AppointmentConflictException(
                     "Ya tienes una cita agendada. Debes esperar a que sea atendida o cancelada antes de agendar otra");
         }
     }

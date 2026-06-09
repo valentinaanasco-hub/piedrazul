@@ -106,12 +106,11 @@ public class MedicalStaffService {
             doctor.setMiddleName(row[3] != null ? (String) row[3] : null);
             doctor.setFirstSurname((String) row[4]);
             doctor.setLastName(row[5] != null ? (String) row[5] : null);
-            // Cargar especialidades
-            doctor.setSpecialties(
-                    doctorRepository.findById(doctor.getId())
-                            .map(Doctor::getSpecialties)
-                            .orElse(List.of())
-            );
+            // Cargar especialidades y tipo desde JPA (eager)
+            doctorRepository.findById(doctor.getId()).ifPresent(d -> {
+                doctor.setSpecialties(d.getSpecialties());
+                doctor.setType(d.getType());
+            });
             return doctor;
         }).toList();
     }

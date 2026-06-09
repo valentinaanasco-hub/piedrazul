@@ -68,7 +68,7 @@ public class ServiceClients {
     /**
      * Rollback — desactiva el usuario en identity-service si el registro del paciente falló.
      */
-    public void deactivateUser(int userId) {
+    public void deactivateUser(long userId) {
         try {
             restTemplate.patchForObject(
                     identityUrl + "/api/v1/identity/users/" + userId + "/deactivate",

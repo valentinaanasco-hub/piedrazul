@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
@@ -58,7 +58,7 @@ class PatientRegistrationSagaTest {
         assertNotNull(result);
         assertEquals("Registro exitoso", result.message());
         assertEquals(12345678, result.userId());
-        verify(serviceClients, never()).deactivateUser(anyInt());
+        verify(serviceClients, never()).deactivateUser(anyLong());
     }
 
     // --- Fallo en paso 1 ---
@@ -70,7 +70,7 @@ class PatientRegistrationSagaTest {
         assertThrows(SagaException.class, () -> saga.execute(validRequest));
 
         // No debe compensar porque el paso 1 falló — no hay nada que revertir
-        verify(serviceClients, never()).deactivateUser(anyInt());
+        verify(serviceClients, never()).deactivateUser(anyLong());
         verify(serviceClients, never()).registerPatient(any());
     }
 
@@ -105,7 +105,7 @@ class PatientRegistrationSagaTest {
     void execute_compensacionFalla_noLanzaExcepcionAdicional() {
         when(serviceClients.registerUser(any())).thenReturn(ResponseEntity.status(HttpStatus.CREATED).build());
         when(serviceClients.registerPatient(any())).thenReturn(ResponseEntity.status(HttpStatus.CONFLICT).build());
-        doThrow(new RuntimeException("Error al desactivar")).when(serviceClients).deactivateUser(anyInt());
+        doThrow(new RuntimeException("Error al desactivar")).when(serviceClients).deactivateUser(anyLong());
 
         // La saga lanza SagaException pero no una excepción adicional por la compensación fallida
         assertThrows(SagaException.class, () -> saga.execute(validRequest));

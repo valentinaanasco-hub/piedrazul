@@ -1,56 +1,47 @@
 package co.unicauca.piedrazul.appointment.domain.service.validator;
 
+import co.unicauca.piedrazul.appointment.domain.exception.AppointmentValidationException;
 import co.unicauca.piedrazul.appointment.domain.model.Appointment;
-import co.unicauca.piedrazul.appointment.domain.port.out.AppointmentRepositoryPort;
-import co.unicauca.piedrazul.appointment.domain.port.out.DoctorSpecialtyPort;
-import org.springframework.stereotype.Component;
+import co.unicauca.piedrazul.appointment.domain.model.PatientAuthorization;
+import co.unicauca.piedrazul.appointment.domain.model.ServiceType;
+import co.unicauca.piedrazul.appointment.domain.port.out.PatientAuthorizationPort;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Valida que un paciente haya pasado por Consulta General antes de acceder a otros servicios.
- * Regla de negocio: todo paciente debe tener al menos una cita de Consulta General.
- * (Como todos los médicos ofrecen Consulta General, el requisito se cumple con cualquier
- *  médico; la guía de "primera cita = Consulta General" se refuerza en el frontend.)
+ * Valida el acceso a servicios especializados mediante autorización médica explícita.
+ * Regla: sin autorización vigente del médico, el paciente solo puede agendar Consulta General.
+ * Clase pura de dominio — registrada como @Bean en AppConfig.
  */
-@Component
 public class MedicinaGeneralValidator implements AppointmentValidator {
 
-    private final AppointmentRepositoryPort repositoryPort;
-    private final DoctorSpecialtyPort       doctorSpecialtyPort;
+    private final PatientAuthorizationPort authorizationPort;
 
-    public MedicinaGeneralValidator(AppointmentRepositoryPort repositoryPort,
-                                    DoctorSpecialtyPort doctorSpecialtyPort) {
-        this.repositoryPort      = repositoryPort;
-        this.doctorSpecialtyPort = doctorSpecialtyPort;
+    public MedicinaGeneralValidator(PatientAuthorizationPort authorizationPort) {
+        this.authorizationPort = authorizationPort;
     }
 
     @Override
     public void validate(Appointment appointment, List<Appointment> existingOnDate) {
-        String specialty = doctorSpecialtyPort.getSpecialtyByDoctorId(appointment.getDoctorId());
+        // Al reagendar no se re-valida (ya fue aprobado al crear)
+        if (appointment.getAppointmentId() != 0) return;
 
-        if ("Consulta General".equalsIgnoreCase(specialty)) {
-            return;
-        }
+        // Consulta General siempre permitida
+        if (appointment.getServiceType() == ServiceType.CONSULTA_GENERAL) return;
 
-        List<Appointment> patientAppointments =
-                repositoryPort.findByPatientIdOrderByDateDesc(appointment.getPatientId());
+        // Para cualquier servicio especializado: requiere autorización médica activa
+        Optional<PatientAuthorization> auth =
+                authorizationPort.findActiveByPatientId(appointment.getPatientId());
 
-        boolean hasConsultaGeneral = false;
-        for (Appointment past : patientAppointments) {
-            if (past.getAppointmentId() == appointment.getAppointmentId()) {
-                continue;
-            }
-            String pastSpecialty = doctorSpecialtyPort.getSpecialtyByDoctorId(past.getDoctorId());
-            if ("Consulta General".equalsIgnoreCase(pastSpecialty)) {
-                hasConsultaGeneral = true;
-                break;
-            }
-        }
+        boolean authorized = auth.isPresent()
+                && auth.get().getServiceType() == appointment.getServiceType();
 
-        if (!hasConsultaGeneral) {
-            throw new IllegalArgumentException(
-                    "Debes tener al menos una cita con Consulta General antes de acceder a otros servicios");
+        if (!authorized) {
+            throw new AppointmentValidationException(
+                    "Para agendar " + appointment.getServiceType().name().replace('_', ' ').toLowerCase()
+                    + " necesitas autorización médica vigente. "
+                    + "Agenda una Consulta General para que el médico pueda autorizarte.");
         }
     }
 }

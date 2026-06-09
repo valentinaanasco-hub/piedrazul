@@ -164,6 +164,11 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: piedrazul
       SPRING_RABBITMQ_PASSWORD: piedrazul_pass
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/piedrazul
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/piedrazul/protocol/openid-connect/certs
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_ADMIN_USER: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "8081:8081"
     depends_on:
@@ -188,6 +193,8 @@ services:
       SPRING_RABBITMQ_PASSWORD: piedrazul_pass
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/piedrazul
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/piedrazul/protocol/openid-connect/certs
     ports:
       - "8082:8082"
     depends_on:
@@ -211,6 +218,9 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: piedrazul
       SPRING_RABBITMQ_PASSWORD: piedrazul_pass
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/piedrazul
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/piedrazul/protocol/openid-connect/certs
+      IDENTITY_SERVICE_URL: http://identity-service:8081
     ports:
       - "8083:8083"
     depends_on:
@@ -237,6 +247,8 @@ services:
       SPRING_DATA_REDIS_PORT: 6379
       MEDICAL_STAFF_SERVICE_URL: http://medical-staff-service:8082/api/v1/medical
       IDENTITY_SERVICE_URL: http://identity-service:8081/api/v1/identity
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/piedrazul
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/piedrazul/protocol/openid-connect/certs
     ports:
       - "8084:8084"
     depends_on:
@@ -260,11 +272,15 @@ services:
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: piedrazul
       SPRING_RABBITMQ_PASSWORD: piedrazul_pass
+      KEYCLOAK_ISSUER_URI: http://localhost:8180/realms/piedrazul
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/piedrazul/protocol/openid-connect/certs
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
     ports:
       - "8085:8085"
     depends_on:
       - postgres-configuration
       - rabbitmq
+      - keycloak
     networks:
       - piedrazul-network
 

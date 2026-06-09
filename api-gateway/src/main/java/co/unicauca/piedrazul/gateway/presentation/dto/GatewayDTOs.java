@@ -16,7 +16,7 @@ public class GatewayDTOs {
      */
     public record PatientRegisterRequest(
             @Positive(message = "El número de documento debe ser positivo")
-            int documentId,
+            long documentId,
 
             @NotBlank(message = "El tipo de documento es obligatorio")
             String userTypeId,
@@ -57,13 +57,13 @@ public class GatewayDTOs {
             String username,
             String password,
             String userTypeId,
-            int userId,
+            long userId,
             String roleName
     ) {}
 
     // --- Request para patient-service ---
     public record PatientServiceRequest(
-            int documentId,
+            long documentId,
             String userTypeId,
             String firstName,
             String middleName,
@@ -84,7 +84,7 @@ public class GatewayDTOs {
     // --- Response de registro exitoso ---
     public record RegisterResponse(
             String message,
-            int userId,
+            long userId,
             String fullName,
             String email
     ) {}

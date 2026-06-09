@@ -18,7 +18,7 @@ import PatientProfilePage             from '../pages/Patient/PatientProfilePage'
 function PrivateRoute({ children, requiredRole }) {
   const { isAuthenticated, hasRole } = useAuth()
   if (!isAuthenticated()) return <Navigate to="/login" replace />
-  if (requiredRole && !hasRole(requiredRole)) return <Navigate to="/dashboard" replace />
+  if (requiredRole && !hasRole(requiredRole)) return <Navigate to="/home" replace />
   return children
 }
 
@@ -39,7 +39,7 @@ export default function AppRouter() {
             <PrivateRoute><AppointmentsPage /></PrivateRoute>
           } />
           <Route path="/appointments/new" element={
-            <PrivateRoute><CreateAppointmentPage /></PrivateRoute>
+            <PrivateRoute requiredRole="AGENDADOR"><CreateAppointmentPage /></PrivateRoute>
           } />
           <Route path="/doctor/appointments" element={
             <PrivateRoute requiredRole="DOCTOR"><DoctorAppointmentsPage /></PrivateRoute>
@@ -87,5 +87,6 @@ export default function AppRouter() {
 function HomeRedirect() {
   const { hasRole } = useAuth()
   if (hasRole('PACIENTE')) return <Navigate to="/patient/schedule" replace />
+  if (hasRole('DOCTOR'))   return <Navigate to="/doctor/appointments" replace />
   return <Navigate to="/dashboard" replace />
 }

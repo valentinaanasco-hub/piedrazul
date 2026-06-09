@@ -18,7 +18,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
@@ -137,7 +137,7 @@ class PatientServiceTest {
 
     @Test
     void findById_idExistente_retornaPaciente() {
-        when(patientRepository.findById(12345678)).thenReturn(Optional.of(validWebPatient));
+        when(patientRepository.findById(12345678L)).thenReturn(Optional.of(validWebPatient));
 
         Patient result = patientService.findById(12345678);
 
@@ -147,7 +147,7 @@ class PatientServiceTest {
 
     @Test
     void findById_idNoExistente_lanzaExcepcion() {
-        when(patientRepository.findById(anyInt())).thenReturn(Optional.empty());
+        when(patientRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
                 () -> patientService.findById(99999));

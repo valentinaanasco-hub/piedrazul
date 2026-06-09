@@ -57,8 +57,16 @@ public class PatientService {
     /**
      * Busca un paciente por su número de documento (id).
      */
-    public Patient findById(int id) {
+    public Patient findById(long id) {
         return patientRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Paciente no encontrado"));
+    }
+
+    /**
+     * Busca un paciente por su correo electrónico (fallback cuando userId no está en el JWT).
+     */
+    public Patient findByEmail(String email) {
+        return patientRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Paciente no encontrado"));
     }
 
@@ -84,13 +92,13 @@ public class PatientService {
      * La desactivación se delega al identity-service (campo user_state).
      * Aquí solo verificamos que el paciente existe.
      */
-    public void validateExists(int id) {
+    public void validateExists(long id) {
         findById(id);
     }
 
     // --- Validación interna ---
 
-    private void validateNotDuplicate(int id) {
+    private void validateNotDuplicate(long id) {
         if (patientRepository.existsById(id)) {
             throw new IllegalArgumentException("Ya existe un paciente registrado con ese número de documento");
         }

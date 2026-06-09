@@ -16,8 +16,8 @@ export default function PatientProfilePage() {
     const [patient, setPatient] = useState(null)
 
     useEffect(() => {
-        if (!user?.id) return
-        patientApi.getById(user.id)
+        if (!user) return
+        patientApi.getMe()
             .then(res => setPatient(res.data || null))
             .catch(() => setPatient(null))
     }, [user])
@@ -26,15 +26,17 @@ export default function PatientProfilePage() {
         ? user.fullName.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
         : 'P'
 
-    // Leer userTypeId guardado en localStorage al momento del registro o login
-    const typeId   = localStorage.getItem(`piedrazul_typeId_${user?.id}`)
+    // Tipo de documento: primero del PatientResponse (más confiable), luego localStorage
+    const typeId    = patient?.userTypeId
+                   || localStorage.getItem(`piedrazul_typeId_${patient?.id}`)
+                   || localStorage.getItem(`piedrazul_typeId_${user?.id}`)
     const typeLabel = typeId ? (TYPE_LABELS[typeId] || typeId) : '—'
 
     const fields = [
         { label: 'Nombre completo',     value: user?.fullName },
-        { label: 'Correo',              value: user?.username },
+        { label: 'Correo',              value: user?.email || user?.username },
         { label: 'Tipo de documento',   value: typeLabel },
-        { label: 'Número de documento', value: user?.id },
+        { label: 'Número de documento', value: patient?.id || '—' },
         { label: 'Teléfono',            value: patient?.phone || '—' },
         { label: 'Género',              value: patient?.gender || '—' },
         { label: 'Fecha de nacimiento', value: patient?.birthDate || '—' },

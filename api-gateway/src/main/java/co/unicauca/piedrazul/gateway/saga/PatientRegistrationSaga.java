@@ -39,7 +39,7 @@ public class PatientRegistrationSaga {
      * @throws SagaException si algún paso falla.
      */
     public RegisterResponse execute(PatientRegisterRequest request) {
-        int userId = request.documentId();
+        long userId = request.documentId();
 
         // --- Paso 1: Registrar en identity-service ---
         IdentityRegisterRequest identityRequest = new IdentityRegisterRequest(
@@ -105,7 +105,7 @@ public class PatientRegistrationSaga {
     /**
      * Compensación del paso 1 — desactiva el usuario si el paso 2 falló.
      */
-    private void compensate(int userId) {
+    private void compensate(long userId) {
         try {
             serviceClients.deactivateUser(userId);
         } catch (Exception e) {

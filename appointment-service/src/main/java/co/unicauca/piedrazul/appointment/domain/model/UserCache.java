@@ -6,7 +6,7 @@ package co.unicauca.piedrazul.appointment.domain.model;
  */
 public class UserCache {
 
-    private int userId;
+    private long userId;
     private String fullName;
     private String role;
     private String state;
@@ -17,11 +17,11 @@ public class UserCache {
         return "ACTIVO".equalsIgnoreCase(state);
     }
 
-    public int getUserId()                { return userId; }
-    public void setUserId(int userId)     { this.userId = userId; }
-    public String getFullName()           { return fullName; }
+    public long getUserId() { return userId; }
+    public void setUserId(long userId) { this.userId = userId; }
+    public String getFullName() { return fullName; }
     public void setFullName(String name)  { this.fullName = name; }
-    public String getRole()               { return role; }
+    public String getRole() { return role; }
     public void setRole(String role)      { this.role = role; }
     public String getState()              { return state; }
     public void setState(String state)    { this.state = state; }

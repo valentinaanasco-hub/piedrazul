@@ -72,11 +72,11 @@ const NavIcon = ({ name }) => {
 }
 
 const NAV_ITEMS = [
-  { path: '/dashboard',           label: 'Panel de Citas', icon: 'dashboard', roles: ['AGENDADOR', 'DOCTOR', 'ADMIN'] },
-  { path: '/appointments',        label: 'Listar Citas',   icon: 'list',      roles: ['AGENDADOR', 'DOCTOR', 'ADMIN'] },
-  { path: '/appointments/new',    label: 'Registrar Cita', icon: 'plus',      roles: ['AGENDADOR', 'ADMIN'] },
+  { path: '/dashboard',           label: 'Panel de Citas', icon: 'dashboard', roles: ['AGENDADOR', 'ADMIN'] },
+  { path: '/appointments',        label: 'Listar Citas',   icon: 'list',      roles: ['AGENDADOR', 'ADMIN', 'DOCTOR'] },
+  { path: '/appointments/new',    label: 'Registrar Cita', icon: 'plus',      roles: ['AGENDADOR'] },
   { path: '/doctor/appointments', label: 'Mis Citas',      icon: 'calendar',  roles: ['DOCTOR'] },
-  { path: '/appointments/export', label: 'Exportar Citas', icon: 'download',  roles: ['AGENDADOR', 'DOCTOR', 'ADMIN'] },
+  { path: '/appointments/export', label: 'Exportar Citas', icon: 'download',  roles: ['AGENDADOR', 'ADMIN', 'DOCTOR'] },
   { path: '/admin',               label: 'Configuración',  icon: 'settings',  roles: ['ADMIN'] },
 ]
 
@@ -130,7 +130,7 @@ export default function Layout({ children }) {
           {/* Sección nav */}
           <div className="px-4 mt-2">
             <p className="text-gray-400 text-xs font-semibold px-2 pb-2 uppercase tracking-wider">
-              Administración
+              {hasRole('DOCTOR') ? 'Médico' : hasRole('AGENDADOR') ? 'Agendador' : 'Administración'}
             </p>
           </div>
 

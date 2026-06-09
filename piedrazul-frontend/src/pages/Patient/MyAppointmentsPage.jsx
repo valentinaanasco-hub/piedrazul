@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import PatientLayout from '../../components/PatientLayout'
-import { appointmentApi, medicalApi } from '../../api'
+import { appointmentApi, medicalApi, patientApi } from '../../api'
 import { useAuth } from '../../api/AuthContext'
 import { Link } from 'react-router-dom'
 
@@ -72,6 +72,9 @@ function RescheduleModal({ appointment, doctorName, onClose, onConfirm }) {
             const newEndTime  = `${String(Math.floor(newEndTotal / 60) % 24).padStart(2,'0')}:${String(newEndTotal % 60).padStart(2,'0')}`
 
             await onConfirm(appointment.appointmentId, {
+                newDoctorId:  appointment.doctorId,
+                doctorName,
+                serviceType:  appointment.serviceType,
                 newDate:      selectedDate,
                 newStartTime: selectedTime,
                 newEndTime,
@@ -183,11 +186,14 @@ export default function MyAppointmentsPage() {
     const [loading,      setLoading]            = useState(true)
     const [cancelling,   setCancelling]         = useState(null)
     const [confirmCancel, setConfirmCancel]     = useState(null)
-    const [rescheduling, setRescheduling]       = useState(null) // cita a reagendar
 
     const loadAppointments = () => {
         setLoading(true)
-        appointmentApi.listByPatient(user?.id)
+        // Resolver el ID entero del paciente vía /patients/me antes de buscar citas
+        patientApi.getMe()
+            .then(meRes => meRes.data?.id)
+            .catch(() => user?.id)            // fallback al id del token si el servicio falla
+            .then(patientId => appointmentApi.listByPatient(patientId))
             .then(res => {
                 const appts = res.data || []
                 setAppointments(appts)
@@ -225,12 +231,6 @@ export default function MyAppointmentsPage() {
         } finally {
             setCancelling(null)
         }
-    }
-
-    const handleReschedule = async (id, data) => {
-        await appointmentApi.reschedule(id, data)
-        setRescheduling(null)
-        loadAppointments()
     }
 
     const formatDate = (dateStr) => {
@@ -297,14 +297,6 @@ export default function MyAppointmentsPage() {
                                         {/* Acciones — solo si está AGENDADA o REAGENDADA */}
                                         {(apt.status === 'AGENDADA' || apt.status === 'REAGENDADA') && (
                                             <div className="flex items-center gap-2 shrink-0">
-                                                {/* Botón reagendar */}
-                                                <button onClick={() => setRescheduling(apt)}
-                                                        className="text-xs text-blue-500 hover:text-blue-700
-                                                        transition-colors font-medium border border-blue-200
-                                                        rounded-lg px-3 py-1 hover:bg-blue-50">
-                                                    Reagendar
-                                                </button>
-
                                                 {/* Botón cancelar */}
                                                 {confirmCancel === apt.appointmentId ? (
                                                     <div className="flex items-center gap-1">
@@ -350,15 +342,6 @@ export default function MyAppointmentsPage() {
                 </div>
             </div>
 
-            {/* Modal de reagendamiento */}
-            {rescheduling && (
-                <RescheduleModal
-                    appointment={rescheduling}
-                    doctorName={doctorNames[rescheduling.doctorId] || `Profesional ${rescheduling.doctorId}`}
-                    onClose={() => setRescheduling(null)}
-                    onConfirm={handleReschedule}
-                />
-            )}
         </PatientLayout>
     )
 }

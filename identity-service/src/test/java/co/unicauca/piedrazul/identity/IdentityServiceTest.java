@@ -135,7 +135,7 @@ class IdentityServiceTest {
 
     @Test
     void findById_idExistente_retornaUsuario() {
-        when(userRepository.findById(12345678)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(12345678L)).thenReturn(Optional.of(testUser));
 
         User result = identityService.findById(12345678);
 
@@ -145,7 +145,7 @@ class IdentityServiceTest {
 
     @Test
     void findById_idNoExistente_lanzaExcepcion() {
-        when(userRepository.findById(anyInt())).thenReturn(Optional.empty());
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class,
                 () -> identityService.findById(99999));
@@ -153,7 +153,7 @@ class IdentityServiceTest {
 
     @Test
     void deactivate_usuarioActivo_cambiaEstado() {
-        when(userRepository.findById(12345678)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(12345678L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         identityService.deactivate(12345678);
